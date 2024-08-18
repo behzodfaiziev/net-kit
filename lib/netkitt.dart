@@ -1,4 +1,4 @@
-library networkify;
+library netkitt;
 
 /// A Calculator.
 class Calculator {
