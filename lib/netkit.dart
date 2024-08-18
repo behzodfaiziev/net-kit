@@ -1,4 +1,4 @@
-library netkitt;
+library netkit;
 
 /// A Calculator.
 class Calculator {
