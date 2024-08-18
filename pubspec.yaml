@@ -1,18 +1,35 @@
 name: netkit
+
 description: "Network Manager"
+
 version: 0.0.1
-homepage: https://example.com
+
+homepage: https://github.com/behzodfaiziev/netkit
+issue_tracker: https://github.com/behzodfaiziev/netkit/issues
+topics:
+  - network
+  - network-manager
+  - clean-architecture
 
 environment:
-  sdk: ^3.5.0
-  flutter: ">=1.17.0"
+  sdk: '>=3.4.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  # Core
+  equatable: ^2.0.5
+
+  # Network Manager
+  dio: ^5.6.0
+
+
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  # Code analysis
+  very_good_analysis: ^6.0.0
+
 flutter:
