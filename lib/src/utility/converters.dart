@@ -1,4 +1,4 @@
-import '../interface/i_net_kit_model.dart';
+import '../model/i_net_kit_model.dart';
 import 'typedef/request_type_def.dart';
 
 class Converters {

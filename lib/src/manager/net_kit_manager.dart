@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
 import '../enum/request_method.dart';
-import '../interface/i_net_kit_model.dart';
+import '../model/i_net_kit_model.dart';
 import '../model/error/error_model.dart';
 import '../utility/converters.dart';
 import '../utility/typedef/request_type_def.dart';
