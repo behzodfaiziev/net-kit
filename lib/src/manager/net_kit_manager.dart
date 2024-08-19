@@ -38,6 +38,9 @@ class NetKitManager extends ErrorHandler
     /// The default value is ['statusCode']
     super.errorStatusCodeKey = 'statusCode',
 
+    /// The HTTP client adapter
+    HttpClientAdapter? httpClientAdapter,
+
     /// The development base URL for test mode
     String? devBaseUrl,
 
@@ -55,6 +58,7 @@ class NetKitManager extends ErrorHandler
   }) {
     /// Initialize the network manager
     _initialize(
+      clientAdapter: httpClientAdapter,
       baseUrl: baseUrl,
       errorMessageKey: errorMessageKey,
       errorStatusCodeKey: errorStatusCodeKey,
@@ -214,6 +218,7 @@ class NetKitManager extends ErrorHandler
     Interceptor? interceptor,
     bool testMode = false,
     bool loggerEnabled = false,
+    HttpClientAdapter? clientAdapter,
   }) {
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
@@ -229,7 +234,7 @@ class NetKitManager extends ErrorHandler
     );
 
     /// Set up the http client adapter
-    httpClientAdapter = IOHttpClientAdapter();
+    httpClientAdapter = clientAdapter ?? IOHttpClientAdapter();
 
     /// If test mode is enabled, use devBaseUrl
     parameters.testMode
