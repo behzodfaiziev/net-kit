@@ -1,5 +1,5 @@
 import '../interface/i_net_kit_model.dart';
-import 'typedef/request_type_defs.dart';
+import 'typedef/request_type_def.dart';
 
 class Converters {
   /// Converts the data to a request body data.

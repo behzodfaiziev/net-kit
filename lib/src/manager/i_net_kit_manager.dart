@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../enum/request_method.dart';
 import '../interface/i_net_kit_model.dart';
-import '../utility/typedef/request_type_defs.dart';
+import '../utility/typedef/request_type_def.dart';
 import 'params/net_kit_params.dart';
 
 abstract class INetKitManager {

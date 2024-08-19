@@ -1,4 +1,4 @@
-final class ErrorModel {
+class ErrorModel {
   ErrorModel({required this.statusCode, required this.description});
 
   final int? statusCode;
