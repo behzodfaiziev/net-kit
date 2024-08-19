@@ -3,9 +3,10 @@ import 'package:dio/dio.dart';
 class NetKitParams {
   const NetKitParams({
     required this.baseOptions,
+    required this.errorMessageKey,
+    required this.errorStatusCodeKey,
     this.interceptor,
     this.testMode = false,
-    this.bypassSSLCertificate = false,
     this.loggerEnabled = false,
   });
 
@@ -15,7 +16,9 @@ class NetKitParams {
 
   final bool testMode;
 
-  final bool bypassSSLCertificate;
-
   final bool loggerEnabled;
+
+  final String errorMessageKey;
+
+  final String errorStatusCodeKey;
 }

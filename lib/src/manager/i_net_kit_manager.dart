@@ -10,6 +10,8 @@ abstract class INetKitManager {
 
   NetKitParams get parameters;
 
+  BaseOptions get baseOptions;
+
   RequestModel<R> requestModel<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
@@ -45,6 +47,8 @@ abstract class INetKitManager {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
   });
+
+  Map<String, dynamic> getAllHeaders();
 
   void addHeader(MapEntry<String, String> mapEntry);
 

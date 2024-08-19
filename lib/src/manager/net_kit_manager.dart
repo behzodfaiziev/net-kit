@@ -12,27 +12,52 @@ import '../utility/typedef/request_type_def.dart';
 import 'i_net_kit_manager.dart';
 import 'params/net_kit_params.dart';
 
+part 'error/error_handler.dart';
+
 /// The NetKitManager class is a network manager that extends DioMixin and
 /// implements the INetKitManager interface.
 /// It is designed to handle HTTP requests and responses, providing methods to
 /// send requests and parse responses into models or lists of models.
-/// The class supports various configurations such as base URLs, interceptors,
-/// SSL certificate bypassing, and logging. It also includes error handling and
+/// The class supports various configurations such as base URLs, interceptors
+/// and logging. It also includes error handling and
 /// response validation mechanisms. The NetKitManager is initialized with
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
-class NetKitManager extends DioMixin implements INetKitManager {
+class NetKitManager extends ErrorHandler
+    with DioMixin
+    implements INetKitManager {
   NetKitManager({
+    /// The base URL for the network requests
     required String baseUrl,
+
+    /// The key to use for error messages
+    /// The default value is ['message']
+    super.errorMessageKey = 'message',
+
+    /// The key to use for error status codes
+    /// The default value is ['statusCode']
+    super.errorStatusCodeKey = 'statusCode',
+
+    /// The development base URL for test mode
     String? devBaseUrl,
+
+    /// The base options for the network requests
     BaseOptions? baseOptions,
+
+    /// The interceptor for the network requests
     Interceptor? interceptor,
+
+    /// Whether the network manager is in test mode
     bool testMode = false,
+
+    /// Whether the logger is enabled
     bool loggerEnabled = false,
   }) {
     /// Initialize the network manager
     _initialize(
       baseUrl: baseUrl,
+      errorMessageKey: errorMessageKey,
+      errorStatusCodeKey: errorStatusCodeKey,
       devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
@@ -43,6 +68,9 @@ class NetKitManager extends DioMixin implements INetKitManager {
 
   @override
   late final NetKitParams parameters;
+
+  @override
+  BaseOptions get baseOptions => parameters.baseOptions;
 
   @override
   RequestModel<R> requestModel<R extends INetKitModel<R>>({
@@ -69,19 +97,13 @@ class NetKitManager extends DioMixin implements INetKitManager {
       /// Check if the response data is a map
       /// If not, throw an exception
       if ((response.data is MapType) == false) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          error: 'Could not parse the response.',
-        );
+        throw _notMapTypeError(response);
       }
-      return Right(Converters.toModel(response.data as MapType, model));
+      final parsedModel = Converters.toModel(response.data as MapType, model);
+
+      return Right(parsedModel);
     } on DioException catch (error) {
-      return Left(
-        ErrorModel(
-          statusCode: error.response?.statusCode,
-          description: error.response?.data.toString(),
-        ),
-      );
+      return _errorHandler(error);
     }
   }
 
@@ -108,12 +130,7 @@ class NetKitManager extends DioMixin implements INetKitManager {
       );
       return Right(Converters.toListModel(response.data, model));
     } on DioException catch (error) {
-      return Left(
-        ErrorModel(
-          statusCode: error.response?.statusCode,
-          description: error.response?.data.toString(),
-        ),
-      );
+      return _errorHandler(error);
     }
   }
 
@@ -140,12 +157,7 @@ class NetKitManager extends DioMixin implements INetKitManager {
 
       return const Right(null);
     } on DioException catch (error) {
-      return Left(
-        ErrorModel(
-          statusCode: error.response?.statusCode,
-          description: error.response?.data.toString(),
-        ),
-      );
+      return _errorHandler<void>(error);
     }
   }
 
@@ -174,19 +186,16 @@ class NetKitManager extends DioMixin implements INetKitManager {
       );
 
       if (isRequestFailed(response.statusCode)) {
+        /// Throw an exception if the request failed
         throw DioException(
           requestOptions: response.requestOptions,
           response: response,
+          stackTrace: StackTrace.current,
         );
       }
       return response;
     } on DioException {
       rethrow;
-    } on Exception {
-      throw DioException(
-        requestOptions: RequestOptions(path: path),
-        error: 'Something went wrong: exception thrown',
-      );
     }
   }
 
@@ -198,6 +207,8 @@ class NetKitManager extends DioMixin implements INetKitManager {
 
   void _initialize({
     required String baseUrl,
+    required String errorMessageKey,
+    required String errorStatusCodeKey,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -210,6 +221,8 @@ class NetKitManager extends DioMixin implements INetKitManager {
 
     parameters = NetKitParams(
       baseOptions: baseOptions,
+      errorMessageKey: errorMessageKey,
+      errorStatusCodeKey: errorStatusCodeKey,
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,
@@ -233,27 +246,32 @@ class NetKitManager extends DioMixin implements INetKitManager {
   }
 
   @override
+  Map<String, dynamic> getAllHeaders() {
+    return baseOptions.headers;
+  }
+
+  @override
   void addHeader(MapEntry<String, String> mapEntry) {
-    parameters.baseOptions.headers.addAll({mapEntry.key: mapEntry.value});
+    baseOptions.headers.addAll({mapEntry.key: mapEntry.value});
   }
 
   @override
   void addBearerToken(String token) {
-    parameters.baseOptions.headers.addAll({'Authorization': 'Bearer $token'});
+    baseOptions.headers.addAll({'Authorization': 'Bearer $token'});
   }
 
   @override
   void removeBearerToken() {
-    parameters.baseOptions.headers.remove('Authorization');
+    baseOptions.headers.remove('Authorization');
   }
 
   @override
   void clearAllHeader() {
-    parameters.baseOptions.headers.clear();
+    baseOptions.headers.clear();
   }
 
   @override
   void removeHeader(String key) {
-    parameters.baseOptions.headers.remove(key);
+    baseOptions.headers.remove(key);
   }
 }
