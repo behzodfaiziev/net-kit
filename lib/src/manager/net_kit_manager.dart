@@ -28,14 +28,12 @@ class NetKitManager extends DioMixin implements INetKitManager {
     required Interceptor interceptor,
     String? devBaseUrl,
     bool testMode = false,
-    // bool bypassSSLCertificate = false,
     bool loggerEnabled = false,
   }) {
     parameters = NetKitParams(
       baseOptions: baseOptions,
       interceptor: interceptor,
       testMode: testMode,
-      // bypassSSLCertificate: bypassSSLCertificate,
       loggerEnabled: loggerEnabled,
     );
 

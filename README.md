@@ -8,7 +8,6 @@ consistent way to perform network operations.
 
 - Supports various HTTP methods (GET, POST, PUT, DELETE, etc.)
 - Configurable base URLs for development and production
-  [//]: # (- SSL certificate bypassing for development and testing)
 - Logging of network requests and responses
 - Error handling and response validation
 - Parsing responses into models or lists of models
