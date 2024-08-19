@@ -4,10 +4,10 @@ name: Dart
 on:
   push:
     # Run the workflow on the master branch on push
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
     # Run the workflow on the master branch on pull requests
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
