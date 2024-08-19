@@ -5,8 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
 import '../enum/request_method.dart';
-import '../model/i_net_kit_model.dart';
 import '../model/error/error_model.dart';
+import '../model/i_net_kit_model.dart';
 import '../utility/converters.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'i_net_kit_manager.dart';
@@ -24,21 +24,21 @@ import 'params/net_kit_params.dart';
 class NetKitManager extends DioMixin implements INetKitManager {
   NetKitManager({
     required String baseUrl,
-    required BaseOptions baseOptions,
-    required Interceptor interceptor,
     String? devBaseUrl,
+    BaseOptions? baseOptions,
+    Interceptor? interceptor,
     bool testMode = false,
     bool loggerEnabled = false,
   }) {
-    parameters = NetKitParams(
+    /// Initialize the network manager
+    _initialize(
+      baseUrl: baseUrl,
+      devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,
     );
-
-    /// Initialize the network manager
-    _initialize(devBaseUrl, baseUrl, testMode);
   }
 
   @override
@@ -196,7 +196,25 @@ class NetKitManager extends DioMixin implements INetKitManager {
         statusCode >= HttpStatus.multipleChoices;
   }
 
-  void _initialize(String? devBaseUrl, String baseUrl, bool testMode) {
+  void _initialize({
+    required String baseUrl,
+    String? devBaseUrl,
+    BaseOptions? baseOptions,
+    Interceptor? interceptor,
+    bool testMode = false,
+    bool loggerEnabled = false,
+  }) {
+    /// Set up the base options if not provided
+    /// Making sure the BaseOptions is not null
+    baseOptions ??= BaseOptions();
+
+    parameters = NetKitParams(
+      baseOptions: baseOptions,
+      interceptor: interceptor,
+      testMode: testMode,
+      loggerEnabled: loggerEnabled,
+    );
+
     /// Set up the http client adapter
     httpClientAdapter = IOHttpClientAdapter();
 
@@ -212,5 +230,30 @@ class NetKitManager extends DioMixin implements INetKitManager {
     if (parameters.loggerEnabled && testMode == false) {
       interceptors.add(LogInterceptor());
     }
+  }
+
+  @override
+  void addHeader(MapEntry<String, String> mapEntry) {
+    parameters.baseOptions.headers.addAll({mapEntry.key: mapEntry.value});
+  }
+
+  @override
+  void addBearerToken(String token) {
+    parameters.baseOptions.headers.addAll({'Authorization': 'Bearer $token'});
+  }
+
+  @override
+  void removeBearerToken() {
+    parameters.baseOptions.headers.remove('Authorization');
+  }
+
+  @override
+  void clearAllHeader() {
+    parameters.baseOptions.headers.clear();
+  }
+
+  @override
+  void removeHeader(String key) {
+    parameters.baseOptions.headers.remove(key);
   }
 }

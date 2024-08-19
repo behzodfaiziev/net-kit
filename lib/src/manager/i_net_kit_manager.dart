@@ -45,4 +45,14 @@ abstract class INetKitManager {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
   });
+
+  void addHeader(MapEntry<String, String> mapEntry);
+
+  void addBearerToken(String token);
+
+  void removeBearerToken();
+
+  void clearAllHeader();
+
+  void removeHeader(String key);
 }
