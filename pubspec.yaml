@@ -1,6 +1,6 @@
-name: netkit
+name: net_kit
 
-description: "Network Manager"
+description: "Network Kit is a library that provides a set of tools to work with network requests."
 
 version: 0.9.0
 
@@ -22,9 +22,6 @@ dependencies:
 
   # Network Manager
   dio: ^5.6.0
-
-
-
 
 dev_dependencies:
   flutter_test:

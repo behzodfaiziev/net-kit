@@ -1,6 +1,6 @@
-# NetKitManager
+# NetKit
 
-NetKitManager is a Dart package designed to handle HTTP requests and responses efficiently. It
+NetKit is a Dart package designed to handle HTTP requests and responses efficiently. It
 extends `DioMixin` and implements the `INetKitManager` interface, providing a structured and
 consistent way to perform network operations.
 
@@ -26,7 +26,7 @@ Add the following to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  net_kit_manager: ^1.0.0
+  net_kit ^1.0.0
 ```
 
 Then run:
