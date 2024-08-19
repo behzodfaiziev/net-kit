@@ -10,7 +10,11 @@ void main() {
         'status': 500,
         'message': 'Internal Server Error',
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, 500);
       expect(errorModel.message, 'Internal Server Error');
       expect(errorModel.messages, isNull);
@@ -21,7 +25,11 @@ void main() {
         'status': 422,
         'message': ['Validation failed', 'Email is required'],
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, 422);
       expect(errorModel.message, 'Validation failed');
       expect(errorModel.messages, ['Validation failed', 'Email is required']);
@@ -31,7 +39,11 @@ void main() {
       final json = {
         'status': 401,
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, 401);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -42,7 +54,11 @@ void main() {
         'status': '500',
         'message': 'Internal Server Error',
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, HttpStatus.badRequest);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -53,7 +69,11 @@ void main() {
         'status': HttpStatus.badRequest,
         'message': 500,
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, HttpStatus.badRequest);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -64,7 +84,11 @@ void main() {
         'status': 400,
         'message': ['Invalid Request', 123],
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, HttpStatus.badRequest);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -75,7 +99,11 @@ void main() {
         'status': 400,
         'message': null,
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -86,7 +114,11 @@ void main() {
         'status': 400,
         'message': '',
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -97,7 +129,11 @@ void main() {
         'status': 400,
         'message': <String>[],
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isEmpty);
@@ -108,7 +144,11 @@ void main() {
         'status': 400,
         'message': ['Invalid Request', 123, 'Missing parameters'],
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, HttpStatus.badRequest);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
@@ -120,7 +160,11 @@ void main() {
       final json = {
         'message': errorMessage,
       };
-      final errorModel = ErrorModel.fromJson(json: json);
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
       expect(errorModel.statusCode, HttpStatus.badRequest);
       expect(errorModel.message, errorMessage);
       expect(errorModel.messages, isNull);
