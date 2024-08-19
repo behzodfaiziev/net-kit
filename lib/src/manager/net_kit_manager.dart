@@ -178,7 +178,7 @@ class NetKitManager extends ErrorHandler
       options ??= Options();
 
       /// Set the request method
-      options.method = method.toString().toUpperCase();
+      options.method = method.name.toUpperCase();
 
       final response = await request<dynamic>(
         path,
