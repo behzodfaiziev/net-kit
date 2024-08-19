@@ -13,6 +13,7 @@ abstract class INetKitManager {
   RequestModel<R> requestModel<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
+
     /// The model to parse the data to
     required R model,
     dynamic body,
