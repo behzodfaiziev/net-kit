@@ -4,10 +4,10 @@ import 'package:net_kit/src/model/error/error_model.dart';
 import 'package:net_kit/src/utility/typedef/request_type_def.dart';
 
 class MockErrorModel extends ErrorModel {
-  MockErrorModel({required super.statusCode, required super.description});
+  const MockErrorModel({required super.statusCode, required super.message});
 
   @override
-  String get description => 'Mock error';
+  String get message => 'Mock error';
 }
 
 class MockResponseModel {
@@ -18,21 +18,21 @@ class MockResponseModel {
 
 RequestModel<MockResponseModel> requestModel({bool shouldFail = false}) async {
   if (shouldFail) {
-    return left(MockErrorModel(statusCode: 500, description: 'Mock error'));
+    return left(const MockErrorModel(statusCode: 500, message: 'Mock error'));
   }
   return right(MockResponseModel('Success'));
 }
 
 RequestList<MockResponseModel> requestList({bool shouldFail = false}) async {
   if (shouldFail) {
-    return left(MockErrorModel(statusCode: 500, description: 'Mock error'));
+    return left(const MockErrorModel(statusCode: 500, message: 'Mock error'));
   }
   return right([MockResponseModel('Item1'), MockResponseModel('Item2')]);
 }
 
 RequestVoid requestVoid({bool shouldFail = false}) async {
   if (shouldFail) {
-    return left(MockErrorModel(statusCode: 500, description: 'Mock error'));
+    return left(const MockErrorModel(statusCode: 500, message: 'Mock error'));
   }
   return right(null);
 }
@@ -52,7 +52,7 @@ void main() {
       final result = await requestModel(shouldFail: true);
       expect(result.isLeft(), true);
       result.fold(
-        (error) => expect(error.description, 'Mock error'),
+        (error) => expect(error.message, 'Mock error'),
         (response) => fail('Expected a left value'),
       );
     });
@@ -75,7 +75,7 @@ void main() {
       final result = await requestList(shouldFail: true);
       expect(result.isLeft(), true);
       result.fold(
-        (error) => expect(error.description, 'Mock error'),
+        (error) => expect(error.message, 'Mock error'),
         (response) => fail('Expected a left value'),
       );
     });
@@ -93,7 +93,7 @@ void main() {
       final result = await requestVoid(shouldFail: true);
       expect(result.isLeft(), true);
       result.fold(
-        (error) => expect(error.description, 'Mock error'),
+        (error) => expect(error.message, 'Mock error'),
         (_) => fail('Expected a left value'),
       );
     });
