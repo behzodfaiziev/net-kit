@@ -20,7 +20,7 @@ class ErrorHandler {
   Left<ErrorModel, T> _errorHandler<T>(DioException error) {
     return Left(
       ErrorModel.fromJson(
-        json: error.response?.data as MapType,
+        json: error.response?.data as MapType?,
         statusCode: error.response?.statusCode,
         messageKey: errorMessageKey,
         statusCodeKey: errorStatusCodeKey,

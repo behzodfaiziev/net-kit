@@ -12,7 +12,7 @@ class ErrorModel extends Equatable {
   });
 
   factory ErrorModel.fromJson({
-    required MapType json,
+    required MapType? json,
     int? statusCode,
     String statusCodeKey = 'status',
     String messageKey = 'message',
@@ -20,6 +20,10 @@ class ErrorModel extends Equatable {
     try {
       String? singleMessage;
       List<String>? multipleMessages;
+
+      if (json == null) {
+       throw Exception('JSON is null');
+      }
 
       /// Check if the message is a string or a list
       if (json[messageKey] is String) {
