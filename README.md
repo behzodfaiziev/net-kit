@@ -3,11 +3,11 @@
 NetKit is a Dart package designed to handle HTTP requests and responses efficiently. It
 extends `DioMixin` providing a structured and consistent way to perform network operations.
 
-## Inspiration
+## **Inspiration**
 
 NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package by [VB10](https://github.com/VB10). Vexana is easy to use network process with dio. You can do dynamic model parsing, base error model, timeout and many utility functions.
 
-## Features
+## **Features**
 - Supports various HTTP methods (GET, POST, PUT, DELETE, PACTH)
 - Configurable base URLs for development and production
 - Logging of network requests and responses
@@ -16,12 +16,12 @@ NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) pac
 
 ## Getting started
 
-### Prerequisites
+### **Prerequisites**
 
 - Dart SDK
 - Flutter SDK (if using with Flutter)
 
-### Installation
+### **Installation**
 
 Add the following to your `pubspec.yaml` file:
 
@@ -37,7 +37,7 @@ $ flutter pub get
 ```
 
 ## Usage
-### Initialization
+### **Initialization**
 Initialize the NetKitManager with the parameters:
 
 ```dart
@@ -50,9 +50,9 @@ final netKitManager = NetKitManager(
       errorMessageKey: 'description',
     );
 ```
-### Sending requests
+### **Sending requests**
 
-#### Requesting a List of Models
+#### **Requesting a List of Models**
 
 ```dart
 final response = await netKitManager.requestList(
@@ -67,7 +67,7 @@ response.fold(
 );
 ```
 
-#### Requesting a Single Model
+#### **Requesting a Single Model**
 
 ```dart
 final response = await netKitManager.requestModel<BookModel>(
@@ -82,7 +82,7 @@ response.fold(
 );
 ```
 
-#### Sending a Void Request
+#### **Sending a Void Request**
 ```dart
 final response = await netKitManager.requestVoid(
   path: '/book/1',
