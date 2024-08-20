@@ -1,5 +1,5 @@
 # NetKit
-
+![netkit](https://github.com/user-attachments/assets/eb34c4cf-80d5-43aa-823d-7f578f90663b)
 NetKit is a Dart package designed to handle HTTP requests and responses efficiently. It
 extends `DioMixin` providing a structured and consistent way to perform network operations.
 
