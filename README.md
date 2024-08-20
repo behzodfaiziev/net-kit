@@ -1,16 +1,14 @@
 # NetKit
 
 NetKit is a Dart package designed to handle HTTP requests and responses efficiently. It
-extends `DioMixin` and implements the `INetKitManager` interface, providing a structured and
-consistent way to perform network operations.
+extends `DioMixin` providing a structured and consistent way to perform network operations.
 
 ## Features
-
-- Supports various HTTP methods (GET, POST, PUT, DELETE, etc.)
+- Supports various HTTP methods (GET, POST, PUT, DELETE, PACTH)
 - Configurable base URLs for development and production
 - Logging of network requests and responses
 - Error handling and response validation
-- Parsing responses into models or lists of models
+- Parsing responses into models or lists of models or void
 
 ## Getting started
 
@@ -36,15 +34,17 @@ $ flutter pub get
 
 ## Usage
 ### Initialization
-Initialize the NetKitManager with the required parameters:
+Initialize the NetKitManager with the parameters:
 
 ```dart
 final netKitManager = NetKitManager(
-  baseUrl: 'https://api.example.com',
-  devBaseUrl: 'https://dev.api.example.com',
-  testMode: true,
-  loggerEnabled: true,
-);
+      baseUrl: 'https://api.behzod.dev',
+      devBaseUrl: 'https://api-dev.behzod.dev',
+      loggerEnabled: true,
+      testMode: true,
+      errorStatusCodeKey: 'status',
+      errorMessageKey: 'description',
+    );
 ```
 ### Sending requests
 
@@ -53,7 +53,7 @@ final netKitManager = NetKitManager(
 ```dart
 final response = await netKitManager.requestList(
   path: '/books',
-  method: RequestMethod.GET,
+  method: RequestMethod.get,
   model: BookModel(),
 );
 
@@ -66,9 +66,9 @@ response.fold(
 #### Requesting a Single Model
 
 ```dart
-final response = await netKitManager.request(
+final response = await netKitManager.requestModel<BookModel>(
   path: '/book/1',
-  method: RequestMethod.GET,
+  method: RequestMethod.get,
   model: BookModel(),
 );
 
@@ -90,8 +90,7 @@ response.fold(
   (_) => print('Book deleted successfully'),
 );
 ```
-## Additional Information
-For more information, please refer to the Dart documentation and Flutter documentation.  
+
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request.  
 ## License
