@@ -2,13 +2,14 @@ name: net_kit
 
 description: "Network Kit is a library that provides a set of tools to work with network requests."
 
-version: 0.1.0
+version: 0.1.1
 
 homepage: https://github.com/behzodfaiziev/net_kit
 issue_tracker: https://github.com/behzodfaiziev/net_kit/issues
 topics:
   - network
   - network-manager
+  - vexana
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
