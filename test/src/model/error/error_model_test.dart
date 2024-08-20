@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:net_kit/src/model/error/error_model.dart';
 
@@ -59,14 +57,14 @@ void main() {
         statusCodeKey: 'status',
         messageKey: 'message',
       );
-      expect(errorModel.statusCode, HttpStatus.badRequest);
+      expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
     });
 
     test('should handle JSON with wrong type for message', () {
       final json = {
-        'status': HttpStatus.badRequest,
+        'status': 400,
         'message': 500,
       };
       final errorModel = ErrorModel.fromJson(
@@ -74,7 +72,7 @@ void main() {
         statusCodeKey: 'status',
         messageKey: 'message',
       );
-      expect(errorModel.statusCode, HttpStatus.badRequest);
+      expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
     });
@@ -89,7 +87,7 @@ void main() {
         statusCodeKey: 'status',
         messageKey: 'message',
       );
-      expect(errorModel.statusCode, HttpStatus.badRequest);
+      expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
     });
@@ -149,7 +147,7 @@ void main() {
         statusCodeKey: 'status',
         messageKey: 'message',
       );
-      expect(errorModel.statusCode, HttpStatus.badRequest);
+      expect(errorModel.statusCode, 400);
       expect(errorModel.message, 'Could not parse the error');
       expect(errorModel.messages, isNull);
     });
@@ -165,7 +163,7 @@ void main() {
         statusCodeKey: 'status',
         messageKey: 'message',
       );
-      expect(errorModel.statusCode, HttpStatus.badRequest);
+      expect(errorModel.statusCode, 400);
       expect(errorModel.message, errorMessage);
       expect(errorModel.messages, isNull);
     });

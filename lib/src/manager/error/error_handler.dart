@@ -35,7 +35,7 @@ class ErrorHandler {
         requestOptions: response.requestOptions,
         data: {
           errorMessageKey: 'Could not parse the response.',
-          errorStatusCodeKey: HttpStatus.expectationFailed,
+          errorStatusCodeKey: 417,
         },
       ),
     );

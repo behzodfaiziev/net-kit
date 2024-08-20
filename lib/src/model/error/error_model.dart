@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:equatable/equatable.dart';
 
 import '../../utility/typedef/request_type_def.dart';
@@ -42,7 +40,7 @@ class ErrorModel extends Equatable {
       final int? status = statusCode ?? json[statusCodeKey] as int?;
 
       return ErrorModel(
-        statusCode: status ?? HttpStatus.badRequest,
+        statusCode: status ?? 400,
         message: (singleMessage ?? '').isNotEmpty
             ? singleMessage
             : 'Could not parse the error',
@@ -50,7 +48,7 @@ class ErrorModel extends Equatable {
       );
     } catch (e) {
       return const ErrorModel(
-        statusCode: HttpStatus.badRequest,
+        statusCode: 400,
         message: 'Could not parse the error',
       );
     }

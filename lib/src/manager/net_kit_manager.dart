@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -205,8 +203,7 @@ class NetKitManager extends ErrorHandler
 
   bool isRequestFailed(int? statusCode) {
     if (statusCode == null) return true;
-    return statusCode < HttpStatus.ok ||
-        statusCode >= HttpStatus.multipleChoices;
+    return statusCode < 200 || statusCode >= 300;
   }
 
   void _initialize({

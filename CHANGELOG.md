@@ -9,3 +9,8 @@
 ## 0.1.2
 
 - fixed homepage and issue_tracker
+
+## 0.1.3
+
+- updated README.md: added image
+- web dependency added
