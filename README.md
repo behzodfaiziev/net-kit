@@ -5,7 +5,7 @@ extends `DioMixin` providing a structured and consistent way to perform network 
 
 ## Inspiration
 
-NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package by [VB10](https://github.com/VB10). Vexana is a comprehensive network manager for Dart and Flutter that simplifies the process of making HTTP requests.
+NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package by [VB10](https://github.com/VB10). Vexana is easy to use network process with dio. You can do dynamic model parsing, base error model, timeout and many utility functions.
 
 ## Features
 - Supports various HTTP methods (GET, POST, PUT, DELETE, PACTH)
