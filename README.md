@@ -3,6 +3,10 @@
 NetKit is a Dart package designed to handle HTTP requests and responses efficiently. It
 extends `DioMixin` providing a structured and consistent way to perform network operations.
 
+## Inspiration
+
+NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package by [VB10](https://github.com/VB10). Vexana is a comprehensive network manager for Dart and Flutter that simplifies the process of making HTTP requests.
+
 ## Features
 - Supports various HTTP methods (GET, POST, PUT, DELETE, PACTH)
 - Configurable base URLs for development and production
@@ -59,7 +63,7 @@ final response = await netKitManager.requestList(
 
 response.fold(
   (error) => print('Error: ${error.description}'),
-  (books) => print('Books: $books'),
+  (books) => print('Books: $books'), // books type is List<BookModel>
 );
 ```
 
@@ -74,7 +78,7 @@ final response = await netKitManager.requestModel<BookModel>(
 
 response.fold(
   (error) => print('Error: ${error.description}'),
-  (book) => print('Book: $book'),
+  (book) => print('Book: $book'), // book type is BookModel
 );
 ```
 
@@ -87,7 +91,7 @@ final response = await netKitManager.requestVoid(
 
 response.fold(
   (error) => print('Error: ${error.description}'),
-  (_) => print('Book deleted successfully'),
+  (_) => print('Book deleted successfully'), // _ type is void 
 );
 ```
 
