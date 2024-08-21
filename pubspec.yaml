@@ -18,18 +18,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Core
-  equatable: ^2.0.5
   dartz: ^0.10.1
-
-  # Network Manager
   dio: ^5.6.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # Code analysis
-  very_good_analysis: ^6.0.0
   mocktail: ^1.0.4
-
-flutter:
+  very_good_analysis: ^6.0.0
