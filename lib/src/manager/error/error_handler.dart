@@ -21,7 +21,6 @@ class ErrorHandler {
   /// The default value is ['statusCode']
   final String errorStatusCodeKey;
 
-
   Left<ErrorModel, T> _errorHandler<T>(DioException error) {
     return Left(
       ErrorModel.fromJson(

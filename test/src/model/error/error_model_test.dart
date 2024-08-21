@@ -153,11 +153,9 @@ void main() {
     });
 
     test('should handle JSON with missing status key', () {
-      const String errorMessage = 'Error occurred';
+      const errorMessage = 'Error occurred';
 
-      final json = {
-        'message': errorMessage,
-      };
+      final json = {'message': errorMessage};
       final errorModel = ErrorModel.fromJson(
         json: json,
         statusCodeKey: 'status',
