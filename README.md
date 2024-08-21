@@ -1,12 +1,24 @@
 # NetKit
-
-![netkit](https://github.com/user-attachments/assets/eb34c4cf-80d5-43aa-823d-7f578f90663b)
 NetKit is a Dart package designed to handle HTTP requests and responses efficiently.
 
+![netkit](https://github.com/user-attachments/assets/eb34c4cf-80d5-43aa-823d-7f578f90663b)
+
+### **Contents**
+
+- [Inspiration](#inspiration)
+- [Features](#features)
+- [Getting started](#getting-started)
+  - [Initialization](#initialization)
+- [Sending requests](#sending-requests)
+  - [Request a Single Model](#request-a-single-model)
+  - [Request a List of Models](#request-a-list-of-models)
+  - [Send a Void Request](#send-a-void-request) 
+- [Contributing](#contributing)
+- [License](#license)
 ## **Inspiration**
 
 NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package
-by [VB10](https://github.com/VB10).
+by [VB10](https://github.com/VB10)
 
 ## **Features**
 
@@ -34,9 +46,9 @@ final netKitManager = NetKitManager(
 );
 ```
 
-### **Sending requests**
+## **Sending requests**
 
-#### **Requesting a Single Model**
+#### **Request a Single Model**
 
 ```dart
 
@@ -52,7 +64,7 @@ final response = await netKitManager.requestModel<BookModel>(
   );
 ```
 
-#### **Requesting a List of Models**
+#### **Request a List of Models**
 
 ```dart
 
@@ -68,7 +80,7 @@ final response = await netKitManager.requestList(
   );
 ```
 
-#### **Sending a Void Request**
+#### **Send a Void Request**
 
 ```dart
 
