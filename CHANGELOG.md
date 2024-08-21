@@ -14,3 +14,8 @@
 
 - updated README.md: added image
 - web dependency added
+
+## 0.2.0
+
+- added documentations for public methods
+- equatable dependency removed

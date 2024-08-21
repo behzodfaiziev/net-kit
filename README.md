@@ -91,7 +91,7 @@ final response = await netKitManager.requestVoid(
 
 response.fold(
   (error) => print('Error: ${error.description}'),
-  (_) => print('Book deleted successfully'), // _ type is void 
+  (result) => print('Book deleted successfully'), // result type is void 
 );
 ```
 
