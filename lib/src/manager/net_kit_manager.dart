@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
+import '../enum/http_status_codes.dart';
 import '../enum/request_method.dart';
 import '../model/error/error_model.dart';
 import '../model/i_net_kit_model.dart';
@@ -24,6 +25,7 @@ part 'error/error_handler.dart';
 class NetKitManager extends ErrorHandler
     with DioMixin
     implements INetKitManager {
+  /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
     required String baseUrl,
@@ -49,6 +51,9 @@ class NetKitManager extends ErrorHandler
     Interceptor? interceptor,
 
     /// Whether the network manager is in test mode
+    /// If true, the devBaseUrl will be used,
+    /// otherwise the baseUrl will be used
+    /// CAUTION: Make sure that it is set to false in production environments
     bool testMode = false,
 
     /// Whether the logger is enabled
@@ -201,9 +206,17 @@ class NetKitManager extends ErrorHandler
     }
   }
 
+  /// Check if the request failed
+  /// If the status code is null or not in the range of 200-299, return true
+  /// Otherwise, return false
   bool isRequestFailed(int? statusCode) {
+    /// If the status code is null, return true (request failed)
     if (statusCode == null) return true;
-    return statusCode < 200 || statusCode >= 300;
+
+    /// If the status code is not in the range of 200-299,
+    /// return true (request failed)
+    return statusCode < HttpStatuses.ok.code ||
+        statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   void _initialize({
@@ -268,7 +281,7 @@ class NetKitManager extends ErrorHandler
   }
 
   @override
-  void clearAllHeader() {
+  void clearAllHeaders() {
     baseOptions.headers.clear();
   }
 

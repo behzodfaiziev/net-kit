@@ -4,6 +4,10 @@ part of '../net_kit_manager.dart';
 ///in network requests. It provides methods to handle different
 ///types of errors and to generate appropriate error responses.
 class ErrorHandler {
+  /// The constructor for the ErrorHandler class
+  /// It takes two parameters:
+  /// - errorMessageKey: The key to use for error messages
+  /// - errorStatusCodeKey: The key to use for error status codes
   ErrorHandler({
     required this.errorMessageKey,
     required this.errorStatusCodeKey,
@@ -16,6 +20,7 @@ class ErrorHandler {
   /// The key to use for error status codes
   /// The default value is ['statusCode']
   final String errorStatusCodeKey;
+
 
   Left<ErrorModel, T> _errorHandler<T>(DioException error) {
     return Left(

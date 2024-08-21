@@ -1,6 +1,7 @@
 import '../model/i_net_kit_model.dart';
 import 'typedef/request_type_def.dart';
 
+/// The Converters class contains methods to convert data
 class Converters {
   /// Converts the data to a request body data.
   static dynamic toRequestBody(dynamic data) {
@@ -14,6 +15,13 @@ class Converters {
     return data;
   }
 
+  /// Converts the data to a list of models
+  /// It takes in the following parameters:
+  /// `data`: The data to convert
+  /// `parseModel`: The model to parse the data to
+  /// It returns a list of models
+  /// If the data is a list, converts it to a list of models
+  /// If the data is not within the above conditions, returns an empty list
   static List<T> toListModel<T extends INetKitModel<T>>(
     dynamic data,
     T parseModel,
@@ -39,6 +47,11 @@ class Converters {
     return <T>[];
   }
 
+  /// Converts the data to a model
+  /// It takes in the following parameters:
+  /// `data`: The data to convert
+  /// `parseModel`: The model to parse the data to
+  /// It returns a model
   static T toModel<T extends INetKitModel<T>>(MapType data, T parseModel) {
     return parseModel.fromJson(data);
   }
