@@ -19,3 +19,7 @@
 
 - added documentations for public methods
 - equatable dependency removed
+
+## 0.2.1
+
+- updated README.md
