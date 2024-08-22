@@ -50,3 +50,8 @@ jobs:
       # Run the integration tests to ensure that the code is working as expected
       - name: Run Dart integration tests
         run: dart test dart_integration_test
+      # Post job cleanup
+      - name: Post job cleanup
+        run: |
+          rm -rf ~/.flutter/bin/zstd
+          rm -rf ~/.flutter/bin/tar
