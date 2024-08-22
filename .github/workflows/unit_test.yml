@@ -33,3 +33,7 @@ jobs:
       # Run test to ensure that the code is working as expected
       - name: Run tests
         run: flutter test
+
+      # Run the integration tests to ensure that the code is working as expected
+      - name: Run integration tests
+        run: flutter test integration_test
