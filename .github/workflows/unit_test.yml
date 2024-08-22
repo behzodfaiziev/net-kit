@@ -27,6 +27,10 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.24.0
+      # Add Flutter to PATH
+      - name: Add Flutter to PATH
+        run: echo "$HOME/.flutter/bin" >> $GITHUB_PATH
+
       # Install dependencies
       - name: Install dependencies
         run: flutter pub get
