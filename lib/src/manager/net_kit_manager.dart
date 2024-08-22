@@ -1,10 +1,9 @@
-import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
 import '../enum/http_status_codes.dart';
 import '../enum/request_method.dart';
-import '../model/error/error_model.dart';
+import '../error/api_exception.dart';
 import '../model/i_net_kit_model.dart';
 import '../utility/converters.dart';
 import '../utility/typedef/request_type_def.dart';
@@ -80,7 +79,7 @@ class NetKitManager extends ErrorHandler
   BaseOptions get baseOptions => parameters.baseOptions;
 
   @override
-  RequestModel<R> requestModel<R extends INetKitModel<R>>({
+  Future<R> requestModel<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -108,14 +107,17 @@ class NetKitManager extends ErrorHandler
       }
       final parsedModel = Converters.toModel(response.data as MapType, model);
 
-      return Right(parsedModel);
+      return parsedModel;
     } on DioException catch (error) {
-      return _errorHandler(error);
+      /// Parse the API exception and throw it
+      throw _parseApiException(error);
+    } on ApiException {
+      rethrow;
     }
   }
 
   @override
-  RequestList<R> requestList<R extends INetKitModel<R>>({
+  Future<List<R>> requestList<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -135,14 +137,17 @@ class NetKitManager extends ErrorHandler
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
       );
-      return Right(Converters.toListModel(response.data, model));
+      return Converters.toListModel(response.data, model);
     } on DioException catch (error) {
-      return _errorHandler(error);
+      /// Parse the API exception and throw it
+      throw _parseApiException(error);
+    } on ApiException {
+      rethrow;
     }
   }
 
   @override
-  RequestVoid requestVoid({
+  Future<void> requestVoid({
     required String path,
     required RequestMethod method,
     dynamic body,
@@ -162,9 +167,13 @@ class NetKitManager extends ErrorHandler
         onReceiveProgress: onReceiveProgress,
       );
 
-      return const Right(null);
+      return;
     } on DioException catch (error) {
-      return _errorHandler<void>(error);
+      /// Parse the API exception and throw it
+      throw _parseApiException(error);
+    } on ApiException {
+      /// Rethrow the ApiException if it occurs
+      rethrow;
     }
   }
 

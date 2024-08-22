@@ -21,14 +21,13 @@ class ErrorHandler {
   /// The default value is ['statusCode']
   final String errorStatusCodeKey;
 
-  Left<ErrorModel, T> _errorHandler<T>(DioException error) {
-    return Left(
-      ErrorModel.fromJson(
-        json: error.response?.data,
-        statusCode: error.response?.statusCode,
-        messageKey: errorMessageKey,
-        statusCodeKey: errorStatusCodeKey,
-      ),
+  /// Returns an [ApiException] object from a DioException
+  ApiException _parseApiException(DioException error) {
+    return ApiException.fromJson(
+      json: error.response?.data,
+      statusCode: error.response?.statusCode,
+      messageKey: errorMessageKey,
+      statusCodeKey: errorStatusCodeKey,
     );
   }
 

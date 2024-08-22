@@ -1,3 +1,5 @@
+import '../enum/http_status_codes.dart';
+import '../error/api_exception.dart';
 import '../model/i_net_kit_model.dart';
 import 'typedef/request_type_def.dart';
 
@@ -26,25 +28,33 @@ class Converters {
     dynamic data,
     T parseModel,
   ) {
-    /// If the data is a list, convert it to a list of models
-    if (data is List<dynamic>) {
-      return data
+    try {
+      /// If the data is a list, convert it to a list of models
+      if (data is List<dynamic>) {
+        return data
 
-          /// Filter the data to only include maps
-          .whereType<MapType>()
+            /// Filter the data to only include maps
+            .whereType<MapType>()
 
-          /// Convert the data to a model
-          .map((data) => parseModel.fromJson(data))
+            /// Convert the data to a model
+            .map((data) => parseModel.fromJson(data))
 
-          /// Cast the data to the model type
-          .cast<T>()
+            /// Cast the data to the model type
+            .cast<T>()
 
-          /// Convert the converted models to a list
-          .toList();
+            /// Convert the converted models to a list
+            .toList();
+      }
+
+      /// If the data is not within the above conditions, return an empty list
+      return <T>[];
+    } catch (e) {
+      /// If an error occurs, throw ApiException
+      throw ApiException(
+        message: 'Could not parse the response: ${T.runtimeType}',
+        statusCode: HttpStatuses.expectationFailed.code,
+      );
     }
-
-    /// If the data is not within the above conditions, return an empty list
-    return <T>[];
   }
 
   /// Converts the data to a model
@@ -53,6 +63,15 @@ class Converters {
   /// `parseModel`: The model to parse the data to
   /// It returns a model
   static T toModel<T extends INetKitModel<T>>(MapType data, T parseModel) {
-    return parseModel.fromJson(data);
+    try {
+      /// Convert the data to a model
+      return parseModel.fromJson(data);
+    } catch (e) {
+      /// If an error occurs, throw ApiException
+      throw ApiException(
+        message: 'Could not parse the response: ${T.runtimeType}',
+        statusCode: HttpStatuses.expectationFailed.code,
+      );
+    }
   }
 }

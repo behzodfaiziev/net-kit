@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 
 import '../enum/request_method.dart';
 import '../model/i_net_kit_model.dart';
-import '../utility/typedef/request_type_def.dart';
 import 'params/net_kit_params.dart';
 
 /// The abstract class for the network manager
@@ -42,7 +41,7 @@ abstract class INetKitManager {
   /// );
   ///
   /// The response of the request is returned as a [`BookModel`] object.
-  RequestModel<R> requestModel<R extends INetKitModel<R>>({
+  Future<R> requestModel<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
 
@@ -74,7 +73,7 @@ abstract class INetKitManager {
   /// );
   /// ```
   /// The response of the request is returned as a [`List<BookModel>`] object.
-  RequestList<R> requestList<R extends INetKitModel<R>>({
+  Future<List<R>> requestList<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
 
@@ -108,7 +107,7 @@ abstract class INetKitManager {
   ///
   /// The response of the request is returned as a `null` object, because
   /// the request does not return any data.
-  RequestVoid requestVoid({
+  Future<void> requestVoid({
     required String path,
     required RequestMethod method,
     dynamic body,

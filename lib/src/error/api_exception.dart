@@ -1,13 +1,13 @@
-import '../../enum/http_status_codes.dart';
-import '../../utility/typedef/request_type_def.dart';
+import '../enum/http_status_codes.dart';
+import '../utility/typedef/request_type_def.dart';
 
 /// The error model class
 /// It contains the status code and message of the error
 /// It is used to parse the error response from the server
 /// and display the error message to the user
-class ErrorModel {
+class ApiException implements Exception {
   /// The constructor for the ErrorModel class
-  const ErrorModel({
+  const ApiException({
     required this.statusCode,
     required this.message,
     this.messages,
@@ -22,7 +22,7 @@ class ErrorModel {
   /// It returns an ErrorModel object
   /// If the error response cannot be parsed, it returns a default error message
   /// with a status code of 400
-  factory ErrorModel.fromJson({
+  factory ApiException.fromJson({
     required dynamic json,
     required String statusCodeKey,
     required String messageKey,
@@ -33,13 +33,16 @@ class ErrorModel {
       List<String>? multipleMessages;
 
       if (json == null) {
-        throw Exception(_jsonNullError);
+        return ApiException(
+          message: _jsonNullError,
+          statusCode: HttpStatuses.expectationFailed.code,
+        );
       }
 
       /// Check if the message is a string
       /// If it is a string, return the error message
       if (json is String) {
-        return ErrorModel(
+        return ApiException(
           statusCode: statusCode ?? HttpStatuses.badRequest.code,
           message: json.isNotEmpty ? json : _jsonIsEmptyError,
         );
@@ -54,7 +57,7 @@ class ErrorModel {
         }
 
         /// If the message is a list, cast it to a list of strings
-        else if (json[messageKey] is List) {
+        else if (json[messageKey] is List<String>) {
           multipleMessages = json[messageKey] as List<String>;
 
           if (multipleMessages.isNotEmpty) {
@@ -62,9 +65,13 @@ class ErrorModel {
             singleMessage = multipleMessages[0];
           }
         }
+
+        /// Get the status code
+
         final status = statusCode ?? json[statusCodeKey] as int?;
 
-        return ErrorModel(
+        /// Return the error model
+        return ApiException(
           statusCode: status ?? HttpStatuses.badRequest.code,
           message: (singleMessage ?? '').isNotEmpty
               ? singleMessage
@@ -73,9 +80,15 @@ class ErrorModel {
         );
       }
 
-      throw Exception('$_couldNotParseError unknown type');
+      /// If the message is not a string or a map, throw an exception
+      throw ApiException(
+        message: '$_couldNotParseError: unknown type',
+        statusCode: HttpStatuses.expectationFailed.code,
+      );
+    } on ApiException catch (e) {
+      return e;
     } catch (e) {
-      return ErrorModel(
+      return ApiException(
         statusCode: HttpStatuses.badRequest.code,
         message: _couldNotParseError,
       );
