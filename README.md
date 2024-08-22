@@ -3,7 +3,7 @@ NetKit is a Dart package designed to handle HTTP requests and responses efficien
 
 ![netkit](https://github.com/user-attachments/assets/eb34c4cf-80d5-43aa-823d-7f578f90663b)
 
-### **Contents**
+## **Contents**
 
 - [Inspiration](#inspiration)
 - [Features](#features)
@@ -15,6 +15,7 @@ NetKit is a Dart package designed to handle HTTP requests and responses efficien
   - [Send a Void Request](#send-a-void-request) 
 - [Contributing](#contributing)
 - [License](#license)
+
 ## **Inspiration**
 
 NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package
