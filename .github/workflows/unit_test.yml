@@ -14,23 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Cache Flutter SDK
-        id: cache-flutter
-        uses: actions/cache@v2
-        with:
-          path: ~/.flutter
-          key: flutter-${{ runner.os }}-3.24.0
-      # Set up Flutter SDK
       - name: Set up Flutter
-        if: steps.cache-flutter.outputs.cache-hit != 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.24.0
-      # Add Flutter to PATH
-      - name: Add Flutter to PATH
-        run: echo "$HOME/.flutter/bin" >> $GITHUB_PATH
-
       # Install dependencies
       - name: Install dependencies
         run: flutter pub get
