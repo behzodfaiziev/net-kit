@@ -36,6 +36,7 @@ by [VB10](https://github.com/VB10)
 Initialize the NetKitManager with the parameters:
 
 ```dart
+import 'package:netkit/netkit.dart';
 
 final netKitManager = NetKitManager(
   baseUrl: 'https://api.<URL>.com',
@@ -52,48 +53,58 @@ final netKitManager = NetKitManager(
 #### **Request a Single Model**
 
 ```dart
-
-final response = await netKitManager.requestModel<BookModel>(
-    path: '/book/1',
-    method: RequestMethod.get,
-    model: BookModel(),
-  );
-
-  response.fold(
-    (error) => print('Error: ${error.description}'),
-    (book) => print('Book: $book'), // book type is BookModel
-  );
+Future<RandomUserModel> getRandomUser() {
+  try {
+    return netKitManager.requestModel<RandomUserModel>(
+      path: '/api',
+      method: RequestMethod.get,
+      model: const RandomUserModel(),
+    );
+  }
+  /// Catch the ApiException and handle it
+  on ApiException catch (e) {
+    /// Handle the error: example is to throw the error
+    throw Exception(e.message);
+  }
+}
 ```
 
 #### **Request a List of Models**
 
 ```dart
-
-final response = await netKitManager.requestList(
-    path: '/books',
-    method: RequestMethod.get,
-    model: BookModel(),
-  );
-
-  response.fold(
-    (error) => print('Error: ${error.description}'),
-    (books) => print('Books: $books'), // books type is List<BookModel>
-  );
+Future<List<ProductModel>> getProducts() async {
+  try {
+    return netKitManager.requestList<ProductModel>(
+      path: '/products',
+      method: RequestMethod.get,
+      model: const ProductModel(),
+    );
+  }
+  /// Catch the ApiException and handle it
+  on ApiException catch (e) {
+    /// Handle the error: example is to throw the error
+    throw Exception(e.message);
+  }
+}
 ```
 
-#### **Send a Void Request**
+#### **Send a void Request**
 
 ```dart
+Future<void> deleteProduct() async {
+  try {
+    return netKitManager.requestVoid<ProductModel>(
+      path: '/products',
+      method: RequestMethod.delete,
+    );
+  }
 
-final response = await netKitManager.requestVoid(
-    path: '/book/1',
-    method: RequestMethod.DELETE,
-  );
-
-  response.fold(
-    (error) => print('Error: ${error.description}'),
-    (result) => print('Book deleted successfully'), // result type is void 
-);
+  /// Catch the ApiException and handle it
+  on ApiException catch (e) {
+    /// Handle the error: example is to throw the error
+    throw Exception(e.message);
+  }
+}
 ```
 
 ## Contributing
