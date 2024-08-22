@@ -1,6 +1,5 @@
 import 'package:net_kit/net_kit.dart';
 import 'package:net_kit/src/enum/http_status_codes.dart';
-import 'package:net_kit/src/error/api_exception.dart';
 import 'package:test/test.dart';
 
 import 'model/test_product_model.dart';

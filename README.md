@@ -1,4 +1,5 @@
 # NetKit
+
 NetKit is a Dart package designed to handle HTTP requests and responses efficiently.
 
 ![netkit](https://github.com/user-attachments/assets/eb34c4cf-80d5-43aa-823d-7f578f90663b)
@@ -8,11 +9,11 @@ NetKit is a Dart package designed to handle HTTP requests and responses efficien
 - [Inspiration](#inspiration)
 - [Features](#features)
 - [Getting started](#getting-started)
-  - [Initialization](#initialization)
+    - [Initialization](#initialization)
 - [Sending requests](#sending-requests)
-  - [Request a Single Model](#request-a-single-model)
-  - [Request a List of Models](#request-a-list-of-models)
-  - [Send a Void Request](#send-a-void-request) 
+    - [Request a Single Model](#request-a-single-model)
+    - [Request a List of Models](#request-a-list-of-models)
+    - [Send a Void Request](#send-a-void-request)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -98,7 +99,6 @@ Future<void> deleteProduct() async {
       method: RequestMethod.delete,
     );
   }
-
   /// Catch the ApiException and handle it
   on ApiException catch (e) {
     /// Handle the error: example is to throw the error

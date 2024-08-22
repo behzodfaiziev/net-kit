@@ -32,9 +32,15 @@
 
 ## 1.0.0
 
-- Breaking changes:
+> Note: This release has breaking changes.
+
 - Return type of `requestModel` changed to `Future<T>`
 - Return type of `requestList` changed to `Future<List<T>>`
 - Return type of `requestVoid` changed to `Future<void>`
 - `ApiException` is introduced as an exception that is thrown when an error occurs during the
   request
+
+## 1.1.0
+- updated README.md
+- exported ApiException
+- updated documentation

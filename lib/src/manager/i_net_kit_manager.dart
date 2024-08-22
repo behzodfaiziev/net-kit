@@ -28,19 +28,22 @@ abstract class INetKitManager {
   /// `cancelToken`, and `onReceiveProgress`.
   /// Example:
   /// ```dart
-  /// final response = await netKitManager.requestModel(
-  ///   path: 'books/1',
-  ///   method: RequestMethod.get,
-  ///   model: BookModel(),
-  ///  );
+  /// Future<RandomUserModel> getRandomUser() {
+  ///  try {
+  ///    return netKitManager.requestModel<RandomUserModel>(
+  ///      path: '/api',
+  ///      method: RequestMethod.get,
+  ///      model: const RandomUserModel(),
+  ///    );
+  ///  }
+  ///  /// Catch the ApiException and handle it
+  ///  on ApiException catch (e) {
+  ///    /// Handle the error: example is to throw the error
+  ///    throw Exception(e.message);
+  ///  }
   /// ```
   ///
-  /// response.fold(
-  ///   (error) => print('Error: ${error.description}'),
-  ///   (book) => print('Book: $book'), // book type is BookModel
-  /// );
-  ///
-  /// The response of the request is returned as a [`BookModel`] object.
+  /// The response of the request is returned as a [`RandomUserModel`] object.
   Future<R> requestModel<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
@@ -61,18 +64,23 @@ abstract class INetKitManager {
   /// `cancelToken`, and `onReceiveProgress`.
   /// Example:
   /// ```dart
-  /// final response = await netKitManager.requestList(
-  ///   path: 'books',
-  ///   method: RequestMethod.get,
-  ///   model: BookModel(),
-  ///  );
-  ///
-  /// response.fold(
-  ///   (error) => print('Error: ${error.description}'),
-  ///   (books) => print('Books: $books'), // books type is List<BookModel>
-  /// );
+  /// Future<List<ProductModel>> getProducts() async {
+  ///   try {
+  ///     return netKitManager.requestList<ProductModel>(
+  ///       path: '/products',
+  ///       method: RequestMethod.get,
+  ///       model: const ProductModel(),
+  ///     );
+  ///   }
+  ///   /// Catch the ApiException and handle it
+  ///   on ApiException catch (e) {
+  ///     /// Handle the error: example is to throw the error
+  ///     throw Exception(e.message);
+  ///   }
+  /// }
   /// ```
-  /// The response of the request is returned as a [`List<BookModel>`] object.
+  /// The response of the request is returned
+  /// as a [`List<ProductModel>`] object.
   Future<List<R>> requestList<R extends INetKitModel<R>>({
     required String path,
     required RequestMethod method,
@@ -93,16 +101,19 @@ abstract class INetKitManager {
   /// `cancelToken`, and `onReceiveProgress`.
   /// Example:
   /// ```dart
-  /// final response = await netKitManager.requestVoid(
-  ///   path: 'books/1',
-  ///   method: RequestMethod.remove,
-  ///   model: BookModel(),
-  ///  );
-  ///
-  /// response.fold(
-  ///   (error) => print('Error: ${error.description}'),
-  ///   (result) => print('Book deleted successfully'), // [result] type is void
-  /// );
+  /// Future<void> deleteProduct() async {
+  ///   try {
+  ///     return netKitManager.requestVoid<ProductModel>(
+  ///       path: '/products',
+  ///       method: RequestMethod.delete,
+  ///     );
+  ///   }
+  ///   /// Catch the ApiException and handle it
+  ///   on ApiException catch (e) {
+  ///     /// Handle the error: example is to throw the error
+  ///     throw Exception(e.message);
+  ///   }
+  /// }
   /// ```
   ///
   /// The response of the request is returned as a `null` object, because
