@@ -14,16 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Cache Flutter SDK
-        id: cache-flutter
-        uses: actions/cache@v2
-        with:
-          path: ~/.flutter
-          key: flutter-${{ runner.os }}-3.24.0
-
       - name: Set up Flutter
-        if: steps.cache-flutter.outputs.cache-hit != 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.24.0
