@@ -9,7 +9,7 @@ void main() {
 
     setUp(() {
       netKitManager = NetKitManager(
-        baseUrl: 'https://randomuser.me/',
+        baseUrl: 'https://randomuser.me',
         loggerEnabled: true,
         errorStatusCodeKey: 'status',
         errorMessageKey: 'description',
@@ -19,7 +19,7 @@ void main() {
     test('Request a Single Model - Success Case', () async {
       final response =
           await netKitManager.requestModel<RandomUsersResponseModel>(
-        path: 'api',
+        path: '/api',
         method: RequestMethod.get,
         model: RandomUsersResponseModel(),
       );
@@ -33,7 +33,7 @@ void main() {
     test('Request a Single Model - Failure Case: Wrong API', () async {
       final response =
           await netKitManager.requestModel<RandomUsersResponseModel>(
-        path: 'wrong-api',
+        path: '/wrong-api',
         method: RequestMethod.get,
         model: RandomUsersResponseModel(),
       );
