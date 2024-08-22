@@ -23,3 +23,9 @@
 ## 0.2.1
 
 - updated README.md
+
+## 0.2.2
+
+- integration tests added
+- unit tests updated
+- error handler improved
