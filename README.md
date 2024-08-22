@@ -23,7 +23,7 @@ by [VB10](https://github.com/VB10)
 
 ## **Features**
 
-- Supports various HTTP methods (GET, POST, PUT, DELETE, PACTH)
+- Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
 - Configurable base URLs for development and production
 - Logging of network requests and responses
 - Error handling and response validation
