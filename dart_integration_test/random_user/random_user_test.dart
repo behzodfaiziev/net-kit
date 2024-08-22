@@ -10,7 +10,6 @@ void main() {
     setUp(() {
       netKitManager = NetKitManager(
         baseUrl: 'https://randomuser.me',
-        loggerEnabled: true,
         errorStatusCodeKey: 'status',
         errorMessageKey: 'description',
       );
@@ -21,7 +20,7 @@ void main() {
           await netKitManager.requestModel<RandomUsersResponseModel>(
         path: '/api',
         method: RequestMethod.get,
-        model: RandomUsersResponseModel(),
+        model: const RandomUsersResponseModel(),
       );
 
       response.fold(
@@ -35,7 +34,7 @@ void main() {
           await netKitManager.requestModel<RandomUsersResponseModel>(
         path: '/wrong-api',
         method: RequestMethod.get,
-        model: RandomUsersResponseModel(),
+        model: const RandomUsersResponseModel(),
       );
 
       response.fold(

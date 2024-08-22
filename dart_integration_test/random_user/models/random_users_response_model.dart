@@ -3,9 +3,7 @@ import 'package:net_kit/net_kit.dart';
 import 'user_model.dart';
 
 class RandomUsersResponseModel extends INetKitModel<RandomUsersResponseModel> {
-  RandomUsersResponseModel({
-    this.results,
-  });
+  const RandomUsersResponseModel({this.results});
 
   factory RandomUsersResponseModel.fromJson(Map<String, dynamic> json) {
     return RandomUsersResponseModel(
@@ -15,7 +13,7 @@ class RandomUsersResponseModel extends INetKitModel<RandomUsersResponseModel> {
     );
   }
 
-  List<UserModel>? results;
+  final List<UserModel>? results;
 
   @override
   RandomUsersResponseModel fromJson(Map<String, dynamic> json) =>

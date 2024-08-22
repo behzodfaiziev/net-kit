@@ -38,8 +38,8 @@ class ErrorHandler {
       response: Response(
         requestOptions: response.requestOptions,
         data: {
-          errorMessageKey: 'Could not parse the response.',
-          errorStatusCodeKey: 417,
+          errorMessageKey: 'Could not parse the response: Not a Map type',
+          errorStatusCodeKey: HttpStatuses.expectationFailed.code,
         },
       ),
     );

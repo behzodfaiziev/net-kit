@@ -18,6 +18,9 @@ enum HttpStatuses {
   /// 404 Not Found
   notFound(404),
 
+  /// 417 Expectation Failed
+  expectationFailed(417),
+
   /// 500 Internal Server Error
   internalServerError(500);
 
