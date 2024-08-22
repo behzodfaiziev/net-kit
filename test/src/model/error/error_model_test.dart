@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:net_kit/src/model/error/error_model.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ErrorModel.fromJson', () {
@@ -164,6 +164,55 @@ void main() {
       expect(errorModel.statusCode, 400);
       expect(errorModel.message, errorMessage);
       expect(errorModel.messages, isNull);
+    });
+
+    test('should create ErrorModel from JSON when json is a string', () {
+      const json = 'Internal Server Error';
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
+      expect(errorModel.statusCode, 400);
+      expect(errorModel.message, 'Internal Server Error');
+      expect(errorModel.messages, isNull);
+    });
+
+    test('should handle JSON when json is a string but empty', () {
+      const json = '';
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
+      expect(errorModel.statusCode, 400);
+      expect(errorModel.message, 'JSON is empty');
+      expect(errorModel.messages, isNull);
+    });
+
+    test('should create ErrorModel from JSON when json is a list of strings',
+        () {
+      final json = ['Error 1', 'Error 2'];
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
+      expect(errorModel.statusCode, 400);
+      expect(errorModel.message, 'Could not parse the error');
+      expect(errorModel.messages, null);
+    });
+
+    test('should handle JSON when json is an empty list', () {
+      final json = <String>[];
+      final errorModel = ErrorModel.fromJson(
+        json: json,
+        statusCodeKey: 'status',
+        messageKey: 'message',
+      );
+      expect(errorModel.statusCode, 400);
+      expect(errorModel.message, 'Could not parse the error');
+      expect(errorModel.messages, null);
     });
   });
 }
