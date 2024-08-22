@@ -28,11 +28,11 @@ jobs:
 
       # Analyze the project source
       - name: Analyze project source
-        run: flutter analyze --fatal-infos --fatal-warnings
+        run: dart analyze --fatal-infos --fatal-warnings
 
       # Run test to ensure that the code is working as expected
       - name: Run tests
-        run: flutter test
+        run: dart test
 
       # Run the integration tests to ensure that the code is working as expected
       - name: Run Dart integration tests
