@@ -45,7 +45,6 @@ void main() {
           expect(error.statusCode, 404);
           expect(error.message, 'Not Found');
         },
-
         (book) => expect(book, isA<RandomUsersResponseModel>()),
       );
     });
