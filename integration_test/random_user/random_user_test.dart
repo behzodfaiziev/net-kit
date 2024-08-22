@@ -16,7 +16,7 @@ void main() {
       );
     });
 
-    test('Request a Single Model', () async {
+    test('Request a Single Model - Success Case', () async {
       final response =
           await netKitManager.requestModel<RandomUsersResponseModel>(
         path: 'api',
@@ -26,6 +26,26 @@ void main() {
 
       response.fold(
         (error) => fail('Request failed with error: ${error.message}'),
+        (book) => expect(book, isA<RandomUsersResponseModel>()),
+      );
+    });
+
+    test('Request a Single Model - Failure Case: Wrong API', () async {
+      final response =
+          await netKitManager.requestModel<RandomUsersResponseModel>(
+        path: 'wrong-api',
+        method: RequestMethod.get,
+        model: RandomUsersResponseModel(),
+      );
+
+      response.fold(
+        (error) {
+          expect(error.message, isA<String>());
+          expect(error.statusCode, isA<int>());
+          expect(error.statusCode, 404);
+          expect(error.message, 'Not Found');
+        },
+
         (book) => expect(book, isA<RandomUsersResponseModel>()),
       );
     });

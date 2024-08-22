@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:net_kit/src/model/error/error_model.dart';
 import 'package:net_kit/src/utility/typedef/request_type_def.dart';
+import 'package:test/test.dart';
 
 class MockErrorModel extends ErrorModel {
   const MockErrorModel({required super.statusCode, required super.message});
