@@ -44,3 +44,6 @@
 - updated README.md
 - exported ApiException
 - updated documentation
+
+## 1.1.1
+- exported dio classes
