@@ -11,8 +11,6 @@ void main() {
     setUp(() {
       netKitManager = NetKitManager(
         baseUrl: 'https://randomuser.me',
-        errorStatusCodeKey: 'status',
-        errorMessageKey: 'description',
       );
     });
 
@@ -48,9 +46,9 @@ void main() {
     });
 
     test('Request a Single Model - Failure Case: Wrong Method', () async {
-      try{
+      try {
         final response =
-        await netKitManager.requestList<RandomUsersResponseModel>(
+            await netKitManager.requestList<RandomUsersResponseModel>(
           path: '/api',
           method: RequestMethod.get,
           model: const RandomUsersResponseModel(),

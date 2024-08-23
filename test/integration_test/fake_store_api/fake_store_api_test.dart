@@ -9,8 +9,6 @@ void main() {
   setUp(() {
     netKitManager = NetKitManager(
       baseUrl: 'https://fakestoreapi.com',
-      errorStatusCodeKey: 'status',
-      errorMessageKey: 'description',
     );
   });
 

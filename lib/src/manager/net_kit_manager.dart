@@ -8,6 +8,7 @@ import '../model/i_net_kit_model.dart';
 import '../utility/converters.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'i_net_kit_manager.dart';
+import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 
 part 'error/error_handler.dart';
@@ -29,13 +30,8 @@ class NetKitManager extends ErrorHandler
     /// The base URL for the network requests
     required String baseUrl,
 
-    /// The key to use for error messages
-    /// The default value is ['message']
-    super.errorMessageKey = 'message',
-
-    /// The key to use for error status codes
-    /// The default value is ['statusCode']
-    super.errorStatusCodeKey = 'statusCode',
+    /// The parameters for error messages and error keys
+    super.params,
 
     /// The HTTP client adapter
     HttpClientAdapter? httpClientAdapter,
@@ -62,8 +58,6 @@ class NetKitManager extends ErrorHandler
     _initialize(
       clientAdapter: httpClientAdapter,
       baseUrl: baseUrl,
-      errorMessageKey: errorMessageKey,
-      errorStatusCodeKey: errorStatusCodeKey,
       devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
@@ -223,8 +217,6 @@ class NetKitManager extends ErrorHandler
 
   void _initialize({
     required String baseUrl,
-    required String errorMessageKey,
-    required String errorStatusCodeKey,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -238,8 +230,6 @@ class NetKitManager extends ErrorHandler
 
     parameters = NetKitParams(
       baseOptions: baseOptions,
-      errorMessageKey: errorMessageKey,
-      errorStatusCodeKey: errorStatusCodeKey,
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,

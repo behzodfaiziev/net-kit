@@ -1,8 +1,11 @@
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:net_kit/src/error/api_exception.dart';
+import 'package:net_kit/src/manager/params/net_kit_error_params.dart';
 import 'package:test/test.dart';
 
 void main() {
+  const errorParams = NetKitErrorParams();
+
   group('ApiException.fromJson', () {
     test('should create ApiException from JSON with a single message', () {
       final json = {
@@ -11,8 +14,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 500);
       expect(apiException.message, 'Internal Server Error');
@@ -26,8 +28,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 422);
       expect(apiException.message, 'Validation failed');
@@ -40,8 +41,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 401);
       expect(apiException.message, 'Could not parse the error');
@@ -55,8 +55,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -70,8 +69,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -85,8 +83,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -100,8 +97,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -115,8 +111,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -130,8 +125,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -145,8 +139,7 @@ void main() {
       };
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Could not parse the error');
@@ -159,8 +152,7 @@ void main() {
       final json = {'message': errorMessage};
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, errorMessage);
@@ -171,8 +163,7 @@ void main() {
       const json = 'Internal Server Error';
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
       expect(apiException.message, 'Internal Server Error');
@@ -183,11 +174,10 @@ void main() {
       const json = '';
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, 400);
-      expect(apiException.message, 'JSON is empty');
+      expect(apiException.message, 'Empty error message');
       expect(apiException.messages, isNull);
     });
 
@@ -196,11 +186,10 @@ void main() {
       final json = ['Error 1', 'Error 2'];
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, HttpStatuses.expectationFailed.code);
-      expect(apiException.message, 'Could not parse the error: unknown type');
+      expect(apiException.message, 'Could not parse the error');
       expect(apiException.messages, null);
     });
 
@@ -208,11 +197,10 @@ void main() {
       final json = <String>[];
       final apiException = ApiException.fromJson(
         json: json,
-        statusCodeKey: 'status',
-        messageKey: 'message',
+        params: errorParams,
       );
       expect(apiException.statusCode, HttpStatuses.expectationFailed.code);
-      expect(apiException.message, 'Could not parse the error: unknown type');
+      expect(apiException.message, 'Could not parse the error');
       expect(apiException.messages, null);
     });
   });
@@ -220,8 +208,7 @@ void main() {
   test('should handle JSON when json null', () {
     final apiException = ApiException.fromJson(
       json: null,
-      statusCodeKey: 'status',
-      messageKey: 'message',
+      params: errorParams,
     );
     expect(apiException.statusCode, HttpStatuses.expectationFailed.code);
     expect(apiException.message, 'Empty error message');
