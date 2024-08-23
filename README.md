@@ -112,7 +112,7 @@ Future<void> deleteProduct() async {
 ```
 
 ## Planned Enhancements
-- [ ] Internationalization support for error messages
+- [x] Internationalization support for error messages
 - [ ] No internet connection handling
 - [ ] Multi-part form data support
 - [ ] Refresh Token implementation

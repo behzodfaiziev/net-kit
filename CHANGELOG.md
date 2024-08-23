@@ -1,3 +1,13 @@
+## 1.4.0
+
+> Note: This release has breaking changes.
+
+- `NetKitErrorParams` introduced to handle error messages and status codes. It is required
+  to provide internationalized error messages.
+- `errorMessageKey` in the NetKitManager key is moved to `NetKitErrorParams` class as `messageKey`
+- `errorStatusCodeKey` in the NetKitManager key is moved to `NetKitErrorParams` class as
+  `statusCodeKey`
+
 ## 1.3.1
 
 - added tasks to be done in the future
