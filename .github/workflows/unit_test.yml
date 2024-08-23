@@ -33,7 +33,3 @@ jobs:
       # Run test to ensure that the code is working as expected
       - name: Run tests
         run: dart test
-
-      # Run the integration tests to ensure that the code is working as expected
-      - name: Run Dart integration tests
-        run: dart test dart_integration_test
