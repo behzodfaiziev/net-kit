@@ -94,12 +94,6 @@ class NetKitManager extends ErrorHandler
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      if (!_internetEnabled) {
-        throw ApiException(
-          message: errorParams.statusCodeKey,
-          statusCode: HttpStatuses.serviceUnavailable.code,
-        );
-      }
       final response = await _sendRequest(
         path: path,
         method: method,
@@ -190,6 +184,13 @@ class NetKitManager extends ErrorHandler
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
+      if (!_internetEnabled) {
+        throw ApiException(
+          message: errorParams.statusCodeKey,
+          statusCode: HttpStatuses.serviceUnavailable.code,
+        );
+      }
+
       options ??= Options();
 
       /// Set the request method
@@ -214,6 +215,8 @@ class NetKitManager extends ErrorHandler
       }
       return response;
     } on DioException {
+      rethrow;
+    } on ApiException {
       rethrow;
     }
   }
