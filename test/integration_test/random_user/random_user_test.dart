@@ -1,4 +1,5 @@
 import 'package:net_kit/net_kit.dart';
+import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:test/test.dart';
 
 import 'models/random_users_response_model.dart';
@@ -43,6 +44,24 @@ void main() {
         expect(error.statusCode, isA<int>());
         expect(error.statusCode, 404);
         expect(error.message, 'Not Found');
+      }
+    });
+
+    test('Request a Single Model - Failure Case: Wrong Method', () async {
+      try{
+        final response =
+        await netKitManager.requestList<RandomUsersResponseModel>(
+          path: '/api',
+          method: RequestMethod.get,
+          model: const RandomUsersResponseModel(),
+        );
+
+        fail('Request should have failed: $response');
+      } on ApiException catch (error) {
+        expect(error.message, isA<String>());
+        expect(error.statusCode, isA<int>());
+        expect(error.statusCode, HttpStatuses.expectationFailed.code);
+        expect(error.message, 'The data is not a list');
       }
     });
   });

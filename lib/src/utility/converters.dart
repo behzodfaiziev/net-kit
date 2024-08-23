@@ -46,12 +46,17 @@ class Converters {
             .toList();
       }
 
-      /// If the data is not within the above conditions, return an empty list
-      return <T>[];
+      /// If the data is not a list, throw an exception
+      throw ApiException(
+        message: 'The data is not a list',
+        statusCode: HttpStatuses.expectationFailed.code,
+      );
+    } on ApiException {
+      rethrow;
     } catch (e) {
       /// If an error occurs, throw ApiException
       throw ApiException(
-        message: 'Could not parse the response: ${T.runtimeType}',
+        message: 'Could not parse the list response',
         statusCode: HttpStatuses.expectationFailed.code,
       );
     }
