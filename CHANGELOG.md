@@ -47,3 +47,6 @@
 
 ## 1.1.1
 - exported dio classes
+
+## 1.2.0
+- error handler updated

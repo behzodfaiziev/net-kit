@@ -33,7 +33,7 @@ class ApiException implements Exception {
       List<String>? multipleMessages;
 
       if (json == null) {
-        return ApiException(
+        throw ApiException(
           message: _jsonNullError,
           statusCode: HttpStatuses.expectationFailed.code,
         );
@@ -42,7 +42,7 @@ class ApiException implements Exception {
       /// Check if the message is a string
       /// If it is a string, return the error message
       if (json is String) {
-        return ApiException(
+        throw ApiException(
           statusCode: statusCode ?? HttpStatuses.badRequest.code,
           message: json.isNotEmpty ? json : _jsonIsEmptyError,
         );
@@ -71,7 +71,7 @@ class ApiException implements Exception {
         final status = statusCode ?? json[statusCodeKey] as int?;
 
         /// Return the error model
-        return ApiException(
+        throw ApiException(
           statusCode: status ?? HttpStatuses.badRequest.code,
           message: (singleMessage ?? '').isNotEmpty
               ? singleMessage

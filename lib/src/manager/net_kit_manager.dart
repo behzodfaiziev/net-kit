@@ -110,7 +110,8 @@ class NetKitManager extends ErrorHandler
       return parsedModel;
     } on DioException catch (error) {
       /// Parse the API exception and throw it
-      throw _parseApiException(error);
+      final exception = _parseApiException(error);
+      throw exception;
     } on ApiException {
       rethrow;
     }
