@@ -1,3 +1,6 @@
+## 1.2.2
+- Equality operator added to `ApiException` class
+
 ## 1.2.1
 
 - error handler updated
