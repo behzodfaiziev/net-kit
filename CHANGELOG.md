@@ -1,34 +1,16 @@
-## 0.1.0
+## 1.2.0
 
-- Initial release.
+- error handler updated
 
-## 0.1.1
+## 1.1.1
 
-- Updated README.md
+- exported dio classes
 
-## 0.1.2
-
-- fixed homepage and issue_tracker
-
-## 0.1.3
-
-- updated README.md: added image
-- web dependency added
-
-## 0.2.0
-
-- added documentations for public methods
-- equatable dependency removed
-
-## 0.2.1
+## 1.1.0
 
 - updated README.md
-
-## 0.2.2
-
-- integration tests added
-- unit tests updated
-- error handler improved
+- exported ApiException
+- updated documentation
 
 ## 1.0.0
 
@@ -40,13 +22,34 @@
 - `ApiException` is introduced as an exception that is thrown when an error occurs during the
   request
 
-## 1.1.0
+## 0.2.2
+
+- integration tests added
+- unit tests updated
+- error handler improved
+
+## 0.2.1
+
 - updated README.md
-- exported ApiException
-- updated documentation
 
-## 1.1.1
-- exported dio classes
+## 0.2.0
 
-## 1.2.0
-- error handler updated
+- added documentations for public methods
+- equatable dependency removed
+
+## 0.1.3
+
+- updated README.md: added image
+- web dependency added
+
+## 0.1.2
+
+- fixed homepage and issue_tracker
+
+## 0.1.1
+
+- Updated README.md
+
+## 0.1.0
+
+- Initial release.
