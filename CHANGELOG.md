@@ -1,4 +1,8 @@
-## version: 1.3.0
+## 1.3.1
+
+- added tasks to be done in the future
+
+## 1.3.0
 
 - Equality operator removed from `ApiException` class
 - Updated README.md with correct examples
