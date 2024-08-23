@@ -73,6 +73,10 @@ class NetKitManager extends ErrorHandler
   @override
   late final NetKitParams parameters;
 
+  /// This boolean value is used to determine if the internet is enabled
+  /// The default value is true, meaning that
+  /// the internet is enabled by default.
+  /// The value is updated based on the internet status stream.
   bool _internetEnabled = true;
 
   @override
