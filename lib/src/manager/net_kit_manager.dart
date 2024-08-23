@@ -31,7 +31,7 @@ class NetKitManager extends ErrorHandler
     required String baseUrl,
 
     /// The parameters for error messages and error keys
-    super.params,
+    super.errorParams,
 
     /// The HTTP client adapter
     HttpClientAdapter? httpClientAdapter,
@@ -53,6 +53,9 @@ class NetKitManager extends ErrorHandler
 
     /// Whether the logger is enabled
     bool loggerEnabled = false,
+
+    /// The stream for the internet status
+    Stream<bool>? internetStatusStream,
   }) {
     /// Initialize the network manager
     _initialize(
@@ -63,11 +66,14 @@ class NetKitManager extends ErrorHandler
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,
+      internetStatusStream: internetStatusStream,
     );
   }
 
   @override
   late final NetKitParams parameters;
+
+  bool _internetEnabled = true;
 
   @override
   BaseOptions get baseOptions => parameters.baseOptions;
@@ -84,6 +90,12 @@ class NetKitManager extends ErrorHandler
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
+      if (!_internetEnabled) {
+        throw ApiException(
+          message: errorParams.statusCodeKey,
+          statusCode: HttpStatuses.serviceUnavailable.code,
+        );
+      }
       final response = await _sendRequest(
         path: path,
         method: method,
@@ -223,6 +235,7 @@ class NetKitManager extends ErrorHandler
     bool testMode = false,
     bool loggerEnabled = false,
     HttpClientAdapter? clientAdapter,
+    Stream<bool>? internetStatusStream,
   }) {
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
@@ -233,6 +246,12 @@ class NetKitManager extends ErrorHandler
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,
+      internetStatusSubscription: internetStatusStream?.listen(
+        (event) {
+          /// Update the internet status when the stream emits a new value
+          _internetEnabled = event;
+        },
+      ),
     );
 
     /// Set up the http client adapter
@@ -280,5 +299,11 @@ class NetKitManager extends ErrorHandler
   @override
   void removeHeader(String key) {
     baseOptions.headers.remove(key);
+  }
+
+  @override
+  void dispose() {
+    httpClientAdapter.close(force: true);
+    parameters.internetStatusSubscription?.cancel();
   }
 }

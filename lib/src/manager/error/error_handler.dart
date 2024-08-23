@@ -8,17 +8,17 @@ class ErrorHandler {
   /// It takes two parameters:
   /// - errorMessageKey: The key to use for error messages
   /// - errorStatusCodeKey: The key to use for error status codes
-  ErrorHandler({this.params = const NetKitErrorParams()});
+  ErrorHandler({this.errorParams = const NetKitErrorParams()});
 
   /// Parameters for error messages and error keys
-  final NetKitErrorParams params;
+  final NetKitErrorParams errorParams;
 
   /// Returns an [ApiException] object from a DioException
   ApiException _parseApiException(DioException error) {
     return ApiException.fromJson(
       json: error.response?.data,
       statusCode: error.response?.statusCode,
-      params: params,
+      params: errorParams,
     );
   }
 
@@ -28,8 +28,8 @@ class ErrorHandler {
       response: Response(
         requestOptions: response.requestOptions,
         data: {
-          params.messageKey: params.notMapTypeError,
-          params.statusCodeKey: HttpStatuses.expectationFailed.code,
+          errorParams.messageKey: errorParams.notMapTypeError,
+          errorParams.statusCodeKey: HttpStatuses.expectationFailed.code,
         },
       ),
     );

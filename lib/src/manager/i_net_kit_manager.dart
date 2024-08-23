@@ -182,4 +182,7 @@ abstract class INetKitManager {
   /// ```
   ///
   void removeHeader(String key);
+
+  /// Dispose the network manager
+  void dispose();
 }

@@ -5,6 +5,7 @@ class NetKitErrorParams {
   const NetKitErrorParams({
     this.messageKey = 'message',
     this.statusCodeKey = 'status',
+    this.noInternetError = 'No internet connection',
     this.couldNotParseError = 'Could not parse the error',
     this.jsonNullError = 'Empty error message',
     this.jsonIsEmptyError = 'Empty error message',
@@ -18,6 +19,10 @@ class NetKitErrorParams {
   /// The key to use for error status codes
   /// The default value is ['status']
   final String statusCodeKey;
+
+  /// The error message for the no internet error
+  /// The default value is ['No internet connection']
+  final String noInternetError;
 
   /// The error message for the could not parse error
   /// The default value is ['Could not parse the error']

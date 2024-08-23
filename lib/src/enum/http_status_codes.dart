@@ -22,7 +22,10 @@ enum HttpStatuses {
   expectationFailed(417),
 
   /// 500 Internal Server Error
-  internalServerError(500);
+  internalServerError(500),
+
+  /// 503 Service Unavailable
+  serviceUnavailable(503);
 
   const HttpStatuses(this.code);
 

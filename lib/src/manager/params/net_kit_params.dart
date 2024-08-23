@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 /// Network kit params for the network manager
@@ -8,7 +10,12 @@ class NetKitParams {
     this.interceptor,
     this.testMode = false,
     this.loggerEnabled = false,
+    this.internetStatusSubscription,
   });
+
+  /// The subscription for the internet status
+  /// The default value is ['null']
+  final StreamSubscription<bool>? internetStatusSubscription;
 
   /// The interceptor for the network requests
   /// The default value is ['null']

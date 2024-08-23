@@ -1,3 +1,7 @@
+## 1.5.0-dev.1
+
+- Added `internetStatusStream` to listen to the internet status
+
 ## 1.4.1
 
 > Note: This release has breaking changes.
