@@ -1,3 +1,7 @@
+## 1.5.0
+
+- Stable: Added `internetStatusStream` to listen to the internet status
+
 ## 1.5.0-dev.2
 
 - fixed no internet connection handler

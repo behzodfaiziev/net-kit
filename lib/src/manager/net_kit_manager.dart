@@ -186,7 +186,7 @@ class NetKitManager extends ErrorHandler
     try {
       if (!_internetEnabled) {
         throw ApiException(
-          message: errorParams.statusCodeKey,
+          message: errorParams.noInternetError,
           statusCode: HttpStatuses.serviceUnavailable.code,
         );
       }
