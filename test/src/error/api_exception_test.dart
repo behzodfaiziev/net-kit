@@ -216,4 +216,15 @@ void main() {
       expect(apiException.messages, null);
     });
   });
+
+  test('should handle JSON when json null', () {
+    final apiException = ApiException.fromJson(
+      json: null,
+      statusCodeKey: 'status',
+      messageKey: 'message',
+    );
+    expect(apiException.statusCode, HttpStatuses.expectationFailed.code);
+    expect(apiException.message, 'Empty error message');
+    expect(apiException.messages, null);
+  });
 }

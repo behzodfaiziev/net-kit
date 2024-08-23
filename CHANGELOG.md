@@ -1,8 +1,11 @@
-## version: 1.2.3
+## version: 1.3.0
+
 - Equality operator removed from `ApiException` class
 - Updated README.md with correct examples
+- Empty `json` error handling improved
 
 ## 1.2.2
+
 - Equality operator added to `ApiException` class
 
 ## 1.2.1

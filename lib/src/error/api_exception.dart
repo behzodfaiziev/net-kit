@@ -110,7 +110,7 @@ class ApiException implements Exception {
   /// The default error message
   static const String _couldNotParseError = 'Could not parse the error';
 
-  static const String _jsonNullError = 'JSON is null';
+  static const String _jsonNullError = 'Empty error message';
 
   static const String _jsonIsEmptyError = 'JSON is empty';
 }
