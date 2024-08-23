@@ -1,6 +1,3 @@
-import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
-
 import '../enum/http_status_codes.dart';
 import '../utility/typedef/request_type_def.dart';
 
@@ -8,7 +5,6 @@ import '../utility/typedef/request_type_def.dart';
 /// It contains the status code and message of the error
 /// It is used to parse the error response from the server
 /// and display the error message to the user
-@immutable
 class ApiException implements Exception {
   /// The constructor for the ErrorModel class
   const ApiException({
@@ -117,20 +113,4 @@ class ApiException implements Exception {
   static const String _jsonNullError = 'JSON is null';
 
   static const String _jsonIsEmptyError = 'JSON is empty';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is ApiException &&
-        other.statusCode == statusCode &&
-        other.message == message &&
-        const ListEquality<String>().equals(other.messages, messages);
-  }
-
-  @override
-  int get hashCode =>
-      statusCode.hashCode ^
-      message.hashCode ^
-      const ListEquality<String>().hash(messages);
 }

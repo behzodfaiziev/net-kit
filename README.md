@@ -54,13 +54,14 @@ final netKitManager = NetKitManager(
 #### **Request a Single Model**
 
 ```dart
-Future<RandomUserModel> getRandomUser() {
+Future<RandomUserModel> getRandomUser() async {
   try {
-    return netKitManager.requestModel<RandomUserModel>(
+    final result = await netKitManager.requestModel<RandomUserModel>(
       path: '/api',
       method: RequestMethod.get,
       model: const RandomUserModel(),
     );
+    return result;
   }
   /// Catch the ApiException and handle it
   on ApiException catch (e) {
@@ -75,11 +76,12 @@ Future<RandomUserModel> getRandomUser() {
 ```dart
 Future<List<ProductModel>> getProducts() async {
   try {
-    return netKitManager.requestList<ProductModel>(
+    final result = await netKitManager.requestList<ProductModel>(
       path: '/products',
       method: RequestMethod.get,
       model: const ProductModel(),
     );
+    return result;
   }
   /// Catch the ApiException and handle it
   on ApiException catch (e) {
@@ -94,10 +96,11 @@ Future<List<ProductModel>> getProducts() async {
 ```dart
 Future<void> deleteProduct() async {
   try {
-    return netKitManager.requestVoid<ProductModel>(
+    await netKitManager.requestVoid<ProductModel>(
       path: '/products',
       method: RequestMethod.delete,
     );
+    return;
   }
   /// Catch the ApiException and handle it
   on ApiException catch (e) {

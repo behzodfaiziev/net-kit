@@ -28,19 +28,21 @@ abstract class INetKitManager {
   /// `cancelToken`, and `onReceiveProgress`.
   /// Example:
   /// ```dart
-  /// Future<RandomUserModel> getRandomUser() {
-  ///  try {
-  ///    return netKitManager.requestModel<RandomUserModel>(
-  ///      path: '/api',
-  ///      method: RequestMethod.get,
-  ///      model: const RandomUserModel(),
-  ///    );
-  ///  }
-  ///  /// Catch the ApiException and handle it
-  ///  on ApiException catch (e) {
-  ///    /// Handle the error: example is to throw the error
-  ///    throw Exception(e.message);
-  ///  }
+  /// Future<RandomUserModel> getRandomUser() async {
+  ///   try {
+  ///     final result = await netKitManager.requestModel<RandomUserModel>(
+  ///       path: '/api',
+  ///       method: RequestMethod.get,
+  ///       model: const RandomUserModel(),
+  ///     );
+  ///     return result;
+  ///   }
+  ///   /// Catch the ApiException and handle it
+  ///   on ApiException catch (e) {
+  ///     /// Handle the error: example is to throw the error
+  ///     throw Exception(e.message);
+  ///   }
+  /// }
   /// ```
   ///
   /// The response of the request is returned as a [`RandomUserModel`] object.
@@ -66,11 +68,12 @@ abstract class INetKitManager {
   /// ```dart
   /// Future<List<ProductModel>> getProducts() async {
   ///   try {
-  ///     return netKitManager.requestList<ProductModel>(
+  ///     final result = await netKitManager.requestList<ProductModel>(
   ///       path: '/products',
   ///       method: RequestMethod.get,
   ///       model: const ProductModel(),
   ///     );
+  ///     return result;
   ///   }
   ///   /// Catch the ApiException and handle it
   ///   on ApiException catch (e) {
@@ -79,6 +82,7 @@ abstract class INetKitManager {
   ///   }
   /// }
   /// ```
+
   /// The response of the request is returned
   /// as a [`List<ProductModel>`] object.
   Future<List<R>> requestList<R extends INetKitModel<R>>({
@@ -103,10 +107,11 @@ abstract class INetKitManager {
   /// ```dart
   /// Future<void> deleteProduct() async {
   ///   try {
-  ///     return netKitManager.requestVoid<ProductModel>(
+  ///     await netKitManager.requestVoid<ProductModel>(
   ///       path: '/products',
   ///       method: RequestMethod.delete,
   ///     );
+  ///     return;
   ///   }
   ///   /// Catch the ApiException and handle it
   ///   on ApiException catch (e) {

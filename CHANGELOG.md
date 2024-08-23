@@ -1,3 +1,7 @@
+## version: 1.2.3
+- Equality operator removed from `ApiException` class
+- Updated README.md with correct examples
+
 ## 1.2.2
 - Equality operator added to `ApiException` class
 
