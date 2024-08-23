@@ -1,6 +1,6 @@
-import '../enum/http_status_codes.dart';
-import '../manager/params/net_kit_error_params.dart';
-import '../utility/typedef/request_type_def.dart';
+import '../../enum/http_status_codes.dart';
+import '../../utility/typedef/request_type_def.dart';
+import '../params/net_kit_error_params.dart';
 
 /// The error model class
 /// It contains the status code and message of the error

@@ -1,5 +1,5 @@
 import '../enum/http_status_codes.dart';
-import '../error/api_exception.dart';
+import '../manager/error/api_exception.dart';
 import '../model/i_net_kit_model.dart';
 import 'typedef/request_type_def.dart';
 

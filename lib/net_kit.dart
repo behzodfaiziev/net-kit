@@ -12,7 +12,7 @@ export 'package:dio/src/options.dart';
 export 'src/enum/request_method.dart';
 
 /// Exceptions
-export 'src/error/api_exception.dart';
+export 'src/manager/error/api_exception.dart';
 
 /// Manager
 export 'src/manager/i_net_kit_manager.dart';

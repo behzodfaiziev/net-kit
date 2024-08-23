@@ -16,7 +16,7 @@ class NetKitErrorParams {
   final String messageKey;
 
   /// The key to use for error status codes
-  /// The default value is ['statusCode']
+  /// The default value is ['status']
   final String statusCodeKey;
 
   /// The error message for the could not parse error
