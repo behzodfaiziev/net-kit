@@ -107,7 +107,7 @@ abstract class INetKitManager {
   /// ```dart
   /// Future<void> deleteProduct() async {
   ///   try {
-  ///     await netKitManager.requestVoid<ProductModel>(
+  ///     await netKitManager.requestVoid(
   ///       path: '/products',
   ///       method: RequestMethod.delete,
   ///     );
