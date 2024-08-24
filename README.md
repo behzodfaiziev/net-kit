@@ -1,4 +1,3 @@
-# Netkit
 ![h)](https://github.com/user-attachments/assets/d8115ef2-4783-4d2d-88de-df57df40112f)
 
 ## **Contents**
@@ -6,11 +5,14 @@
 - [Inspiration](#inspiration)
 - [Features](#features)
 - [Getting started](#getting-started)
-    - [Initialization](#initialization)
+    - [Initialize the NetKitManager](#initialize-the-netkitmanager)
+    - [Extend the model](#extend-the-model)
 - [Sending requests](#sending-requests)
     - [Request a Single Model](#request-a-single-model)
     - [Request a List of Models](#request-a-list-of-models)
     - [Send a Void Request](#send-a-void-request)
+      [//]: # (- [Best Practices]&#40;#best-practices&#41;)
+      [//]: # (    - [Extend the model]&#40;#extend-the-model&#41;)
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
@@ -28,9 +30,9 @@ by [VB10](https://github.com/VB10)
 - Error handling and response validation
 - Parsing responses into models or lists of models or void using `INetKitModel`
 
-## Getting started
+## **Getting started**
 
-### **Initialization**
+### Initialize the NetKitManager
 
 Initialize the NetKitManager with the parameters:
 
@@ -47,6 +49,15 @@ final netKitManager = NetKitManager(
 );
 ```
 
+### **Extend the model**
+
+Requests such as: `requestModel` and`requestList` require the model to
+extend `INetKitModel` in order to be used with the NetKitManager.
+
+```dart
+class TodoModel extends INetKitModel<TodoModel> {}
+```
+
 ## **Sending requests**
 
 #### **Request a Single Model**
@@ -61,6 +72,7 @@ Future<RandomUserModel> getRandomUser() async {
     );
     return result;
   }
+
   /// Catch the ApiException and handle it
   on ApiException catch (e) {
     /// Handle the error: example is to throw the error
@@ -81,6 +93,7 @@ Future<List<ProductModel>> getProducts() async {
     );
     return result;
   }
+
   /// Catch the ApiException and handle it
   on ApiException catch (e) {
     /// Handle the error: example is to throw the error
@@ -94,12 +107,13 @@ Future<List<ProductModel>> getProducts() async {
 ```dart
 Future<void> deleteProduct() async {
   try {
-    await netKitManager.requestVoid<ProductModel>(
+    await netKitManager.requestVoid(
       path: '/products',
       method: RequestMethod.delete,
     );
     return;
   }
+
   /// Catch the ApiException and handle it
   on ApiException catch (e) {
     /// Handle the error: example is to throw the error
@@ -108,21 +122,28 @@ Future<void> deleteProduct() async {
 }
 ```
 
-## Planned Enhancements   
-|                   Feature           | Status |
-|--------------------------------------------|--------|
-| Internationalization support for error messages | <div align="center">✅</div> |
-| No internet connection handling                 |   <div align="center">✅</div>  |
-| Multi-part form data support                    |       |
-| Refresh Token implementation                    |      |
-| Enhance logging capabilities with customizable log levels |       |
-| Provide more examples and use cases in the documentation |      |
-| Implement retry logic for failed requests  |      |
-| Add more tests to ensure the package is robust and reliable |       |
+[//]: # (## **Best Practices**)
+
+[//]: # (#### **Extend the model**)
+
+## Planned Enhancements
+
+| Feature                                                     | Status |
+|:------------------------------------------------------------|:------:|
+| Internationalization support for error messages             |   ✅    |
+| No internet connection handling                             |   ✅    |
+| Provide basic example                                       |   ✅    |
+| Provide more examples and use cases in the documentation    |        |
+| Multi-part form data support                                |        |
+| Refresh Token implementation                                |        |
+| Enhance logging capabilities with customizable log levels   |        |
+| Implement retry logic for failed requests                   |        |
+| Add more tests to ensure the package is robust and reliable |        |
 
 ## Contributing
 
-Contributions are welcome! Please open an [issue](https://github.com/behzodfaiziev/net-kit/issues) or submit a [pull request](https://github.com/behzodfaiziev/net-kit/pulls).
+Contributions are welcome! Please open an [issue](https://github.com/behzodfaiziev/net-kit/issues)
+or submit a [pull request](https://github.com/behzodfaiziev/net-kit/pulls).
 
 ## License
 

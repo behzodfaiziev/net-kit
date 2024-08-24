@@ -7,9 +7,7 @@ import 'model/test_product_model.dart';
 void main() {
   late INetKitManager netKitManager;
   setUp(() {
-    netKitManager = NetKitManager(
-      baseUrl: 'https://fakestoreapi.com',
-    );
+    netKitManager = NetKitManager(baseUrl: 'https://fakestoreapi.com');
   });
 
   group('FakeStoreApi Integration Test', () {
