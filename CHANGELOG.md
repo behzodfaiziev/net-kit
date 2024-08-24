@@ -1,3 +1,7 @@
+## 1.5.3
+- added example
+- updated error handling
+
 ## 1.5.2
 
 - updated README.md
