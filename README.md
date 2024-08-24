@@ -108,16 +108,17 @@ Future<void> deleteProduct() async {
 }
 ```
 
-## Planned Enhancements
-- Internationalization support for error messages: :white_check_mark:
-- No internet connection handling: :white_check_mark:
-- Multi-part form data support
-- Refresh Token implementation
-- Enhance logging capabilities with customizable log levels
-- Provide more examples and use cases in the documentation
-- Implement retry logic for failed requests
-- Add more tests to ensure the package is robust and reliable
-
+## Planned Enhancements   
+|                   Feature           | Status |
+|--------------------------------------------|--------|
+| Internationalization support for error messages | <div align="center">✅</div> |
+| No internet connection handling                 |   <div align="center">✅</div>  |
+| Multi-part form data support                    |       |
+| Refresh Token implementation                    |      |
+| Enhance logging capabilities with customizable log levels |       |
+| Provide more examples and use cases in the documentation |      |
+| Implement retry logic for failed requests  |      |
+| Add more tests to ensure the package is robust and reliable |       |
 
 ## Contributing
 
