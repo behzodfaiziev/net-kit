@@ -11,8 +11,8 @@
     - [Request a Single Model](#request-a-single-model)
     - [Request a List of Models](#request-a-list-of-models)
     - [Send a Void Request](#send-a-void-request)
-[//]: # (- [Best Practices]&#40;#best-practices&#41;)
-[//]: # (    - [Extend the model]&#40;#extend-the-model&#41;)
+      [//]: # (- [Best Practices]&#40;#best-practices&#41;)
+      [//]: # (    - [Extend the model]&#40;#extend-the-model&#41;)
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
@@ -128,16 +128,17 @@ Future<void> deleteProduct() async {
 
 ## Planned Enhancements
 
-| Feature                                                     | Status                      |
-|-------------------------------------------------------------|-----------------------------|
-| Internationalization support for error messages             | <div align="center">✅</div> |
-| No internet connection handling                             | <div align="center">✅</div> |
-| Multi-part form data support                                |                             |
-| Refresh Token implementation                                |                             |
-| Enhance logging capabilities with customizable log levels   |                             |
-| Provide more examples and use cases in the documentation    |                             |
-| Implement retry logic for failed requests                   |                             |
-| Add more tests to ensure the package is robust and reliable |                             |
+| Feature                                                     | Status |
+|:------------------------------------------------------------|:------:|
+| Internationalization support for error messages             |   ✅    |
+| No internet connection handling                             |   ✅    |
+| Provide basic example                                       |   ✅    |
+| Provide more examples and use cases in the documentation    |        |
+| Multi-part form data support                                |        |
+| Refresh Token implementation                                |        |
+| Enhance logging capabilities with customizable log levels   |        |
+| Implement retry logic for failed requests                   |        |
+| Add more tests to ensure the package is robust and reliable |        |
 
 ## Contributing
 
