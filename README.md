@@ -42,8 +42,6 @@ final netKitManager = NetKitManager(
   devBaseUrl: 'https://dev.<URL>.com',
   loggerEnabled: true,
   testMode: true,
-  errorStatusCodeKey: 'status',
-  errorMessageKey: 'description',
 );
 ```
 
