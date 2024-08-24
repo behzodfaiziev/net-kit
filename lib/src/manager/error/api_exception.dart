@@ -50,7 +50,7 @@ class ApiException implements Exception {
 
       /// Check if the message is a map
       /// If it is a map, parse the error message and status code
-      if (json is MapType) {
+      if (json is MapType && json.isNotEmpty) {
         /// Check if the message is a string or a list
         if (json[params.messageKey] is String) {
           singleMessage = json[params.messageKey] as String?;
