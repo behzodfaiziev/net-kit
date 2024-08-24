@@ -1,3 +1,8 @@
+## 1.5.2
+
+- updated README.md
+- declared platform supports
+
 ## 1.5.1
 
 - updated README.md
