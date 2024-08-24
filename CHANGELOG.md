@@ -1,3 +1,8 @@
+## 1.5.1
+
+- updated README.md
+- declared `web` support
+
 ## 1.5.0
 
 - Stable: Added `internetStatusStream` to listen to the internet status

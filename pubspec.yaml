@@ -2,7 +2,7 @@ name: net_kit
 
 description: "Network Kit is a library that provides a set of tools to work with network requests."
 
-version: 1.5.0
+version: 1.5.1
 
 homepage: https://github.com/behzodfaiziev/net-kit
 issue_tracker: https://github.com/behzodfaiziev/net-kit/issues
@@ -22,3 +22,6 @@ dev_dependencies:
   mocktail: ^1.0.4
   test: ^1.25.7
   very_good_analysis: ^6.0.0
+
+platforms:
+  web:
