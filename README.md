@@ -1,10 +1,6 @@
-# NetKit
-
-NetKit is a Dart package designed to handle HTTP requests and responses efficiently.
+# Netkit
 
 ![netkit](https://github.com/user-attachments/assets/f855f0ac-2be8-4974-b60b-b935c805852a)
-
-
 
 ## **Contents**
 
