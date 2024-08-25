@@ -2,11 +2,10 @@
 
 ## **Contents**
 
-- [Inspiration](#inspiration)
 - [Features](#features)
 - [Getting started](#getting-started)
     - [Initialize](#initialize)
-    - [Extend the model](#extend-the-model)
+    - [Configure the model](#configure-the-model)
 - [Sending requests](#sending-requests)
     - [Request a Single Model](#request-a-single-model)
     - [Request a List of Models](#request-a-list-of-models)
@@ -14,11 +13,6 @@
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
-
-## **Inspiration**
-
-NetKit was inspired by the popular [Vexana](https://pub.dev/packages/vexana) package
-by [VB10](https://github.com/VB10)
 
 ## **Features**
 
@@ -45,7 +39,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-### **Extend the model**
+### **Configure the model**
 
 Requests such as: `requestModel` and`requestList` require the model to
 extend `INetKitModel` in order to be used with the NetKitManager.

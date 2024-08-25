@@ -1,3 +1,7 @@
+## 1.6.1
+
+- added integration test from typicode
+
 ## 1.6.0
 
 - log messages improved
@@ -8,6 +12,7 @@
 - added log messages
 
 ## 1.5.3
+
 - added example
 - updated error handling
 
