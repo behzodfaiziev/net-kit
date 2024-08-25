@@ -1,13 +1,15 @@
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 
 import '../enum/http_status_codes.dart';
 import '../enum/request_method.dart';
 import '../model/i_net_kit_model.dart';
-import '../utility/converters.dart';
+import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
+import 'adapter/http_adapter.dart'
+    if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
+import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 
@@ -73,6 +75,10 @@ class NetKitManager extends ErrorHandler
   @override
   late final NetKitParams parameters;
 
+  late final INetKitLogger _logger;
+
+  late final Converter _converter;
+
   /// This boolean value is used to determine if the internet is enabled
   /// The default value is true, meaning that
   /// the internet is enabled by default.
@@ -92,6 +98,7 @@ class NetKitManager extends ErrorHandler
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
   }) async {
     try {
       final response = await _sendRequest(
@@ -102,6 +109,7 @@ class NetKitManager extends ErrorHandler
         queryParameters: queryParameters,
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
+        onSendProgress: onSendProgress,
       );
 
       /// Check if the response data is a map
@@ -109,7 +117,7 @@ class NetKitManager extends ErrorHandler
       if ((response.data is MapType) == false) {
         throw _notMapTypeError(response);
       }
-      final parsedModel = Converters.toModel(response.data as MapType, model);
+      final parsedModel = Converter.toModel(response.data as MapType, model);
 
       return parsedModel;
     } on DioException catch (error) {
@@ -128,6 +136,7 @@ class NetKitManager extends ErrorHandler
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
   }) async {
     try {
       final response = await _sendRequest(
@@ -138,8 +147,13 @@ class NetKitManager extends ErrorHandler
         queryParameters: queryParameters,
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
+        onSendProgress: onSendProgress,
       );
-      return Converters.toListModel(response.data, model);
+      return _converter.toListModel(
+        data: response.data,
+        parseModel: model,
+        loggerEnabled: parameters.loggerEnabled,
+      );
     } on DioException catch (error) {
       /// Parse the API exception and throw it
       throw _parseApiException(error);
@@ -155,6 +169,7 @@ class NetKitManager extends ErrorHandler
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
   }) async {
     try {
       await _sendRequest(
@@ -165,6 +180,7 @@ class NetKitManager extends ErrorHandler
         queryParameters: queryParameters,
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
+        onSendProgress: onSendProgress,
       );
 
       return;
@@ -182,6 +198,7 @@ class NetKitManager extends ErrorHandler
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
   }) async {
     try {
       if (!_internetEnabled) {
@@ -198,9 +215,13 @@ class NetKitManager extends ErrorHandler
 
       final response = await request<dynamic>(
         path,
-        data: Converters.toRequestBody(body),
+        data: _converter.toRequestBody(
+          data: body,
+          loggerEnabled: parameters.loggerEnabled,
+        ),
         options: options,
         onReceiveProgress: onReceiveProgress,
+        onSendProgress: onSendProgress,
         queryParameters: queryParameters,
         cancelToken: cancelToken,
       );
@@ -244,6 +265,12 @@ class NetKitManager extends ErrorHandler
     HttpClientAdapter? clientAdapter,
     Stream<bool>? internetStatusStream,
   }) {
+    /// Initialize the logger
+    _logger = NetKitLogger();
+
+    /// Initialize the converter
+    _converter = Converter(logger: _logger);
+
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
     baseOptions ??= BaseOptions();
@@ -262,7 +289,7 @@ class NetKitManager extends ErrorHandler
     );
 
     /// Set up the http client adapter
-    httpClientAdapter = clientAdapter ?? IOHttpClientAdapter();
+    httpClientAdapter = clientAdapter ?? adapter.HttpAdapter().getAdapter();
 
     /// If test mode is enabled, use devBaseUrl
     parameters.testMode
