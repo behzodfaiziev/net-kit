@@ -1,8 +1,35 @@
 import 'package:logger/logger.dart';
 
-enum LogLevel { all, trace, debug, info, warning, error, fatal, off }
+/// Enum for the different log levels.
+enum LogLevel {
+  /// All log levels.
+  all,
 
+  /// Trace log level.
+  trace,
+
+  /// Debug log level.
+  debug,
+
+  /// Info log level.
+  info,
+
+  /// Warning log level.
+  warning,
+
+  /// Error log level.
+  error,
+
+  /// Fatal log level.
+  fatal,
+
+  /// Off log level.
+  off,
+}
+
+/// Extension on the [LogLevel] enum to perform some operations.
 extension LogLevelExtension on LogLevel {
+  /// Converts the [LogLevel] enum to a [Level] enum.
   Level toLevel() {
     switch (this) {
       case LogLevel.all:
