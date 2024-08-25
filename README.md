@@ -5,7 +5,7 @@
 - [Inspiration](#inspiration)
 - [Features](#features)
 - [Getting started](#getting-started)
-    - [Initialize the NetKitManager](#initialize-the-netkitmanager)
+    - [Initialize](#initialize)
     - [Extend the model](#extend-the-model)
 - [Sending requests](#sending-requests)
     - [Request a Single Model](#request-a-single-model)
@@ -30,7 +30,7 @@ by [VB10](https://github.com/VB10)
 
 ## **Getting started**
 
-### Initialize the NetKitManager
+### **Initialize**
 
 Initialize the NetKitManager with the parameters:
 
