@@ -7,8 +7,10 @@ import 'models/todo_model.dart';
 void main() {
   /// Create a new instance of the NetKitManager class.
   /// The base URL is set to 'https://jsonplaceholder.typicode.com'.
-  final INetKitManager netKitManager =
-      NetKitManager(baseUrl: 'https://jsonplaceholder.typicode.com');
+  final INetKitManager netKitManager = NetKitManager(
+    baseUrl: 'https://jsonplaceholder.typicode.com',
+    loggerEnabled: true,
+  );
 
   TodoRemoteDataSource(netKitManager: netKitManager)
     ..getTodoList()
