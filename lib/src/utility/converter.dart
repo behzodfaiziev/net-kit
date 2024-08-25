@@ -2,7 +2,7 @@ import 'dart:core';
 
 import '../enum/http_status_codes.dart';
 import '../manager/error/api_exception.dart';
-import '../manager/logger/net_kit_logger.dart';
+import '../manager/logger/i_net_kit_logger.dart';
 import '../model/i_net_kit_model.dart';
 import 'typedef/request_type_def.dart';
 
@@ -32,7 +32,7 @@ class Converter {
       final jsonData = data.toJson();
 
       /// Log the event
-      if (loggerEnabled) _logEvent(stopwatch);
+      if (loggerEnabled) _logEvent(type: 'toRequestBody', stopwatch: stopwatch);
       return jsonData;
     }
 
@@ -55,7 +55,13 @@ class Converter {
     try {
       /// If the data is a list, convert it to a list of models
       if (data is List<dynamic>) {
-        return data
+        /// The stopwatch to measure the time taken to convert the data
+        Stopwatch? stopwatch;
+
+        /// Start the stopwatch if the logger is enabled
+        if (loggerEnabled) stopwatch = Stopwatch()..start();
+
+        final parsedList = data
 
             /// Filter the data to only include maps
             .whereType<MapType>()
@@ -68,6 +74,15 @@ class Converter {
 
             /// Convert the converted models to a list
             .toList();
+
+        /// Log the event if the logger is enabled
+        if (loggerEnabled) {
+          _logListParsingEvent(
+            stopwatch: stopwatch,
+            length: parsedList.length,
+          );
+        }
+        return parsedList;
       }
 
       /// If the data is not a list, throw an exception
@@ -104,10 +119,21 @@ class Converter {
     }
   }
 
-  void _logEvent(Stopwatch? stopwatch) {
+  void _logEvent({required String type, Stopwatch? stopwatch}) {
     stopwatch?.stop();
-    _logger.logEvent(
-      'Converters: toRequestBody: ${stopwatch?.elapsedMilliseconds}ms',
+    _logger.info(
+      'Converter: $type: ${stopwatch?.elapsedMilliseconds}ms',
+    );
+  }
+
+  Future<void> _logListParsingEvent({
+    required int length,
+    Stopwatch? stopwatch,
+  }) async {
+    stopwatch?.stop();
+    _logger.info(
+      'Converter.toListModel,'
+      ' $length items: ${stopwatch?.elapsedMilliseconds}ms',
     );
   }
 }

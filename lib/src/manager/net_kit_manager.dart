@@ -1,14 +1,16 @@
 import 'package:dio/dio.dart';
 
 import '../enum/http_status_codes.dart';
+import '../enum/log_level.dart';
 import '../enum/request_method.dart';
 import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
-import 'adapter/http_adapter.dart'
+import 'adapter/io_http_adapter.dart'
     if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
+import 'logger/i_net_kit_logger.dart';
 import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
@@ -53,8 +55,15 @@ class NetKitManager extends ErrorHandler
     /// CAUTION: Make sure that it is set to false in production environments
     bool testMode = false,
 
-    /// Whether the logger is enabled
+    /// Whether the logger is enabled for Dio requests,
+    /// Note: This is independent of the ['logLevel'] parameter,
     bool loggerEnabled = false,
+
+    /// Set the log level for the network manager.
+    /// Note: This is independent of the ['loggerEnabled'] parameter,
+    /// and will only affect the log level of the network manager.
+    /// The default value is [LogLevel.off].
+    LogLevel logLevel = LogLevel.off,
 
     /// The stream for the internet status
     Stream<bool>? internetStatusStream,
@@ -68,6 +77,7 @@ class NetKitManager extends ErrorHandler
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,
+      logLevel: logLevel,
       internetStatusStream: internetStatusStream,
     );
   }
@@ -152,7 +162,7 @@ class NetKitManager extends ErrorHandler
       return _converter.toListModel(
         data: response.data,
         parseModel: model,
-        loggerEnabled: parameters.loggerEnabled,
+        loggerEnabled: parameters.isNetKitLoggerEnabled,
       );
     } on DioException catch (error) {
       /// Parse the API exception and throw it
@@ -217,7 +227,7 @@ class NetKitManager extends ErrorHandler
         path,
         data: _converter.toRequestBody(
           data: body,
-          loggerEnabled: parameters.loggerEnabled,
+          loggerEnabled: parameters.isNetKitLoggerEnabled,
         ),
         options: options,
         onReceiveProgress: onReceiveProgress,
@@ -257,16 +267,20 @@ class NetKitManager extends ErrorHandler
 
   void _initialize({
     required String baseUrl,
+    required LogLevel logLevel,
+    required bool loggerEnabled,
+    required bool testMode,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
-    bool testMode = false,
-    bool loggerEnabled = false,
     HttpClientAdapter? clientAdapter,
     Stream<bool>? internetStatusStream,
   }) {
     /// Initialize the logger
     _logger = NetKitLogger();
+
+    /// Set the log level for the logger
+    _logger.setLogLevel(logLevel);
 
     /// Initialize the converter
     _converter = Converter(logger: _logger);
@@ -280,6 +294,7 @@ class NetKitManager extends ErrorHandler
       interceptor: interceptor,
       testMode: testMode,
       loggerEnabled: loggerEnabled,
+      logLevel: logLevel,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value

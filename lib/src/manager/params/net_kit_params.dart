@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
+import '../../enum/log_level.dart';
+
 /// Network kit params for the network manager
 class NetKitParams {
   /// The constructor for the NetKitParams class
   const NetKitParams({
     required this.baseOptions,
+    required this.testMode,
+    required this.loggerEnabled,
+    required this.logLevel,
     this.interceptor,
-    this.testMode = false,
-    this.loggerEnabled = false,
     this.internetStatusSubscription,
   });
 
@@ -32,6 +35,12 @@ class NetKitParams {
   /// Whether the network manager is in test mode
   final bool testMode;
 
-  /// Whether the logger is enabled
+  /// Whether the Dio logger is enabled
   final bool loggerEnabled;
+
+  /// The log level for the logger
+  final LogLevel logLevel;
+
+  /// Whether the NetKit logger is enabled
+  bool get isNetKitLoggerEnabled => logLevel != LogLevel.off;
 }

@@ -1,5 +1,7 @@
-//ignore_for_file: avoid_print
 import 'package:net_kit/net_kit.dart';
+import 'package:net_kit/src/enum/log_level.dart';
+import 'package:net_kit/src/manager/logger/i_net_kit_logger.dart';
+import 'package:net_kit/src/manager/logger/net_kit_logger.dart';
 
 import 'models/todo_model.dart';
 
@@ -9,10 +11,10 @@ void main() {
   /// The base URL is set to 'https://jsonplaceholder.typicode.com'.
   final INetKitManager netKitManager = NetKitManager(
     baseUrl: 'https://jsonplaceholder.typicode.com',
-    loggerEnabled: true,
+    logLevel: LogLevel.all,
   );
 
-  TodoRemoteDataSource(netKitManager: netKitManager)
+  TodoRemoteDataSource(netKitManager: netKitManager, logger: NetKitLogger())
     ..getTodoList()
     ..getTodo(1)
     ..createTodo(TodoModel(id: 1, title: 'Test', userId: 1, completed: false))
@@ -20,10 +22,14 @@ void main() {
 }
 
 class TodoRemoteDataSource {
-  TodoRemoteDataSource({required INetKitManager netKitManager})
-      : _netKitManager = netKitManager;
+  TodoRemoteDataSource({
+    required INetKitManager netKitManager,
+    required INetKitLogger logger,
+  })  : _netKitManager = netKitManager,
+        _logger = logger;
 
   final INetKitManager _netKitManager;
+  final INetKitLogger _logger;
 
   Future<void> deleteTodoById(int id) async {
     try {
@@ -32,10 +38,10 @@ class TodoRemoteDataSource {
         method: RequestMethod.delete,
       );
 
-      print('Todo deleted successfully');
+      _logger.debug('Todo deleted successfully');
     } on ApiException catch (e) {
       /// This will print the error message.
-      print(e.message);
+      _logger.error(e.message);
     }
   }
 
@@ -48,10 +54,10 @@ class TodoRemoteDataSource {
       );
 
       /// This will print the TodoModel object.
-      print(todo);
+      _logger.debug(todo.toString());
     } on ApiException catch (e) {
       /// This will print the error message.
-      print(e.message);
+      _logger.error(e.message);
     }
   }
 
@@ -64,10 +70,10 @@ class TodoRemoteDataSource {
       );
 
       /// This will print the length of TodoModel objects.
-      print('Todos length: ${todos.length}');
+      _logger.info('Todos length: ${todos.length}');
     } on ApiException catch (e) {
       /// This will print the error message.
-      print(e.message);
+      _logger.error(e.message);
     }
   }
 
@@ -81,10 +87,10 @@ class TodoRemoteDataSource {
       );
 
       /// This will print the created TodoModel object.
-      print('Created Todo: $createdTodo');
+      _logger.debug('Created Todo: $createdTodo');
     } on ApiException catch (e) {
       /// This will print the error message.
-      print(e.message);
+      _logger.error(e.message);
     }
   }
 }

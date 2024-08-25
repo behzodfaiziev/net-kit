@@ -1,3 +1,7 @@
+## 1.6.0
+
+- log messages improved
+
 ## 1.6.0-dev.1
 
 - updated HttpClientAdapter to support web
