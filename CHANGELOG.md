@@ -1,3 +1,8 @@
+## 1.6.2
+
+- added more integration test cases
+- added missing documentations
+
 ## 1.6.1
 
 - added integration test from typicode
