@@ -14,10 +14,10 @@ class ErrorHandler {
   final NetKitErrorParams errorParams;
 
   /// Returns an [ApiException] object from a DioException
-  ApiException _parseApiException(DioException error) {
+  ApiException _parseToApiException(DioException exception) {
     return ApiException.fromJson(
-      json: error.response?.data,
-      statusCode: error.response?.statusCode,
+      json: exception.response?.data ?? exception.error,
+      statusCode: exception.response?.statusCode,
       params: errorParams,
     );
   }
