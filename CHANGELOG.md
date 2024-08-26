@@ -1,3 +1,7 @@
+## 1.7.0
+
+- updated error handling to provide more information
+
 ## 1.6.2
 
 - added more integration test cases
