@@ -1,6 +1,6 @@
 ## 1.8.1
 
-- fixed data is not parsed to json. 
+- fixed data is not parsed to json.
 
 ## 1.8.0
 
