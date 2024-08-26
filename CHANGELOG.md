@@ -1,3 +1,12 @@
+## 1.8.1
+
+- fixed data is not parsed to json. 
+
+## 1.8.0
+
+- added JsonUnsupportedObjectError to handle unsupported objects in json
+- added String for error message: `JsonUnsupportedObjectError`
+
 ## 1.7.0
 
 - updated error handling to provide more information

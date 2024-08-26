@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../enum/http_status_codes.dart';
 import '../../utility/typedef/request_type_def.dart';
 import '../params/net_kit_error_params.dart';
@@ -36,6 +38,13 @@ class ApiException implements Exception {
         throw ApiException(
           message: params.jsonNullError,
           statusCode: HttpStatuses.expectationFailed.code,
+        );
+      }
+
+      if (json is JsonUnsupportedObjectError) {
+        throw ApiException(
+          statusCode: statusCode ?? HttpStatuses.badRequest.code,
+          message: params.jsonUnsupportedObjectError,
         );
       }
 

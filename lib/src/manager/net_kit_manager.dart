@@ -223,12 +223,15 @@ class NetKitManager extends ErrorHandler
       /// Set the request method
       options.method = method.name.toUpperCase();
 
+      /// It is awaited
+      final data = await _converter.toRequestBody(
+        data: body,
+        loggerEnabled: parameters.isNetKitLoggerEnabled,
+      );
+
       final response = await request<dynamic>(
         path,
-        data: _converter.toRequestBody(
-          data: body,
-          loggerEnabled: parameters.isNetKitLoggerEnabled,
-        ),
+        data: data,
         options: options,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,

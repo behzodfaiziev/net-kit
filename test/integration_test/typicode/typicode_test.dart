@@ -53,10 +53,14 @@ void main() {
           path: '/comments',
           method: RequestMethod.post,
           model: const TypicodeCommentModel(),
-          body: comment.toJson(),
+          body: comment,
         );
 
         expect(createdComment, isA<TypicodeCommentModel>());
+        expect(createdComment.id, 501);
+        expect(createdComment.name, 'Test');
+        expect(createdComment.email, 'test');
+        expect(createdComment.postId, 1);
       } on ApiException catch (e) {
         fail('Request failed with error: ${e.message}');
       }
