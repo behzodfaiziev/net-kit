@@ -1,3 +1,7 @@
+## 1.8.2
+
+- exported `LogLevel` enum
+
 ## 1.8.1
 
 - fixed data is not parsed to json.

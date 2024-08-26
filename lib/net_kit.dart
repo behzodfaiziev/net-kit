@@ -8,6 +8,9 @@ export 'package:dio/src/dio_exception.dart';
 export 'package:dio/src/multipart_file.dart';
 export 'package:dio/src/options.dart';
 
+/// Log Levels
+export 'src/enum/log_level.dart';
+
 /// Http Request Type
 export 'src/enum/request_method.dart';
 
