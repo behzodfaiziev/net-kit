@@ -1,3 +1,7 @@
+## 1.8.3
+
+- Exported `NetKitErrorParams` class
+
 ## 1.8.2
 
 - exported `LogLevel` enum

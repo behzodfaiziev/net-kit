@@ -1,5 +1,4 @@
 import 'package:net_kit/net_kit.dart';
-import 'package:net_kit/src/enum/log_level.dart';
 import 'package:net_kit/src/manager/logger/i_net_kit_logger.dart';
 import 'package:net_kit/src/manager/logger/net_kit_logger.dart';
 

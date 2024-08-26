@@ -21,5 +21,7 @@ export 'src/manager/error/api_exception.dart';
 export 'src/manager/i_net_kit_manager.dart';
 export 'src/manager/net_kit_manager.dart';
 
+/// Error: Parsing and Internationalization Params
+export 'src/manager/params/net_kit_error_params.dart';
 /// Model
 export 'src/model/i_net_kit_model.dart';
