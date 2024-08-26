@@ -1,12 +1,13 @@
+import 'dart:convert';
+
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:net_kit/src/manager/error/api_exception.dart';
 import 'package:net_kit/src/manager/params/net_kit_error_params.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const errorParams = NetKitErrorParams();
-
-  group('ApiException.fromJson', () {
+  group('ApiException.fromJson with default NetKitErrorParams', () {
+    const errorParams = NetKitErrorParams();
     test('should create ApiException from JSON with a single message', () {
       final json = {
         'status': 500,
@@ -203,15 +204,28 @@ void main() {
       expect(apiException.message, 'Could not parse the error');
       expect(apiException.messages, null);
     });
-  });
 
-  test('should handle JSON when json null', () {
-    final apiException = ApiException.fromJson(
-      json: null,
-      params: errorParams,
-    );
-    expect(apiException.statusCode, HttpStatuses.expectationFailed.code);
-    expect(apiException.message, 'Empty error message');
-    expect(apiException.messages, null);
+    test('should handle JSON when json null', () {
+      final apiException = ApiException.fromJson(
+        json: null,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, HttpStatuses.expectationFailed.code);
+      expect(apiException.message, 'Empty error message');
+      expect(apiException.messages, null);
+    });
+
+    test('should handle unsupported Json object error', () {
+      final json = JsonUnsupportedObjectError(
+        'Future<dynamic> is not a subtype of Map<String, dynamic>',
+      );
+      final apiException = ApiException.fromJson(
+        json: json,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, HttpStatuses.badRequest.code);
+      expect(apiException.message, 'Unsupported object');
+      expect(apiException.messages, null);
+    });
   });
 }

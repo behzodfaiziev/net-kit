@@ -10,6 +10,7 @@ class NetKitErrorParams {
     this.jsonNullError = 'Empty error message',
     this.jsonIsEmptyError = 'Empty error message',
     this.notMapTypeError = 'Could not parse the response: Not a Map type',
+    this.jsonUnsupportedObjectError = 'Unsupported object',
   });
 
   /// The key to use for error messages
@@ -39,4 +40,8 @@ class NetKitErrorParams {
   /// The error message for the not map type error
   /// The default value is ['Could not parse the response: Not a Map type']
   final String notMapTypeError;
+
+  /// The error message for the unsupported object error
+  /// The default value is ['Unsupported object']
+  final String jsonUnsupportedObjectError;
 }
