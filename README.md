@@ -42,10 +42,12 @@ final netKitManager = NetKitManager(
 ### **Configure the model**
 
 Requests such as: `requestModel` and`requestList` require the model to
-extend `INetKitModel` in order to be used with the NetKitManager.
+extend `INetKitModel` in order to be used with the NetKitManager. By extending, `INetKitModel`
+`fromJson` and `toJson` methods will be needed to be implemented, so the model can be serialized and
+deserialized.
 
 ```dart
-class TodoModel extends INetKitModel<TodoModel> {}
+class TodoModel extends INetKitModel {}
 ```
 
 ## **Sending requests**

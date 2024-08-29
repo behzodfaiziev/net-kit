@@ -1,4 +1,8 @@
-# 2.0.0-dev.1
+## 2.0.0-dev.2
+
+- updated documentations
+
+## 2.0.0-dev.1
 
 > Note: This release has breaking changes.
 

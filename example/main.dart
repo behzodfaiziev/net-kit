@@ -8,20 +8,45 @@ import 'models/todo_model.dart';
 void main() {
   /// Create a new instance of the NetKitManager class.
   /// The base URL is set to 'https://jsonplaceholder.typicode.com'.
-  final INetKitManager netKitManager = NetKitManager(
+  final netKitManager = NetKitManager(
     baseUrl: 'https://jsonplaceholder.typicode.com',
     logLevel: LogLevel.all,
   );
 
-  TodoRemoteDataSource(netKitManager: netKitManager, logger: NetKitLogger())
+  final logger = NetKitLogger();
+
+  /// This is an example of how to use the TodoRemoteDataSource class.
+  TodoRemoteDataSourceImpl(netKitManager: netKitManager, logger: logger)
     ..getTodoList()
     ..getTodo(1)
     ..createTodo(TodoModel(id: 1, title: 'Test', userId: 1, completed: false))
     ..deleteTodoById(1);
 }
 
-class TodoRemoteDataSource {
-  TodoRemoteDataSource({
+/// The abstract class for the TodoRemoteDataSource
+/// It contains methods to interact with the todoModel
+/// Note: The return type of the methods
+/// is void only for demonstration purposes.
+abstract class TodoRemoteDataSource {
+  Future<void> deleteTodoById(int id);
+
+  Future<void> getTodoList();
+
+  Future<void> getTodo(int id);
+
+  Future<void> createTodo(TodoModel todo);
+}
+
+/// Note: Make sure you inject the dependencies so that the class is testable
+class TodoRemoteDataSourceImpl extends TodoRemoteDataSource {
+  /// The constructor for the TodoRemoteDataSource class
+  /// It takes in the following parameters:
+  /// `netKitManager` and `logger` to be injected
+  /// The `netKitManager` is used to make network requests
+  /// The `logger` is used to logging.
+  /// Note: It is not necessary to use the logger.
+  /// It is used for demonstration purposes.
+  TodoRemoteDataSourceImpl({
     required INetKitManager netKitManager,
     required INetKitLogger logger,
   })  : _netKitManager = netKitManager,
@@ -30,6 +55,7 @@ class TodoRemoteDataSource {
   final INetKitManager _netKitManager;
   final INetKitLogger _logger;
 
+  @override
   Future<void> deleteTodoById(int id) async {
     try {
       await _netKitManager.requestVoid(
@@ -37,13 +63,18 @@ class TodoRemoteDataSource {
         method: RequestMethod.delete,
       );
 
+      /// Handle the success case.
+      /// As an example, log the success message
+      /// or return as a String message.
       _logger.debug('Todo deleted successfully');
     } on ApiException catch (e) {
-      /// This will print the error message.
+      /// Handle the error from backend which is thrown as ApiException.
+      /// As an example, error message is printed.
       _logger.error(e.message);
     }
   }
 
+  @override
   Future<void> getTodo(int id) async {
     try {
       final todo = await _netKitManager.requestModel(
@@ -52,14 +83,18 @@ class TodoRemoteDataSource {
         model: TodoModel(),
       );
 
-      /// This will print the TodoModel object.
+      /// Handle the success case.
+      /// As an example, log the success message
+      /// or return the [`TodoModel`].
       _logger.debug(todo.toString());
     } on ApiException catch (e) {
-      /// This will print the error message.
+      /// Handle the error from backend which is thrown as ApiException.
+      /// As an example, error message is printed.
       _logger.error(e.message);
     }
   }
 
+  @override
   Future<void> getTodoList() async {
     try {
       final todos = await _netKitManager.requestList(
@@ -68,14 +103,18 @@ class TodoRemoteDataSource {
         model: TodoModel(),
       );
 
-      /// This will print the length of TodoModel objects.
+      /// Handle the success case.
+      /// As an example, log the success message
+      /// or return the list as [`List<TodoModel>`].
       _logger.info('Todos length: ${todos.length}');
     } on ApiException catch (e) {
-      /// This will print the error message.
+      /// Handle the error from backend which is thrown as ApiException.
+      /// As an example, error message is printed.
       _logger.error(e.message);
     }
   }
 
+  @override
   Future<void> createTodo(TodoModel todo) async {
     try {
       final createdTodo = await _netKitManager.requestModel(
@@ -85,10 +124,13 @@ class TodoRemoteDataSource {
         body: todo,
       );
 
-      /// This will print the created TodoModel object.
+      /// Handle the success case.
+      /// As an example, log the success message
+      /// or return the created [`TodoModel`].
       _logger.debug('Created Todo: $createdTodo');
     } on ApiException catch (e) {
-      /// This will print the error message.
+      /// Handle the error from backend which is thrown as ApiException.
+      /// As an example, error message is printed.
       _logger.error(e.message);
     }
   }
