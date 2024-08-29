@@ -2,7 +2,7 @@ import 'package:net_kit/net_kit.dart';
 
 import 'user_model.dart';
 
-class RandomUsersResponseModel extends INetKitModel<RandomUsersResponseModel> {
+class RandomUsersResponseModel extends INetKitModel {
   const RandomUsersResponseModel({this.results});
 
   factory RandomUsersResponseModel.fromJson(Map<String, dynamic> json) {

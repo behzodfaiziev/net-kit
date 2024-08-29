@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 class MockStream extends Mock implements Stream<bool> {}
 
-class MockINetKitModel extends Mock implements INetKitModel<MockINetKitModel> {}
+class MockINetKitModel extends Mock implements INetKitModel {}
 
 void main() {
   group('NetKitManager', () {

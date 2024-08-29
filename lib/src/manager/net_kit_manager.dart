@@ -99,7 +99,7 @@ class NetKitManager extends ErrorHandler
   BaseOptions get baseOptions => parameters.baseOptions;
 
   @override
-  Future<R> requestModel<R extends INetKitModel<R>>({
+  Future<R> requestModel<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -127,7 +127,7 @@ class NetKitManager extends ErrorHandler
       if ((response.data is MapType) == false) {
         throw _notMapTypeError(response);
       }
-      final parsedModel = Converter.toModel(response.data as MapType, model);
+      final parsedModel = Converter.toModel<R>(response.data as MapType, model);
 
       return parsedModel;
     } on DioException catch (error) {
@@ -137,7 +137,7 @@ class NetKitManager extends ErrorHandler
   }
 
   @override
-  Future<List<R>> requestList<R extends INetKitModel<R>>({
+  Future<List<R>> requestList<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,

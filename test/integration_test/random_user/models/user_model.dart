@@ -2,7 +2,7 @@ import 'package:net_kit/net_kit.dart';
 
 import 'user_name_model.dart';
 
-class UserModel extends INetKitModel<UserModel> {
+class UserModel extends INetKitModel {
   const UserModel({
     this.gender,
     this.name,

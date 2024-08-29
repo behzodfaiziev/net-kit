@@ -2,7 +2,7 @@ import 'package:net_kit/net_kit.dart';
 
 import 'rating_model.dart';
 
-class TestProductModel extends INetKitModel<TestProductModel> {
+class TestProductModel extends INetKitModel {
   const TestProductModel({
     this.id,
     this.title,

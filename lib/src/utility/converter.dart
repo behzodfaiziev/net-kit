@@ -47,7 +47,7 @@ class Converter {
   /// It returns a list of models
   /// If the data is a list, converts it to a list of models
   /// If the data is not within the above conditions, returns an empty list
-  List<T> toListModel<T extends INetKitModel<T>>({
+  List<T> toListModel<T extends INetKitModel>({
     required dynamic data,
     required T parseModel,
     bool loggerEnabled = false,
@@ -104,16 +104,16 @@ class Converter {
   /// Converts the data to a model
   /// It takes in the following parameters:
   /// `data`: The data to convert
-  /// `parseModel`: The model to parse the data to
+  /// `parsingModel`: The model to parse the data to
   /// It returns a model
-  static T toModel<T extends INetKitModel<T>>(MapType data, T parseModel) {
+  static R toModel<R extends INetKitModel>(MapType data, R parsingModel) {
     try {
       /// Convert the data to a model
-      return parseModel.fromJson(data);
+      return parsingModel.fromJson(data) as R;
     } catch (e) {
       /// If an error occurs, throw ApiException
       throw ApiException(
-        message: 'Could not parse the response: ${T.runtimeType}',
+        message: 'Could not parse the response: ${R.runtimeType}',
         statusCode: HttpStatuses.expectationFailed.code,
       );
     }
