@@ -131,6 +131,7 @@ Future<void> deleteProduct() async {
 | Enhance logging capabilities with customizable log levels   |        |
 | Implement retry logic for failed requests                   |        |
 | Add more tests to ensure the package is robust and reliable |        |
+| Add Migration Guide for breaking changes                    |        |
 
 ## Contributing
 
