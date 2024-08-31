@@ -1,6 +1,6 @@
 import 'package:net_kit/net_kit.dart';
 
-class RatingModel extends INetKitModel<RatingModel> {
+class RatingModel extends INetKitModel {
   const RatingModel({this.rate, this.count});
 
   factory RatingModel.fromJson(Map<String, dynamic> json) {

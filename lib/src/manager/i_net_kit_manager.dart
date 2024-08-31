@@ -46,7 +46,7 @@ abstract class INetKitManager {
   /// ```
   ///
   /// The response of the request is returned as a [`RandomUserModel`] object.
-  Future<R> requestModel<R extends INetKitModel<R>>({
+  Future<R> requestModel<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
 
@@ -85,7 +85,7 @@ abstract class INetKitManager {
 
   /// The response of the request is returned
   /// as a [`List<ProductModel>`] object.
-  Future<List<R>> requestList<R extends INetKitModel<R>>({
+  Future<List<R>> requestList<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
 

@@ -1,6 +1,6 @@
 import 'package:net_kit/net_kit.dart';
 
-class TodoModel extends INetKitModel<TodoModel> {
+class TodoModel extends INetKitModel {
   TodoModel({
     this.userId,
     this.id,

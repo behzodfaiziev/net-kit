@@ -1,6 +1,6 @@
 import 'package:net_kit/net_kit.dart';
 
-class TypicodeCommentModel extends INetKitModel<TypicodeCommentModel> {
+class TypicodeCommentModel extends INetKitModel {
   const TypicodeCommentModel({
     this.postId,
     this.id,
