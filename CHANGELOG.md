@@ -1,6 +1,7 @@
 ## 2.0.0
 
-- Stable: Removed the generic type parameter `<T>` from `INetKitModel`. When you extend `INetKitModel`,
+- Stable: > Note: This release has breaking changes.
+  Removed the generic type parameter `<T>` from `INetKitModel`. When you extend `INetKitModel`,
   you don't need to provide the generic type parameter anymore.
 - updated documentations
 
