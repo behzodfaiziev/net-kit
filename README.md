@@ -1,8 +1,13 @@
 ![h)](https://github.com/user-attachments/assets/d8115ef2-4783-4d2d-88de-df57df40112f)
 
+![Version](https://img.shields.io/pub/v/net_kit)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
+![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
+
 ### Sponsors
 
-#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/) and make a difference!
+#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 
 <img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
 
@@ -22,11 +27,11 @@
 
 ## **Features**
 
-- Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
-- Configurable base URLs for development and production
-- Logging of network requests and responses
-- Error handling and response validation
-- Parsing responses into models or lists of models or void using `INetKitModel`
+- 📝 Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
+- 🌐 Configurable base URLs for development and production
+- 📊 Logging of network requests and responses
+- ❗ Error handling and response validation
+- 🛠 Parsing responses into models or lists of models using `INetKitModel`
 
 ## **Getting started**
 
@@ -45,7 +50,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-### **Configure the model**
+### **Extend the model**
 
 Requests such as: `requestModel` and`requestList` require the model to
 extend `INetKitModel` in order to be used with the NetKitManager. By extending, `INetKitModel`
