@@ -16,7 +16,7 @@
 - [Features](#features)
 - [Getting started](#getting-started)
     - [Initialize](#initialize)
-    - [Configure the model](#configure-the-model)
+    - [Extend the model](#extend-the-model)
 - [Sending requests](#sending-requests)
     - [Request a Single Model](#request-a-single-model)
     - [Request a List of Models](#request-a-list-of-models)
