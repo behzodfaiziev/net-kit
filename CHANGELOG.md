@@ -1,3 +1,11 @@
+## 2.1.0
+
+> Note: This release has breaking change.
+
+- downgraded SDK version to support more versions
+- Breaking change: body's type parameter in `requestModel` and `requestList` methods is changed
+  to `Map<String, dynamic>`
+
 ## 2.0.1
 
 - updated README.md
