@@ -13,33 +13,6 @@ class Converter {
 
   final INetKitLogger _logger;
 
-  /// Converts the data to a request body data.
-  dynamic toRequestBody({
-    required dynamic data,
-    bool loggerEnabled = false,
-  }) async {
-    /// If the data is null, return null
-    if (data == null) return null;
-
-    /// The stopwatch to measure the time taken to convert the data
-    Stopwatch? stopwatch;
-
-    /// Start the stopwatch if the logger is enabled
-    if (loggerEnabled) stopwatch = Stopwatch()..start();
-
-    /// If the data is a model, convert it to JSON
-    if (data is INetKitModel) {
-      final jsonData = data.toJson();
-
-      /// Log the event
-      if (loggerEnabled) _logEvent(type: 'toRequestBody', stopwatch: stopwatch);
-      return jsonData;
-    }
-
-    /// if the data is not within the above conditions, return the data as it is
-    return data;
-  }
-
   /// Converts the data to a list of models
   /// It takes in the following parameters:
   /// `data`: The data to convert
@@ -117,13 +90,6 @@ class Converter {
         statusCode: HttpStatuses.expectationFailed.code,
       );
     }
-  }
-
-  void _logEvent({required String type, Stopwatch? stopwatch}) {
-    stopwatch?.stop();
-    _logger.info(
-      'Converter: $type: ${stopwatch?.elapsedMilliseconds}ms',
-    );
   }
 
   Future<void> _logListParsingEvent({

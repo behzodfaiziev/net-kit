@@ -45,21 +45,25 @@ void main() {
 
     test('Create a Comment', () async {
       try {
-        const comment =
-            TypicodeCommentModel(postId: 1, id: 1, name: 'Test', email: 'test');
+        const comment = TypicodeCommentModel(
+          postId: 1,
+          id: 1,
+          name: 'Name Test',
+          email: 'Email test',
+        );
 
         final createdComment =
             await netKitManager.requestModel<TypicodeCommentModel>(
           path: '/comments',
           method: RequestMethod.post,
           model: const TypicodeCommentModel(),
-          body: comment,
+          body: comment.toJson(),
         );
 
         expect(createdComment, isA<TypicodeCommentModel>());
         expect(createdComment.id, 501);
-        expect(createdComment.name, 'Test');
-        expect(createdComment.email, 'test');
+        expect(createdComment.name, 'Name Test');
+        expect(createdComment.email, 'Email test');
         expect(createdComment.postId, 1);
       } on ApiException catch (e) {
         fail('Request failed with error: ${e.message}');

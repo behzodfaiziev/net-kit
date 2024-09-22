@@ -121,7 +121,7 @@ class TodoRemoteDataSourceImpl extends TodoRemoteDataSource {
         path: '/todos',
         method: RequestMethod.post,
         model: TodoModel(),
-        body: todo,
+        body: todo.toJson(),
       );
 
       /// Handle the success case.

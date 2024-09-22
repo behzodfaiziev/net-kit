@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../enum/request_method.dart';
 import '../model/i_net_kit_model.dart';
+import '../utility/typedef/request_type_def.dart';
 import 'params/net_kit_params.dart';
 
 /// The abstract class for the network manager
@@ -52,7 +53,9 @@ abstract class INetKitManager {
 
     /// The model to parse the data to
     required R model,
-    dynamic body,
+
+    /// The body of the request, which is type of [Map<String, dynamic>]
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
@@ -91,7 +94,7 @@ abstract class INetKitManager {
 
     /// The model to parse the data to
     required R model,
-    dynamic body,
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
@@ -126,7 +129,7 @@ abstract class INetKitManager {
   Future<void> requestVoid({
     required String path,
     required RequestMethod method,
-    dynamic body,
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,

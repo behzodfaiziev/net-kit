@@ -103,7 +103,7 @@ class NetKitManager extends ErrorHandler
     required String path,
     required RequestMethod method,
     required R model,
-    dynamic body,
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
@@ -141,7 +141,7 @@ class NetKitManager extends ErrorHandler
     required String path,
     required RequestMethod method,
     required R model,
-    dynamic body,
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
@@ -174,7 +174,7 @@ class NetKitManager extends ErrorHandler
   Future<void> requestVoid({
     required String path,
     required RequestMethod method,
-    dynamic body,
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
@@ -203,7 +203,7 @@ class NetKitManager extends ErrorHandler
   Future<Response<dynamic>> _sendRequest({
     required String path,
     required RequestMethod method,
-    dynamic body,
+    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
@@ -223,15 +223,9 @@ class NetKitManager extends ErrorHandler
       /// Set the request method
       options.method = method.name.toUpperCase();
 
-      /// It is awaited
-      final data = await _converter.toRequestBody(
-        data: body,
-        loggerEnabled: parameters.isNetKitLoggerEnabled,
-      );
-
       final response = await request<dynamic>(
         path,
-        data: data,
+        data: body,
         options: options,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
