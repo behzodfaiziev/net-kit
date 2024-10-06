@@ -19,29 +19,6 @@ jobs:
         with:
           flutter-version: 3.24.0
 
-      # Install Android SDK
-      - name: Install Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 30
-          target: default
-          arch: x86_64
-          profile: default
-          ndk: false
-
-      # Add Android SDK tools to PATH
-      - name: Add Android SDK tools to PATH
-        run: echo "${ANDROID_HOME}/emulator" >> $GITHUB_PATH
-
-      # Start Android emulator
-      - name: Start emulator
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev
-          emulator -avd test -no-audio -no-window &
-          adb wait-for-device
-          adb shell input keyevent 82
-
       # Install NetKit dependencies
       - name: Install Package dependencies
         run: flutter pub get
@@ -64,6 +41,17 @@ jobs:
       - name: Run unit tests
         run: dart test
         working-directory: packages/net-kit
+
+      # Start Android emulator
+      - name: Android Emulator Runner
+        uses: ReactiveCircus/android-emulator-runner@v2.32.0
+        with:
+          api-level: 30
+          target: default
+          arch: x86_64
+          profile: default
+          script: |
+            adb shell input keyevent 82
 
       # Run integration tests to ensure that the code is working as expected
       - name: Run integration tests
