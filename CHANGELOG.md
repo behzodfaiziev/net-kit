@@ -1,3 +1,7 @@
+## 2.1.1
+
+- updated NetKitLogger to use only required imports from logger
+
 ## 2.1.0
 
 > Note: This release has breaking change.
