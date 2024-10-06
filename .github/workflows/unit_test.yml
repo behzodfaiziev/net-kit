@@ -22,6 +22,7 @@ jobs:
       - name: Install Package dependencies
         run: flutter pub get
         working-directory: packages/net-kit
+
       # Install Flutter Integration Test dependencies
       - name: Install Flutter Integration Test dependencies
         run: flutter pub get
