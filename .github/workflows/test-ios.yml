@@ -1,9 +1,9 @@
 # .github/workflows/test-ios.yml
-name: Test iOS
+name: test-iOS
 
 on:
   workflow_run:
-    workflows: ["Build"]
+    workflows: ["test"]
     types:
       - completed
 
