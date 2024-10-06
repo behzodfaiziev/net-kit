@@ -1,4 +1,4 @@
-## 2.2.0
+## 2.2.0-dev
 
 - fixed error `Cannot read properties of undefined (reading 'new')` in web with workaround
 - added flutter-project to test web
