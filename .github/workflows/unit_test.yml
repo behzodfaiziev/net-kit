@@ -36,7 +36,12 @@ jobs:
       - name: Analyze project source
         run: dart analyze --fatal-infos --fatal-warnings
 
-      # Run test to ensure that the code is working as expected
-      - name: Run tests
+      # Run unit tests to ensure that the code is working as expected
+      - name: Run unit tests
         run: dart test
         working-directory: packages/net-kit
+
+      # Run integration tests to ensure that the code is working as expected
+      - name: Run integration tests
+        run: flutter test integration_test
+        working-directory: flutter_integration_test
