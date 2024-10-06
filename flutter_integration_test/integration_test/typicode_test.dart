@@ -27,7 +27,6 @@ void main() {
       await tester.tap(submitButton);
       await tester.pumpAndSettle();
 
-      final commentName = find.byKey(const Key('commentName'));
       expect(find.text('New Comment Name'), findsOneWidget);
     });
   });
