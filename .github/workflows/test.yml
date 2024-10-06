@@ -40,9 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Approval step
+        id: approval_step
         run: echo "Please approve the workflow to continue to iOS tests."
     outputs:
-      approved: ${{ steps.approval.outputs.approved }}
+      approved: ${{ steps.approval_step.conclusion == 'success' }}
 
   test-ios:
     needs: approval
