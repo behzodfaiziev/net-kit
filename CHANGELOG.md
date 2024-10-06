@@ -1,4 +1,4 @@
-## 2.1.1
+## 2.1.2
 
 - updated NetKitLogger to use only required imports from logger
 
