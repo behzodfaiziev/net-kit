@@ -1,3 +1,8 @@
+## 2.2.0
+
+- fixed error `Cannot read properties of undefined (reading 'new')` in web with workaround
+- added flutter-project to test web
+
 ## 2.1.2
 
 - updated NetKitLogger to use only required imports from logger
