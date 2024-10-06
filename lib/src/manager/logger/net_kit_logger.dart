@@ -1,4 +1,4 @@
-import 'package:logger/logger.dart';
+import 'package:logger/logger.dart' show Logger, PrettyPrinter;
 
 import '../../enum/log_level.dart';
 import 'i_net_kit_logger.dart';
