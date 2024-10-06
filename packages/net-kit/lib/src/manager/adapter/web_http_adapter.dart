@@ -9,6 +9,10 @@ import 'i_http_adapter.dart';
 class HttpAdapter implements IHttpAdapter {
   @override
   HttpClientAdapter getAdapter() {
-    return BrowserHttpClientAdapter();
+    /// Workaround for the issue with the browser adapter
+    /// https://github.com/cfug/dio/issues/2282#issuecomment-2293342475
+    final adapter = HttpClientAdapter() as BrowserHttpClientAdapter
+      ..withCredentials = true;
+    return adapter;
   }
 }
