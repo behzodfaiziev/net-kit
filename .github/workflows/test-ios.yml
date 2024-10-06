@@ -1,0 +1,28 @@
+name: Test iOS
+
+on:
+  create:
+    tags:
+      - "*-release"
+jobs:
+  test-ios:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: futureware-tech/simulator-action@v3
+        with:
+          model: 'iPhone 14'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: flutter_integration_test
+
+      - name: Run Integration Tests
+        run: flutter test integration_test
+        working-directory: flutter_integration_test
+

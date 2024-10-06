@@ -35,35 +35,3 @@ jobs:
         run: dart test
         working-directory: packages/net-kit
 
-  approval:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Approval step
-        id: approval_step
-        run: echo "Please approve the workflow to continue to iOS tests."
-    outputs:
-      approved: ${{ steps.approval_step.conclusion == 'success' }}
-
-  test-ios:
-    needs: approval
-    if: ${{ needs.approval.outputs.approved == 'true' }}
-    runs-on: macOS-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: futureware-tech/simulator-action@v3
-        with:
-          model: 'iPhone 14'
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: flutter pub get
-        working-directory: flutter_integration_test
-
-      - name: Run Integration Tests
-        run: flutter test integration_test
-        working-directory: flutter_integration_test
