@@ -3,7 +3,7 @@ name: Test iOS
 
 on:
   workflow_run:
-    workflows: ["build"]
+    workflows: ["Build"]
     types:
       - completed
 
