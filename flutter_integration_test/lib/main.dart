@@ -82,15 +82,16 @@ class CommentPageState extends State<CommentPage> {
           actions: [
             TextButton(
               key: const Key('submitButton'),
-              onPressed: () {
+              onPressed: () async {
                 final newComment = TypicodeCommentModel(
                   name: nameController.text,
                   email: emailController.text,
                 );
-                setState(() {
-                  _comments.add(newComment);
-                });
-                Navigator.of(context).pop();
+
+                await _createComment(newComment);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
               child: const Text('Submit'),
             ),
@@ -98,6 +99,24 @@ class CommentPageState extends State<CommentPage> {
         );
       },
     );
+  }
+
+  Future<void> _createComment(TypicodeCommentModel newComment) async {
+    try {
+      final createdComment =
+          await _netKitManager.requestModel<TypicodeCommentModel>(
+        path: '/comments',
+        method: RequestMethod.post,
+        model: const TypicodeCommentModel(),
+        body: newComment.toJson(),
+      );
+
+      setState(() {
+        _comments.insert(0, createdComment);
+      });
+    } catch (e) {
+      /// Handle error
+    }
   }
 
   @override
