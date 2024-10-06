@@ -29,6 +29,10 @@ jobs:
           profile: default
           ndk: false
 
+      # Add Android SDK tools to PATH
+      - name: Add Android SDK tools to PATH
+        run: echo "::add-path::${ANDROID_HOME}/emulator"
+
       # Start Android emulator
       - name: Start emulator
         run: |
