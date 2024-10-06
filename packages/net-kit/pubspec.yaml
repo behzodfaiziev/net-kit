@@ -4,7 +4,7 @@ description: "Netkit is a library that provides a set of tools to work with netw
 
 version: 2.1.2
 
-homepage: https://github.com/behzodfaiziev/net-kit
+homepage: https://github.com/behzodfaiziev/net-kit/packages/net-kit
 issue_tracker: https://github.com/behzodfaiziev/net-kit/issues
 topics:
   - network
