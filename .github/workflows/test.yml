@@ -1,5 +1,5 @@
 # .github/workflows/build.yml
-name: Test, Format, and Analyze
+name: Unit Test
 
 on:
   push:
