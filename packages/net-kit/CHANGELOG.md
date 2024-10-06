@@ -1,3 +1,7 @@
+# 2.3.0
+- fixed error `Cannot read properties of undefined (reading 'new')` in web with workaround
+- added integration test for -release tags
+
 ## 2.2.0-dev
 
 - fixed error `Cannot read properties of undefined (reading 'new')` in web with workaround
