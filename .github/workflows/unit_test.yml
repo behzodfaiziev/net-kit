@@ -18,10 +18,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.24.0
-      # Install dependencies
-      - name: Install dependencies
+      # Install NetKit dependencies
+      - name: Install Package dependencies
         run: flutter pub get
         working-directory: packages/net-kit
+      # Install Flutter Integration Test dependencies
+      - name: Install Flutter Integration Test dependencies
+        run: flutter pub get
+        working-directory: flutter_integration_test
 
       # Check for formatting issues
       - name: Check formatting
