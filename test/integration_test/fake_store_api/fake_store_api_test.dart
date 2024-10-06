@@ -11,7 +11,7 @@ void main() {
   });
 
   group('FakeStoreApi Integration Test', () {
-    test('Request a Single Model - Success Case', () async {
+    test('Request List of TestProductModel - Success Case', () async {
       try {
         final response = await netKitManager.requestList<TestProductModel>(
           path: '/products',
@@ -25,7 +25,7 @@ void main() {
       }
     });
 
-    test('Request a Single Model - Failure Case: Wrong API', () async {
+    test('Request List of TestProductModel - Failure Case: Wrong API', () async {
       try {
         final response = await netKitManager.requestList<TestProductModel>(
           path: '/wrong-api',
