@@ -25,7 +25,8 @@ void main() {
       }
     });
 
-    test('Request List of TestProductModel - Failure Case: Wrong API', () async {
+    test('Request List of TestProductModel - Failure Case: Wrong API',
+        () async {
       try {
         final response = await netKitManager.requestList<TestProductModel>(
           path: '/wrong-api',
