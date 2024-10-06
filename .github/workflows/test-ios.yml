@@ -1,17 +1,12 @@
-# .github/workflows/test-ios.yml
 name: Test iOS
 
 on:
-  workflow_run:
-    workflows: ["Build"]
-    types:
-      - completed
-
+  create:
+    tags:
+      - "*-release"
 jobs:
   test-ios:
     runs-on: macOS-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
     steps:
       - uses: actions/checkout@v2
 
@@ -30,3 +25,4 @@ jobs:
       - name: Run Integration Tests
         run: flutter test integration_test
         working-directory: flutter_integration_test
+
