@@ -1,0 +1,27 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+
+linter:
+  rules:
+    sort_constructors_first: true
+    require_trailing_commas: true
+    public_member_api_docs: false
+    omit_local_variable_types: true
+    no_default_cases: true
+    avoid_redundant_argument_values: true
+    avoid_bool_literals_in_conditional_expressions: true
+    depend_on_referenced_packages: true
+    use_setters_to_change_properties: true
+    flutter_style_todos: true
+    avoid_positional_boolean_parameters: true
+    sort_pub_dependencies: true
+
+    prefer_relative_imports: true
+    always_declare_return_types: true
+    always_specify_types: false
+    always_use_package_imports: false
+    eol_at_end_of_file: false
+    prefer_constructors_over_static_methods: false
+    one_member_abstracts: false
+    avoid_setters_without_getters: false

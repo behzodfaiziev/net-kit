@@ -1,6 +1,6 @@
-name: web_integration_test
-description: "Web Integration Test"
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+name: android_integration_test
+description: "Android Integration Test"
+publish_to: 'none'
 
 version: 1.0.0+1
 
@@ -10,13 +10,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
   net_kit:
     path: ../packages/net-kit
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  integration_test:
+    sdk: flutter
+  very_good_analysis: ^6.0.0
+  webdriver: ^3.0.3
 flutter:
   uses-material-design: true
