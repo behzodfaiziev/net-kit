@@ -18,6 +18,26 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.24.0
+
+      # Install Android SDK
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 30
+          target: default
+          arch: x86_64
+          profile: default
+          ndk: false
+
+      # Start Android emulator
+      - name: Start emulator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev
+          emulator -avd test -no-audio -no-window &
+          adb wait-for-device
+          adb shell input keyevent 82
+
       # Install NetKit dependencies
       - name: Install Package dependencies
         run: flutter pub get
@@ -43,5 +63,5 @@ jobs:
 
       # Run integration tests to ensure that the code is working as expected
       - name: Run integration tests
-        run: flutter test integration_test
+        run: flutter drive --target=integration_test/typicode_test.dart
         working-directory: flutter_integration_test
