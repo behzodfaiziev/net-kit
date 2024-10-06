@@ -10,6 +10,9 @@ void main() {
     testWidgets('Create Comment Test', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
+      // Add a delay to ensure the initial comments are fetched
+      await Future<void>.delayed(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
 
       // Fetch initial list of comments and ensure it is non-empty
       final initialComments = find.byType(ListTile);
