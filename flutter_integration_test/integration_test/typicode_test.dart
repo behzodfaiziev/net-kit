@@ -9,25 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Android CRUD Integration Test', () {
-    setUpAll(() async {
-      // Ensure the temporary directory exists
-      final tempDir = Directory.systemTemp.createTempSync();
-      final tempFile = File('${tempDir.path}/flutter_test_listener');
-      if (!tempFile.existsSync()) {
-        tempFile.createSync(recursive: true);
-      }
-    });
-
-    tearDownAll(() async {
-      // Clean up the temporary directory
-      final tempDir = Directory.systemTemp;
-      final tempFile = File('${tempDir.path}/flutter_test_listener');
-      if (tempFile.existsSync()) {
-        tempFile.deleteSync();
-      }
-    });
-
-    testWidgets('Create Comment Test', (WidgetTester tester) async {
+      testWidgets('Create Comment Test', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       // Add a delay to ensure the initial comments are fetched
