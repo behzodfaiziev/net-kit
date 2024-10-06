@@ -31,7 +31,7 @@ jobs:
 
       # Add Android SDK tools to PATH
       - name: Add Android SDK tools to PATH
-        run: echo "::add-path::${ANDROID_HOME}/emulator"
+        run: echo "${ANDROID_HOME}/emulator" >> $GITHUB_PATH
 
       # Start Android emulator
       - name: Start emulator
