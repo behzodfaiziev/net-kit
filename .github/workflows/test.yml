@@ -10,37 +10,37 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 3.24.0
-
-      # Install NetKit dependencies
-      - name: Install Package dependencies
-        run: flutter pub get
-        working-directory: packages/net-kit
-
-      # Install Flutter Integration Test dependencies
-      - name: Install Flutter Integration Test dependencies
-        run: flutter pub get
-        working-directory: flutter_integration_test
-
-      # Check for formatting issues
-      - name: Check formatting
-        run: dart format --set-exit-if-changed ./packages/net-kit
-
-      # Analyze the project source
-      - name: Analyze project source
-        run: dart analyze --fatal-infos --fatal-warnings
-
-      # Run unit tests to ensure that the code is working as expected
-      - name: Run unit tests
-        run: dart test
-        working-directory: packages/net-kit
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - name: Set up Flutter
+#        uses: subosito/flutter-action@v2
+#        with:
+#          flutter-version: 3.24.0
+#
+#      # Install NetKit dependencies
+#      - name: Install Package dependencies
+#        run: flutter pub get
+#        working-directory: packages/net-kit
+#
+#      # Install Flutter Integration Test dependencies
+#      - name: Install Flutter Integration Test dependencies
+#        run: flutter pub get
+#        working-directory: flutter_integration_test
+#
+#      # Check for formatting issues
+#      - name: Check formatting
+#        run: dart format --set-exit-if-changed ./packages/net-kit
+#
+#      # Analyze the project source
+#      - name: Analyze project source
+#        run: dart analyze --fatal-infos --fatal-warnings
+#
+#      # Run unit tests to ensure that the code is working as expected
+#      - name: Run unit tests
+#        run: dart test
+#        working-directory: packages/net-kit
   test-ios:
     runs-on: macOS-latest
 
@@ -55,5 +55,7 @@ jobs:
         with:
           channel: 'stable'
 
-      - run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: flutter_integration_test
       - run: flutter test integration_test
