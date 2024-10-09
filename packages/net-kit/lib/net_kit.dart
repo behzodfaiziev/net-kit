@@ -10,16 +10,22 @@ export 'package:dio/src/options.dart';
 
 /// Log Levels
 export 'src/enum/log_level.dart';
+
 /// Http Request Type
 export 'src/enum/request_method.dart';
+
 /// Exceptions
 export 'src/manager/error/api_exception.dart';
+
 /// Manager
 export 'src/manager/i_net_kit_manager.dart';
 export 'src/manager/net_kit_manager.dart';
+
 /// Error: Parsing and Internationalization Params
 export 'src/manager/params/net_kit_error_params.dart';
+
 /// AuthTokenModel
 export 'src/model/auth_token_model.dart';
+
 /// INetKitModel
 export 'src/model/i_net_kit_model.dart';
