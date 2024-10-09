@@ -1,3 +1,7 @@
+# 2.4.1
+
+- updated Readme
+
 # 2.4.0
 
 - added `authenticate` method and provided the example in README.md
