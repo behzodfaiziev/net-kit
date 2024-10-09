@@ -131,8 +131,7 @@ void main() {
 
       test(
           'should extract tokens when accessTokenKey '
-              'and refreshTokenKey are different',
-          () {
+          'and refreshTokenKey are different', () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
           headers: Headers.fromMap({
@@ -153,8 +152,7 @@ void main() {
 
       test(
           'should return null tokens when accessTokenKey '
-              'and refreshTokenKey are different and missing',
-          () {
+          'and refreshTokenKey are different and missing', () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
           headers: Headers(),
