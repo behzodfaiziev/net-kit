@@ -23,7 +23,7 @@
         - [Sign In with Credentials](#sign-in-with-credentials)
         - [Sign Up](#sign-up)
         - [Sign In with Social Accounts](#sign-in-with-social-accounts)
-        - [Request a Single Model](#request-a-single-model)
+    - [Request a Single Model](#request-a-single-model)
     - [Request a List of Models](#request-a-list-of-models)
     - [Send a Void Request](#send-a-void-request)
 - [Planned Enhancements](#planned-enhancements)
