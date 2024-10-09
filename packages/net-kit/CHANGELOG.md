@@ -1,3 +1,9 @@
+# 2.4.0
+
+- added `authenticate` method and provided the example in README.md
+- added `addRefreshToken` and `removeRefreshToken` methods to `NetKitManager`
+- updated documentation on how to use `authenticate` method
+
 # 2.3.3-dev
 
 - updated documentation on how to use `authenticate` method
