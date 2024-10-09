@@ -135,6 +135,82 @@ abstract class INetKitManager {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
   });
+  /// Signs in a user with their credentials.
+  /// 
+  /// This method sends a request to the server to authenticate the user 
+  /// with their username and password. On successful authentication, it
+  /// returns the user model and authentication tokens (access and refresh tokens).
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await netKitManager.signIn<UserModel>(
+  ///   path: '/auth/signin',
+  ///   method: RequestMethod.post,
+  ///   model: UserModel(),
+  ///   body: {'username': username, 'password': password},
+  /// );
+  /// ```
+    Future<(R, AuthTokenModel)> signIn<R extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    MapType? body,
+    Options? options,
+    String accessTokenKey = 'Authorization',
+    String refreshTokenKey = 'Refresh-Token'
+  });
+
+  /// Signs up a new user with their registration details.
+  ///
+  /// This method sends a request to the server to register a new user
+  /// with the provided details. Upon successful registration, it returns 
+  /// the user model and authentication tokens.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await netKitManager.signUp<UserModel>(
+  ///   path: '/auth/signup',
+  ///   method: RequestMethod.post,
+  ///   model: UserModel(),
+  ///   body: {'username': username, 'password': password, 'email': email},
+  /// );
+  /// ```
+  Future<(R, AuthTokenModel)> signUp<R extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    MapType? body,
+    Options? options,
+    String accessTokenKey = 'Authorization',
+    String refreshTokenKey = 'Refresh-Token'
+  });
+  /// Signs in a user with their social account (e.g., Google, Facebook).
+  ///
+  /// This method sends a request to the server to authenticate the user
+  /// using a social login provider. Instead of username and password, 
+  /// it requires the social access token obtained from the provider.
+  ///
+  /// The server will validate the social access token and, upon successful
+  /// authentication, return the user model and authentication tokens.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await netKitManager.signInWithSocial<UserModel>(
+  ///   path: '/auth/social-login',
+  ///   method: RequestMethod.post,
+  ///   model: UserModel(),
+  ///   socialAccessToken: googleAccessToken,  // The token from the social provider
+  /// );
+  /// ```
+  Future<(R, AuthTokenModel)> signInWithSocial<R extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    String socialAccessToken,
+    Options? options,
+    String accessTokenKey = 'Authorization',
+    String refreshTokenKey = 'Refresh-Token',
+  });
 
   /// Get all headers
   /// It returns a map of all headers
@@ -156,7 +232,9 @@ abstract class INetKitManager {
   /// ```dart
   /// netKitManager.addBearerToken('YOUR_BEARER_TOKEN');
   /// ```
-  void addBearerToken(String token);
+  void addBearerToken(String? token);
+
+  void addRefreshToken(String? token);
 
   /// Remove the bearer token from the network manager
   /// The bearer token is removed from the network manager
