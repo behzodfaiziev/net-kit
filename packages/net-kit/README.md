@@ -17,7 +17,7 @@
 - [Getting started](#getting-started)
     - [Initialize](#initialize)
     - [Extend the model](#extend-the-model)
-- [Authentication Methods]()
+- [Authentication Methods](#authentication-methods)
     - [Sign In with Credentials](#sign-in-with-credentials)
     - [Sign Up](#sign-up)
     - [Sign In with Social Accounts](#sign-in-with-social-accounts)
