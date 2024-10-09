@@ -1,10 +1,14 @@
+# 2.3.3-dev
+
+- updated documentation on how to use `authenticate` method
+
 # 2.3.2-dev
 
 - exported `AuthTokenModel` class
 
 # 2.3.1-dev
 
-- added authentication method and provided the example in README.md
+- added `authenticate` method and provided the example in README.md
 - added `addRefreshToken` and `removeRefreshToken` methods to `NetKitManager`
 
 # 2.3.0

@@ -89,8 +89,8 @@ Future<UserModel> loginWithCredentials(SignInRequestModel signInRequest) async {
       body: signInRequest.toJson(), // Credentials
     );
 
-    final user = result.item1; // Parsed user model
-    final authToken = result.item2; // AuthTokenModel with access and refresh tokens
+    final user = result.$1; // Parsed user model
+    final authToken = result.$2; // AuthTokenModel with access and refresh tokens
 
     print('User signed in: ${user.name}');
     print('Access token: ${authToken.accessToken}');
@@ -121,8 +121,8 @@ Future<UserModel> signUpUser(SignUpRequestModel signUpRequest) async {
       body: signUpRequest.toJson(), // User details
     );
 
-    final user = result.item1; // Parsed user model
-    final authToken = result.item2; // AuthTokenModel with access and refresh tokens
+    final user = result.$1; // Parsed user model
+    final authToken = result.$2; // AuthTokenModel with access and refresh tokens
 
     print('User signed up: ${user.name}');
     print('Access token: ${authToken.accessToken}');
@@ -152,8 +152,8 @@ Future<UserModel> loginWithGoogle(String googleAccessToken) async {
       socialAccessToken: googleAccessToken, // The Google access token
     );
 
-    final user = result.item1; // Parsed user model
-    final authToken = result.item2; // AuthTokenModel containing access and refresh tokens
+    final user = result.$1; // Parsed user model
+    final authToken = result.$2; // AuthTokenModel containing access and refresh tokens
 
     print('User signed in with Google: ${user.name}');
     print('Access token: ${authToken.accessToken}');

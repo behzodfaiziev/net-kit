@@ -168,8 +168,8 @@ abstract class INetKitManager {
   ///   model: UserModel(),
   ///   body: {'username': username, 'password': password},
   /// );
-  /// final user = result.item1;
-  /// final authToken = result.item2;
+  /// final user = result.$1;
+  /// final authToken = result.$2;
   /// ```
   ///
   /// Example for Sign Up:
@@ -180,8 +180,8 @@ abstract class INetKitManager {
   ///   model: UserModel(),
   ///   body: {'username': username, 'password': password, 'email': email},
   /// );
-  /// final user = result.item1;
-  /// final authToken = result.item2;
+  /// final user = result.$1;
+  /// final authToken = result.$2;
   /// ```
   ///
   /// Example for Social Login:
@@ -192,8 +192,8 @@ abstract class INetKitManager {
   ///   model: UserModel(),
   ///   socialAccessToken: googleAccessToken,
   /// );
-  /// final user = result.item1;
-  /// final authToken = result.item2;
+  /// final user = result.$1;
+  /// final authToken = result.$2;
   /// ```
   Future<(R, AuthTokenModel)> authenticate<R extends INetKitModel>({
     required String path,
