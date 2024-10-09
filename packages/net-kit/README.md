@@ -244,21 +244,21 @@ Future<void> deleteProduct() async {
 
 [//]: # (#### **Extend the model**)
 
-## Planned Enhancements
+## *Planned Enhancements*
 
-| Feature                                                     | Status |
-|:------------------------------------------------------------|:------:|
-| Internationalization support for error messages             |   ✅    |
-| No internet connection handling                             |   ✅    |
-| Provide basic example                                       |   ✅    |
-| Provide more examples and use cases in the documentation    |   ✅    |
-| Multi-part form data support                                |        |
-| Refresh Token implementation                                |        |
-| Enhance logging capabilities with customizable log levels   |        |
-| Implement retry logic for failed requests                   |        |
-| Add more tests to ensure the package is robust and reliable |   ✅    |
-| Add Migration Guide for breaking changes                    |        |
-| Authentication Feature                                      |   ✅    |
+| *Feature*                                                   | *Status* |
+|:------------------------------------------------------------|:--------:|
+| Internationalization support for error messages             |    ✅     |
+| No internet connection handling                             |    ✅     |
+| Provide basic example                                       |    ✅     |
+| Provide more examples and use cases in the documentation    |    ✅     |
+| Multi-part form data support                                |          |
+| Refresh Token implementation                                |          |
+| Enhance logging capabilities with customizable log levels   |          |
+| Implement retry logic for failed requests                   |          |
+| Add more tests to ensure the package is robust and reliable |    ✅     |
+| Add Migration Guide for breaking changes                    |          |
+| Authentication Feature                                      |    ✅     |
 
 ## Contributing
 
