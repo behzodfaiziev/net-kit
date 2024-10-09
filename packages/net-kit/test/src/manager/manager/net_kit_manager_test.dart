@@ -52,5 +52,162 @@ void main() {
         expect(apiException.statusCode, HttpStatuses.serviceUnavailable.code);
       }
     });
+
+    group('Extract tokens from headers', () {
+      test(
+          'should extract tokens when both access and '
+          'refresh tokens are present', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers.fromMap({
+            'Authorization': ['access-token-value'],
+            'Refresh-Token': ['refresh-token-value'],
+          }),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'Authorization',
+          refreshTokenKey: 'Refresh-Token',
+        );
+
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
+
+      test('should return null tokens when headers are missing', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers(),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'Authorization',
+          refreshTokenKey: 'Refresh-Token',
+        );
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test('should return null access token when only refresh token is present',
+          () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers.fromMap({
+            'Refresh-Token': ['refresh-token-value'],
+          }),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'Authorization',
+          refreshTokenKey: 'Refresh-Token',
+        );
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
+
+      test('should return null refresh token when only access token is present',
+          () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers.fromMap({
+            'Authorization': ['access-token-value'],
+          }),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'Authorization',
+          refreshTokenKey: 'Refresh-Token',
+        );
+
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test(
+          'should extract tokens when accessTokenKey '
+              'and refreshTokenKey are different',
+          () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers.fromMap({
+            'Access-Token': ['access-token-value'],
+            'Refresh-Token': ['refresh-token-value'],
+          }),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'Access-Token',
+          refreshTokenKey: 'Refresh-Token',
+        );
+
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
+
+      test(
+          'should return null tokens when accessTokenKey '
+              'and refreshTokenKey are different and missing',
+          () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers(),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'Access-Token',
+          refreshTokenKey: 'Refresh-Token',
+        );
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test(
+          'should extract tokens when accessTokenKey is '
+          'AccessToken and refreshTokenKey is RefreshToken', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers.fromMap({
+            'AccessToken': ['access-token-value'],
+            'RefreshToken': ['refresh-token-value'],
+          }),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'AccessToken',
+          refreshTokenKey: 'RefreshToken',
+        );
+
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
+
+      test(
+          'should return null tokens when accessTokenKey is '
+          'AccessToken and refreshTokenKey is RefreshToken and missing', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          headers: Headers(),
+        );
+
+        final tokens = netKitManager.extractTokens(
+          response: response,
+          accessTokenKey: 'AccessToken',
+          refreshTokenKey: 'RefreshToken',
+        );
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+    });
   });
 }

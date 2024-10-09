@@ -25,7 +25,7 @@ class ErrorHandler {
   DioException _notMapTypeError(Response<dynamic> response) {
     return DioException(
       requestOptions: response.requestOptions,
-      response: Response(
+      response: Response<dynamic>(
         requestOptions: response.requestOptions,
         data: {
           errorParams.messageKey: errorParams.notMapTypeError,
