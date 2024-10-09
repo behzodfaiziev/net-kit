@@ -1,4 +1,10 @@
 # 2.3.0
+
+- added authentication method and provided the example in README.md
+- added `addRefreshToken` and `removeRefreshToken` methods to `NetKitManager`
+
+# 2.3.0
+
 - fixed error `Cannot read properties of undefined (reading 'new')` in web with workaround
 - added integration test for -release tags
 

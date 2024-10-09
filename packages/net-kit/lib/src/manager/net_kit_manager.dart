@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../enum/http_status_codes.dart';
 import '../enum/log_level.dart';
 import '../enum/request_method.dart';
+import '../model/auth_token_model.dart';
 import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
@@ -200,6 +201,58 @@ class NetKitManager extends ErrorHandler
     }
   }
 
+  @override
+  Future<(R, AuthTokenModel)> authenticate<R extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    MapType? body,
+    Options? options,
+    String? socialAccessToken, // Optional social access token for social login
+    String accessTokenKey = 'Authorization',
+    String refreshTokenKey = 'Refresh-Token',
+  }) async {
+    try {
+      // If it's a social login, attach the social access token to the headers
+      if (socialAccessToken != null) {
+        options ??= Options(); // Ensure options is not null
+        options.headers ??= {}; // Ensure headers is not null
+        options.headers!['Authorization'] = 'Bearer $socialAccessToken';
+      }
+
+      final response = await _sendRequest(
+        path: path,
+        method: method,
+        body: body,
+        options: options,
+      );
+
+      // Ensure the response data is a map
+      if ((response.data is MapType) == false) {
+        throw _notMapTypeError(response);
+      }
+
+      // Extract the tokens (access and refresh)
+      final authToken = extractTokens(
+        response: response,
+        accessTokenKey: accessTokenKey,
+        refreshTokenKey: refreshTokenKey,
+      );
+
+      // Add the tokens to headers for subsequent requests
+      addBearerToken(authToken.accessToken);
+      addRefreshToken(authToken.refreshToken);
+
+      // Parse the response model
+      final parsedModel = Converter.toModel<R>(response.data as MapType, model);
+
+      return (parsedModel, authToken);
+    } on DioException catch (error) {
+      // Handle DioException errors
+      throw _parseToApiException(error);
+    }
+  }
+
   Future<Response<dynamic>> _sendRequest({
     required String path,
     required RequestMethod method,
@@ -317,6 +370,19 @@ class NetKitManager extends ErrorHandler
     }
   }
 
+  /// Method to extract access and refresh tokens from headers or body.
+  /// Returns an AuthTokenModel containing both tokens.
+  AuthTokenModel extractTokens({
+    required Response<dynamic> response,
+    required String accessTokenKey,
+    required String refreshTokenKey,
+  }) {
+    // Try to extract tokens from headers
+    final accessToken = response.headers.value(accessTokenKey);
+    final refreshToken = response.headers.value(refreshTokenKey);
+    return AuthTokenModel(accessToken: accessToken, refreshToken: refreshToken);
+  }
+
   @override
   Map<String, dynamic> getAllHeaders() {
     return baseOptions.headers;
@@ -328,12 +394,28 @@ class NetKitManager extends ErrorHandler
   }
 
   @override
-  void addBearerToken(String token) {
+  void addBearerToken(String? token) {
+    if (token == null) return;
+    // TODO(bhz): set the name from config
     baseOptions.headers.addAll({'Authorization': 'Bearer $token'});
   }
 
   @override
+  void addRefreshToken(String? token) {
+    if (token == null) return;
+    // TODO(bhz): set the name from config
+    baseOptions.headers.addAll({'Refresh-Token': 'Bearer $token'});
+  }
+
+  @override
+  void removeRefreshToken() {
+    // TODO(bhz): set the name from config
+    baseOptions.headers.remove('Refresh-Token');
+  }
+
+  @override
   void removeBearerToken() {
+    // TODO(bhz): set the name from config
     baseOptions.headers.remove('Authorization');
   }
 
