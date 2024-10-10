@@ -5,11 +5,11 @@
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
 
-### Sponsors
+[//]: # (### Sponsors)
 
-#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
+[//]: # (#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor]&#40;https://github.com/sponsors/behzodfaiziev/&#41;!)
 
-<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
+[//]: # (<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">)
 
 ## **Contents**
 
@@ -17,14 +17,14 @@
 - [Getting started](#getting-started)
     - [Initialize](#initialize)
     - [Extend the model](#extend-the-model)
-- [Authentication Methods](#authentication-methods)
-    - [Sign In with Credentials](#sign-in-with-credentials)
-    - [Sign Up](#sign-up)
-    - [Sign In with Social Accounts](#sign-in-with-social-accounts)
 - [Sending requests](#sending-requests)
     - [Request a Single Model](#request-a-single-model)
     - [Request a List of Models](#request-a-list-of-models)
     - [Send a Void Request](#send-a-void-request)
+- [Authentication Methods](#authentication-methods)
+    - [Sign In with Credentials](#sign-in-with-credentials)
+    - [Sign Up](#sign-up)
+    - [Sign In with Social Accounts](#sign-in-with-social-accounts)
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
@@ -64,6 +64,71 @@ deserialized.
 ```dart
 class TodoModel extends INetKitModel {}
 ```
+
+## **Sending requests**
+
+#### **Request a Single Model**
+
+```dart
+Future<RandomUserModel> getRandomUser() async {
+  try {
+    final result = await netKitManager.requestModel<RandomUserModel>(
+      path: '/api',
+      method: RequestMethod.get,
+      model: const RandomUserModel(),
+    );
+    return result;
+  }
+
+  /// Catch the ApiException and handle it
+  on ApiException catch (e) {
+    /// Handle the error: example is to throw the error
+    throw Exception(e.message);
+  }
+}
+```
+
+#### **Request a List of Models**
+
+```dart
+Future<List<ProductModel>> getProducts() async {
+  try {
+    final result = await netKitManager.requestList<ProductModel>(
+      path: '/products',
+      method: RequestMethod.get,
+      model: const ProductModel(),
+    );
+    return result;
+  }
+
+  /// Catch the ApiException and handle it
+  on ApiException catch (e) {
+    /// Handle the error: example is to throw the error
+    throw Exception(e.message);
+  }
+}
+```
+
+#### **Send a void Request**
+
+```dart
+Future<void> deleteProduct() async {
+  try {
+    await netKitManager.requestVoid(
+      path: '/products',
+      method: RequestMethod.delete,
+    );
+    return;
+  }
+
+  /// Catch the ApiException and handle it
+  on ApiException catch (e) {
+    /// Handle the error: example is to throw the error
+    throw Exception(e.message);
+  }
+}
+```
+
 
 ## **Authentication Methods**
 
@@ -106,7 +171,7 @@ Future<UserModel> loginWithCredentials(SignInRequestModel signInRequest) async {
 
 This method registers a new user by sending their details to the server. After successful
 registration, the user model and authentication tokens are returned. Note: backend API may
-or may not return the userModel and authTokens after sign-up. So it userModel or authTokens can be
+or may not return the userModel and authTokens after sign-up. So its userModel or authTokens can be
 null.
 
 **Example:**
@@ -176,69 +241,6 @@ How It Works:
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
-## **Sending requests**
-
-#### **Request a Single Model**
-
-```dart
-Future<RandomUserModel> getRandomUser() async {
-  try {
-    final result = await netKitManager.requestModel<RandomUserModel>(
-      path: '/api',
-      method: RequestMethod.get,
-      model: const RandomUserModel(),
-    );
-    return result;
-  }
-
-  /// Catch the ApiException and handle it
-  on ApiException catch (e) {
-    /// Handle the error: example is to throw the error
-    throw Exception(e.message);
-  }
-}
-```
-
-#### **Request a List of Models**
-
-```dart
-Future<List<ProductModel>> getProducts() async {
-  try {
-    final result = await netKitManager.requestList<ProductModel>(
-      path: '/products',
-      method: RequestMethod.get,
-      model: const ProductModel(),
-    );
-    return result;
-  }
-
-  /// Catch the ApiException and handle it
-  on ApiException catch (e) {
-    /// Handle the error: example is to throw the error
-    throw Exception(e.message);
-  }
-}
-```
-
-#### **Send a void Request**
-
-```dart
-Future<void> deleteProduct() async {
-  try {
-    await netKitManager.requestVoid(
-      path: '/products',
-      method: RequestMethod.delete,
-    );
-    return;
-  }
-
-  /// Catch the ApiException and handle it
-  on ApiException catch (e) {
-    /// Handle the error: example is to throw the error
-    throw Exception(e.message);
-  }
-}
-```
 
 [//]: # (## **Best Practices**)
 
