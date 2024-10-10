@@ -5,11 +5,11 @@
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
 
-[//]: # (### Sponsors)
+### Sponsors
 
-[//]: # (#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor]&#40;https://github.com/sponsors/behzodfaiziev/&#41;!)
+#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 
-[//]: # (<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">)
+<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
 
 ## **Contents**
 
