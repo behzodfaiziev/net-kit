@@ -1,6 +1,6 @@
-# 2.4.1
+# 2.4.1, 2.4.2
 
-- updated Readme
+- updated Readme (authentication example upd)
 
 # 2.4.0
 
