@@ -3,7 +3,7 @@ name: Test iOS
 on:
   create:
     tags:
-      - "*-release"
+      - "*-release", "*-dev"
 jobs:
   test-ios:
     runs-on: macOS-latest
