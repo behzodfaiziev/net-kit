@@ -17,6 +17,7 @@ import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 
 part 'error/error_handler.dart';
+part 'interceptors/error_handling_interceptor.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
 /// implements the INetKitManager interface.
@@ -68,6 +69,9 @@ class NetKitManager extends ErrorHandler
 
     /// The stream for the internet status
     Stream<bool>? internetStatusStream,
+    String accessTokenKey = 'Authorization',
+    String refreshTokenKey = 'Refresh-Token',
+    String? refreshTokenPath,
   }) {
     /// Initialize the network manager
     _initialize(
@@ -80,11 +84,16 @@ class NetKitManager extends ErrorHandler
       loggerEnabled: loggerEnabled,
       logLevel: logLevel,
       internetStatusStream: internetStatusStream,
+      accessTokenKey: accessTokenKey,
+      refreshTokenKey: refreshTokenKey,
+      refreshTokenPath: refreshTokenPath,
     );
   }
 
   @override
   late final NetKitParams parameters;
+
+  late final void Function(AuthTokenModel)? onTokenRefreshed;
 
   late final INetKitLogger _logger;
 
@@ -209,8 +218,6 @@ class NetKitManager extends ErrorHandler
     MapType? body,
     Options? options,
     String? socialAccessToken, // Optional social access token for social login
-    String accessTokenKey = 'Authorization',
-    String refreshTokenKey = 'Refresh-Token',
   }) async {
     try {
       // If it's a social login, attach the social access token to the headers
@@ -235,8 +242,8 @@ class NetKitManager extends ErrorHandler
       // Extract the tokens (access and refresh)
       final authToken = extractTokens(
         response: response,
-        accessTokenKey: accessTokenKey,
-        refreshTokenKey: refreshTokenKey,
+        accessTokenKey: parameters.accessTokenKey,
+        refreshTokenKey: parameters.refreshTokenKey,
       );
 
       // Add the tokens to headers for subsequent requests
@@ -320,6 +327,9 @@ class NetKitManager extends ErrorHandler
     required LogLevel logLevel,
     required bool loggerEnabled,
     required bool testMode,
+    required String accessTokenKey,
+    required String refreshTokenKey,
+    String? refreshTokenPath,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -345,6 +355,8 @@ class NetKitManager extends ErrorHandler
       testMode: testMode,
       loggerEnabled: loggerEnabled,
       logLevel: logLevel,
+      accessTokenKey: accessTokenKey,
+      refreshTokenKey: refreshTokenKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value
@@ -368,6 +380,11 @@ class NetKitManager extends ErrorHandler
     if (parameters.loggerEnabled && testMode == false) {
       interceptors.add(LogInterceptor());
     }
+
+    ErrorHandlingInterceptor(
+      netKitManager: this,
+      refreshTokenPath: refreshTokenPath,
+    );
   }
 
   /// Method to extract access and refresh tokens from headers or body.
@@ -433,5 +450,16 @@ class NetKitManager extends ErrorHandler
   void dispose() {
     httpClientAdapter.close(force: true);
     parameters.internetStatusSubscription?.cancel();
+  }
+
+  String _getRefreshToken() {
+    return 'baseOptions.headers[parameters.refreshTokenKey].;';
+  }
+
+  void onTokensUpdated(AuthTokenModel authToken) {
+    // Call the callback if provided
+    if (onTokenRefreshed != null) {
+      onTokenRefreshed!.call(authToken);
+    }
   }
 }

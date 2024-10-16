@@ -202,8 +202,6 @@ abstract class INetKitManager {
     MapType? body,
     Options? options,
     String? socialAccessToken,
-    String accessTokenKey = 'Authorization',
-    String refreshTokenKey = 'Refresh-Token',
   });
 
   /// Get all headers
