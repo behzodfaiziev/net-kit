@@ -15,6 +15,7 @@ import 'logger/i_net_kit_logger.dart';
 import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
+import 'queue/request_queue.dart';
 
 part 'error/error_handler.dart';
 part 'interceptors/error_handling_interceptor.dart';
@@ -382,10 +383,12 @@ class NetKitManager extends ErrorHandler
       interceptors.add(LogInterceptor());
     }
 
-    ErrorHandlingInterceptor(
-      netKitManager: this,
-      refreshTokenPath: refreshTokenPath,
-    );
+    if (refreshTokenPath != null) {
+      ErrorHandlingInterceptor(
+        netKitManager: this,
+        refreshTokenPath: refreshTokenPath,
+      );
+    }
   }
 
   /// Method to extract access and refresh tokens from headers or body.
