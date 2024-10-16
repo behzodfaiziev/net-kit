@@ -1,10 +1,10 @@
-FROM ubuntu:22.04
+FROM dart
 
-RUN apt-get update && \
-    apt-get install -y wget unzip git && \
-    wget https://storage.googleapis.com/download/flutter_macos_3.0.0-stable.zip && \
-    unzip flutter_macos_3.0.0-stable.zip -d /opt && \
-    rm flutter_macos_3.0.0-stable.zip && \
-    export PATH="/opt/flutter/bin:$PATH"
+RUN apt-get update
+RUN apt-get install -y curl git unzip xz-utils zip libglu1-mesa
 
-WORKDIR /workspace
+RUN apt-get clean
+
+RUN git clone https://github.com/flutter/flutter.git -b stable --depth 1 /flutter
+ENV PATH="/flutter/bin:$PATH"
+RUN flutter doctor
