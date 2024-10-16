@@ -7,7 +7,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Android CRUD Integration Test', () {
-      testWidgets('Create Comment Test', (WidgetTester tester) async {
+    testWidgets('Create Comment Test', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       // Add a delay to ensure the initial comments are fetched
