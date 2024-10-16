@@ -1,0 +1,21 @@
+{
+    "name": "Flutter Dev Container",
+    "image": "mcr.microsoft.com/vscode/devcontainers/unity:latest",
+    "postCreateCommand": "flutter pub get",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "Dart-Code.dart-code",
+          "Dart-Code.flutter"
+        ]
+      }
+    },
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "features": {
+      "ghcr.io/devcontainers/features/flutter": {
+        "version": "3.0.0"  // Specify your Flutter version here
+      }
+    }
+  }
