@@ -133,9 +133,10 @@ class CommentPageState extends State<CommentPage> {
               ? const Center(child: CircularProgressIndicator())
               : Center(
                   child: Text(
-                  errorMessage ?? '',
-                  style: const TextStyle(fontSize: 24),
-                )))
+                    errorMessage ?? '',
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ))
           : ListView.builder(
               itemCount: _comments.length,
               itemBuilder: (context, index) {
