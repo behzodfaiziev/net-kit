@@ -33,6 +33,7 @@ class CommentPageState extends State<CommentPage> {
   final INetKitManager _netKitManager =
       NetKitManager(baseUrl: 'https://jsonplaceholder.typicode.com');
   List<TypicodeCommentModel> _comments = [];
+  String? errorMessage;
 
   @override
   void initState() {
@@ -50,8 +51,10 @@ class CommentPageState extends State<CommentPage> {
       setState(() {
         _comments = comments;
       });
-    } catch (e) {
-      /// Handle error
+    } on ApiException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+      });
     }
   }
 
@@ -126,7 +129,13 @@ class CommentPageState extends State<CommentPage> {
         title: const Text('NetKit Test'),
       ),
       body: _comments.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? (errorMessage == null
+              ? const Center(child: CircularProgressIndicator())
+              : Center(
+                  child: Text(
+                  errorMessage ?? '',
+                  style: const TextStyle(fontSize: 24),
+                )))
           : ListView.builder(
               itemCount: _comments.length,
               itemBuilder: (context, index) {
