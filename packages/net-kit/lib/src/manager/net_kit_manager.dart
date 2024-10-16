@@ -72,6 +72,7 @@ class NetKitManager extends ErrorHandler
     String accessTokenKey = 'Authorization',
     String refreshTokenKey = 'Refresh-Token',
     String? refreshTokenPath,
+    this.onTokenRefreshed,
   }) {
     /// Initialize the network manager
     _initialize(
