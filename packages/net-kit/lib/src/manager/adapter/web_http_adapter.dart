@@ -1,6 +1,6 @@
 import 'package:dio/browser.dart';
+import 'package:dio/dio.dart';
 
-import '../../../net_kit.dart';
 import 'i_http_adapter.dart';
 
 /// The class implements the IHttpAdapter interface
