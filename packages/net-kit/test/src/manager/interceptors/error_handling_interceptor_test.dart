@@ -1,151 +1,218 @@
-// import 'package:dio/dio.dart';
-// import 'package:mocktail/mocktail.dart';
-// import 'package:net_kit/net_kit.dart';
-// import 'package:test/test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:net_kit/net_kit.dart';
+import 'package:net_kit/src/manager/interceptors/error_interceptor.dart';
+import 'package:net_kit/src/manager/queue/request_queue.dart';
+import 'package:test/test.dart';
 
-// // Mock classes
-// class MockNetKitManager extends Mock implements NetKitManager {}
-// class MockErrorInterceptorHandler extends Mock implements
-// ErrorInterceptorHandler {}
+import '../../../mocks/mock_error_interceptor_handler.dart';
+import '../../../mocks/mock_http_client_adapter.dart';
+import '../../../mocks/mock_net_kit_manager.dart';
 
-// void main() {
-//   late MockNetKitManager netKitManager;
-//   late ErrorHandlingInterceptor interceptor;
+void main() {
+  late NetKitManager netKitManager;
+  late MockHttpClientAdapter clientAdapter;
+  final unauthorizedException = DioException(
+    requestOptions: RequestOptions(path: '/some-path'),
+    response: Response(
+      statusCode: 401,
+      requestOptions: RequestOptions(path: '/some-path'),
+    ),
+  );
 
-//   setUp(() {
-//     netKitManager = MockNetKitManager();
-//     interceptor = ErrorHandlingInterceptor(
-//       netKitManager: netKitManager,
-//       refreshTokenPath: '/refresh-token',
-//     );
-//   });
+  setUpAll(() {
+    registerFallbackValue(RequestMethod.get);
+    registerFallbackValue(unauthorizedException);
+    registerFallbackValue(MockErrorInterceptorHandler());
+    registerFallbackValue('refreshToken');
+    registerFallbackValue(Options());
+  });
+  setUp(() {
+    clientAdapter = MockHttpClientAdapter();
+    netKitManager = MockNetKitManager();
+    final handler = ErrorHandlingInterceptor(
+      refreshTokenPath: '/refresh-token',
+      requestQueue: RequestQueue(),
+      netKitManager: netKitManager,
+    );
 
-//   test('should successfully refresh token and retry request', () async {
-//     // Mocking the initial request that fails
-//     final errorResponse = DioException(
-//       requestOptions: RequestOptions(path: '/some-path'),
-//       response: Response(statusCode: 401),
-//     );
+    final interceptors = Interceptors()..add(handler.getErrorInterceptor());
 
-//     when(() => netKitManager.request<dynamic>(
-//       '/some-path',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenThrow(errorResponse);
+    when(() => netKitManager.interceptors).thenReturn(interceptors);
+  });
 
-//     // Mocking the token refresh request
-//     when(() => netKitManager.request<dynamic>(
-//       '/refresh-token',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenAnswer((_) async => Response(
-//       data: {'accessToken': 'newAccessToken', 'refreshToken':
-//       'newRefreshToken'},
-//       statusCode: 200,
-//     ));
+  test('should successfully refresh token and retry request', () async {
+    when(() => netKitManager.getRefreshToken()).thenReturn('refreshToken');
 
-//     // Mocking the retried request after successful token refresh
-//     when(() => netKitManager.request<dynamic>(
-//       '/some-path',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenAnswer((_) async => Response(data: 'Success', statusCode: 200));
+    when(
+      () => netKitManager.requestVoid(
+        path: any(named: 'path'),
+        method: any(named: 'method'),
+        options: any(named: 'options'),
+        queryParameters: any(named: 'queryParameters'),
+      ),
+    ).thenThrow(unauthorizedException);
 
-//     final handler = MockErrorInterceptorHandler();
+    when(
+      () => netKitManager.request<dynamic>(
+        '/refresh-token',
+        options: any(named: 'options'),
+        data: any(named: 'data'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        data: {
+          'accessToken': 'newAccessToken',
+          'refreshToken': 'newRefreshToken',
+        },
+        requestOptions: RequestOptions(path: '/refresh-token'),
+        statusCode: 200,
+      ),
+    );
 
-//     await interceptor._addInterceptor().onError(errorResponse, handler);
+    when(
+      () => netKitManager.request<dynamic>(
+        '/some-path',
+        options: any(named: 'options'),
+        data: any(named: 'data'),
+        queryParameters: any(named: 'queryParameters'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        data: 'Success',
+        statusCode: 200,
+        requestOptions: RequestOptions(path: '/some-path'),
+      ),
+    );
 
-//     // Verify that the token was refreshed and the request retried
-//     verify(() => netKitManager.request<dynamic>(
-//       '/refresh-token',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).called(1);
+    try {
+      final interceptors = netKitManager.interceptors;
 
-//     verify(() => netKitManager.request<dynamic>(
-//       '/some-path',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).called(1);
+      final result = netKitManager.requestVoid(
+        path: '/some-path',
+        method: RequestMethod.get,
+      );
+    } catch (e) {
+      print(e);
+    }
 
-//     verify(() => handler.resolve(any())).called(1);
-//   });
+    final interceptorsWrapper = netKitManager.interceptors.firstWhere(
+      (interceptor) => interceptor is ErrorInterceptor,
+    ) as ErrorInterceptor;
 
-//   test('should queue requests while token is refreshing', () async {
-//     // Initial request fails
-//     final errorResponse = DioException(
-//       requestOptions: RequestOptions(path: '/some-path'),
-//       response: Response(statusCode: 401),
-//     );
+    // Verify that onError is called
+    verify(() => interceptorsWrapper.onError(any(), any())).called(1);
+    verify(() => netKitManager.getRefreshToken()).called(1);
 
-//     when(() => netKitManager.request<dynamic>(
-//       '/some-path',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenThrow(errorResponse);
+    //
+    // verify(
+    //   () => netKitManager.request<dynamic>(
+    //     '/refresh-token',
+    //     options: any(named: 'options'),
+    //     data: any(named: 'data'),
+    //     queryParameters: any(named: 'queryParameters'),
+    //   ),
+    // ).called(1);
 
-//     // Mocking token refresh request
-//     when(() => netKitManager.request<dynamic>(
-//       '/refresh-token',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenAnswer((_) async {
-//       await Future.delayed(Duration(seconds: 1)); // Simulate network delay
-//       return Response(data: {'accessToken': 'newAccessToken',
-//       'refreshToken': 'newRefreshToken'}, statusCode: 200);
-//     });
+    // verify(
+    //   () => netKitManager.request<dynamic>(
+    //     '/some-path',
+    //     options: any(named: 'options'),
+    //     data: any(named: 'data'),
+    //     queryParameters: any(named: 'queryParameters'),
+    //   ),
+    // ).called(1);
 
-//     final handler1 = MockErrorInterceptorHandler();
-//     final handler2 = MockErrorInterceptorHandler();
+    // verify(() => handler.resolve(any())).called(1);
+  });
 
-//     // First request
-//     await interceptor._addInterceptor().onError(errorResponse, handler1);
-
-//     // Second request that should be queued
-//     await interceptor._addInterceptor().onError(errorResponse, handler2);
-
-//     // Wait for the token refresh to complete
-//     await Future.delayed(Duration(seconds: 2));
-
-//     // Verify that both requests were retried
-//     verify(() => handler1.resolve(any())).called(1);
-//     verify(() => handler2.resolve(any())).called(1);
-//   });
-
-//   test('should return error if token refresh fails', () async {
-//     // Initial request fails
-//     final errorResponse = DioException(
-//       requestOptions: RequestOptions(path: '/some-path'),
-//       response: Response(statusCode: 401),
-//     );
-
-//     when(() => netKitManager.request<dynamic>(
-//       '/some-path',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenThrow(errorResponse);
-
-//     // Mocking the token refresh request to fail
-//     when(() => netKitManager.request<dynamic>(
-//       '/refresh-token',
-//       options: any(named: 'options'),
-//       data: any(named: 'data'),
-//       queryParameters: any(named: 'queryParameters'),
-//     )).thenThrow(Exception('Token refresh failed'));
-
-//     final handler = MockErrorInterceptorHandler();
-
-//     await interceptor._addInterceptor().onError(errorResponse, handler);
-
-//     // Verify that the error was passed to the handler
-//     verify(() => handler.reject(any())).called(1);
-//   });
-// }
+  // test('should queue requests while token is refreshing', () async {
+  //   final errorResponse = DioException(
+  //     requestOptions: RequestOptions(path: '/some-path'),
+  //     response: Response(
+  //       statusCode: 401,
+  //       requestOptions: RequestOptions(path: '/some-path'),
+  //     ),
+  //   );
+  //
+  //   when(
+  //     () => netKitManager.request<dynamic>(
+  //       '/some-path',
+  //       options: any(named: 'options'),
+  //       data: any(named: 'data'),
+  //       queryParameters: any(named: 'queryParameters'),
+  //     ),
+  //   ).thenThrow(errorResponse);
+  //
+  //   when(
+  //     () => netKitManager.request<dynamic>(
+  //       '/refresh-token',
+  //       options: any(named: 'options'),
+  //       data: any(named: 'data'),
+  //       queryParameters: any(named: 'queryParameters'),
+  //     ),
+  //   ).thenAnswer((_) async {
+  //     await Future<void>.delayed(const Duration(seconds: 1));
+  //     return Response(
+  //       data: {
+  //         'accessToken': 'newAccessToken',
+  //         'refreshToken': 'newRefreshToken',
+  //       },
+  //       statusCode: 200,
+  //       requestOptions: RequestOptions(path: '/refresh-token'),
+  //     );
+  //   });
+  //
+  //   final handler1 = MockErrorInterceptorHandler();
+  //   final handler2 = MockErrorInterceptorHandler();
+  //
+  //   final interceptorsWrapper = netKitManager.interceptors.firstWhere(
+  //     (interceptor) => interceptor is ErrorInterceptor,
+  //   ) as ErrorInterceptor;
+  //
+  //   interceptorsWrapper.onError(errorResponse, handler1);
+  //   interceptorsWrapper.onError(errorResponse, handler2);
+  //
+  //   await Future<void>.delayed(const Duration(seconds: 2));
+  //
+  //   verify(() => handler1.resolve(any())).called(1);
+  //   verify(() => handler2.resolve(any())).called(1);
+  // });
+  //
+  // test('should return error if token refresh fails', () async {
+  //   final errorResponse = DioException(
+  //     requestOptions: RequestOptions(path: '/some-path'),
+  //     response: Response(
+  //       statusCode: 401,
+  //       requestOptions: RequestOptions(path: '/some-path'),
+  //     ),
+  //   );
+  //
+  //   when(
+  //     () => netKitManager.request<dynamic>(
+  //       '/some-path',
+  //       options: any(named: 'options'),
+  //       data: any(named: 'data'),
+  //       queryParameters: any(named: 'queryParameters'),
+  //     ),
+  //   ).thenThrow(errorResponse);
+  //
+  //   when(
+  //     () => netKitManager.request<dynamic>(
+  //       '/refresh-token',
+  //       options: any(named: 'options'),
+  //       data: any(named: 'data'),
+  //       queryParameters: any(named: 'queryParameters'),
+  //     ),
+  //   ).thenThrow(Exception('Token refresh failed'));
+  //
+  //   final handler = MockErrorInterceptorHandler();
+  //
+  //   final interceptorsWrapper = netKitManager.interceptors.firstWhere(
+  //     (interceptor) => interceptor is ErrorInterceptor,
+  //   ) as ErrorInterceptor;
+  //
+  //   interceptorsWrapper.onError(errorResponse, handler);
+  //
+  //   verify(() => handler.reject(any())).called(1);
+  // });
+}
