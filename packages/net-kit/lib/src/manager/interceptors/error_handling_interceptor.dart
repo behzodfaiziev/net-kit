@@ -18,9 +18,7 @@ class ErrorHandlingInterceptor {
     required String? refreshTokenPath,
   })  : _netKitManager = netKitManager,
         _requestQueue = requestQueue,
-        _refreshTokenPath = refreshTokenPath {
-    _addInterceptor();
-  }
+        _refreshTokenPath = refreshTokenPath;
 
   /// Instance of `NetKitManager`. Used to make network requests.
   final NetKitManager _netKitManager;
@@ -48,29 +46,27 @@ class ErrorHandlingInterceptor {
   ///
   /// This method is called internally to add the interceptor to the
   /// `NetKitManager`. It should not be called directly.
-  void _addInterceptor() {
-    _netKitManager.interceptors.add(
-      InterceptorsWrapper(
-        onError: (DioException error, ErrorInterceptorHandler handler) async {
-          if (error.response?.statusCode != 401 || _refreshTokenPath == null) {
-            return handler.next(error);
-          }
-          if (_isRefreshing) {
-            // Queue the request while refreshing the token
-            _requestQueue.add(() => _retryRequest(error, handler));
-            return;
-          }
+  ErrorInterceptor getErrorInterceptor() {
+    return ErrorInterceptor(
+      onError: (DioException error, ErrorInterceptorHandler handler) async {
+        if (error.response?.statusCode != 401 || _refreshTokenPath == null) {
+          return handler.next(error);
+        }
+        if (_isRefreshing) {
+          // Queue the request while refreshing the token
+          _requestQueue.add(() => _retryRequest(error, handler));
+          return;
+        }
 
-          _isRefreshing = true;
-          await _refreshToken(
-            error: error,
-            handler: handler,
-            refreshTokenPath: _refreshTokenPath!,
-          );
-          _isRefreshing = false;
-          await _requestQueue.processQueue();
-        },
-      ),
+        _isRefreshing = true;
+        await _refreshToken(
+          error: error,
+          handler: handler,
+          refreshTokenPath: _refreshTokenPath!,
+        );
+        _isRefreshing = false;
+        await _requestQueue.processQueue();
+      },
     );
   }
 
@@ -88,15 +84,14 @@ class ErrorHandlingInterceptor {
     required ErrorInterceptorHandler handler,
   }) async {
     try {
+      final refreshToken = _netKitManager.getRefreshToken();
+
       final refreshResponse = await _netKitManager.request<dynamic>(
         refreshTokenPath,
         options: Options(
           method: RequestMethod.post.name.toUpperCase(),
         ),
-        data: {
-          _netKitManager.parameters.refreshTokenKey:
-              _netKitManager._getRefreshToken(),
-        },
+        data: {_netKitManager.parameters.refreshTokenKey: refreshToken},
       );
 
       final authToken = _netKitManager.extractTokens(
