@@ -4,11 +4,12 @@ import '../enum/http_status_codes.dart';
 import '../enum/log_level.dart';
 import '../enum/request_method.dart';
 import '../model/auth_token_model.dart';
+import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
-if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
+    if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'logger/i_net_kit_logger.dart';
@@ -16,9 +17,9 @@ import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
+import 'token/token_manager.dart';
 
 part 'error/error_handler.dart';
-
 part 'interceptors/error_handling_interceptor.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -405,11 +406,20 @@ class NetKitManager extends ErrorHandler
       interceptors.add(LogInterceptor());
     }
 
-    ErrorHandlingInterceptor(
-      netKitManager: this,
+    final errorInterceptor = ErrorHandlingInterceptor(
       refreshTokenPath: refreshTokenPath,
       requestQueue: RequestQueue(),
-    );
+      tokenManager: TokenManager(
+        addBearerToken: addBearerToken,
+        addRefreshToken: addRefreshToken,
+        getRefreshToken: getRefreshToken,
+        refreshTokenRequest: _refreshTokenRequest,
+        retryRequest: _retryRequest,
+        onTokensUpdated: _onTokensUpdated,
+      ),
+    ).getErrorInterceptor();
+
+    interceptors.add(errorInterceptor);
   }
 
   /// Method to extract access and refresh tokens from headers or body.
@@ -438,27 +448,23 @@ class NetKitManager extends ErrorHandler
   @override
   void addBearerToken(String? token) {
     if (token == null) return;
-    // TODO(bhz): set the name from config
-    baseOptions.headers.addAll({'Authorization': 'Bearer $token'});
+    baseOptions.headers.addAll({parameters.accessTokenKey: 'Bearer $token'});
   }
 
   @override
   void addRefreshToken(String? token) {
     if (token == null) return;
-    // TODO(bhz): set the name from config
-    baseOptions.headers.addAll({'Refresh-Token': 'Bearer $token'});
-  }
-
-  @override
-  void removeRefreshToken() {
-    // TODO(bhz): set the name from config
-    baseOptions.headers.remove('Refresh-Token');
+    baseOptions.headers.addAll({parameters.refreshTokenKey: 'Bearer $token'});
   }
 
   @override
   void removeBearerToken() {
-    // TODO(bhz): set the name from config
-    baseOptions.headers.remove('Authorization');
+    baseOptions.headers.remove(parameters.accessTokenKey);
+  }
+
+  @override
+  void removeRefreshToken() {
+    baseOptions.headers.remove(parameters.refreshTokenKey);
   }
 
   @override
@@ -477,8 +483,10 @@ class NetKitManager extends ErrorHandler
     parameters.internetStatusSubscription?.cancel();
   }
 
-  String _getRefreshToken() {
-    return 'baseOptions.headers[parameters.refreshTokenKey].;';
+  String getRefreshToken() {
+    final token = baseOptions.headers[parameters.refreshTokenKey];
+    if (token == null) return '';
+    return token is String ? token : '';
   }
 
   /// Method to be called when the tokens are updated.
@@ -490,5 +498,35 @@ class NetKitManager extends ErrorHandler
     if (onTokenRefreshed != null) {
       onTokenRefreshed!.call(authToken);
     }
+  }
+
+  Future<AuthTokenModel> _refreshTokenRequest(
+    String refreshTokenPath,
+    String refreshToken,
+  ) async {
+    final refreshResponse = await request<dynamic>(
+      refreshTokenPath,
+      options: Options(
+        method: RequestMethod.post.name.toUpperCase(),
+      ),
+      data: {parameters.refreshTokenKey: refreshToken},
+    );
+    return extractTokens(
+      response: refreshResponse,
+      accessTokenKey: parameters.accessTokenKey,
+      refreshTokenKey: parameters.refreshTokenKey,
+    );
+  }
+
+  Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
+    return request<dynamic>(
+      requestOptions.path,
+      options: Options(
+        method: requestOptions.method,
+        headers: requestOptions.headers,
+      ),
+      data: requestOptions.data,
+      queryParameters: requestOptions.queryParameters,
+    );
   }
 }

@@ -7,7 +7,11 @@
 /// This class is used internally by `NetKit` to handle refresh token requests
 /// while ensuring that only one refresh token request is processed at a time.
 class RequestQueue {
-  final List<Future<void> Function()> _queue = [];
+  /// Creates a new `RequestQueue` with an optional list of requests.
+  RequestQueue({List<Future<void> Function()>? queue}) : _queue = queue ?? [];
+
+  final List<Future<void> Function()> _queue;
+
   bool _isProcessing = false;
 
   /// Adds a new request to the queue.
@@ -48,17 +52,23 @@ class RequestQueue {
     _isProcessing = false;
   }
 
-  /// Checks if the queue is not empty.
+  /// Dequeues the first request from the queue.
   ///
-  /// Returns `true` if the queue contains
-  /// one or more requests, otherwise `false`.
-  ///
-  /// Example:
-  /// ```dart
-  /// final queue = RequestQueue();
-  /// print(queue.isNotEmpty); // false
-  /// queue.add(() async {});
-  /// print(queue.isNotEmpty); // true
-  /// ```
-  bool get isNotEmpty => _queue.isNotEmpty;
+  /// Returns the first request (as a `Future<void> Function()`)
+  /// from the queue, or `null` if the queue is empty.
+  Future<void> Function()? dequeue() {
+    if (_queue.isNotEmpty) {
+      return _queue.removeAt(0);
+    }
+    return null;
+  }
+
+  /// Rejects all queued requests.
+  void rejectQueuedRequests() {
+    while (_queue.isNotEmpty) {
+      final queuedRequest = _queue.removeAt(0);
+
+      queuedRequest.call();
+    }
+  }
 }
