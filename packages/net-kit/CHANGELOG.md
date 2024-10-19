@@ -1,3 +1,7 @@
+## 2.4.5-dev
+
+- updated error handling
+
 ## 2.4.4-dev
 
 - added loggers in error handling interceptor

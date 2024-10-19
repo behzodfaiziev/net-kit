@@ -129,7 +129,6 @@ Future<void> deleteProduct() async {
 }
 ```
 
-
 ## **Authentication Methods**
 
 The `authenticate()` method in `NetKitManager` allows you to handle all types of authentication
@@ -241,7 +240,6 @@ How It Works:
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
-
 [//]: # (## **Best Practices**)
 
 [//]: # (#### **Extend the model**)
@@ -254,12 +252,12 @@ How It Works:
 | No internet connection handling                             |    ✅     |
 | Provide basic example                                       |    ✅     |
 | Provide more examples and use cases in the documentation    |    ✅     |
-| Multi-part form data support                                |          |
-| Refresh Token implementation                                |          |
-| Enhance logging capabilities with customizable log levels   |          |
-| Implement retry logic for failed requests                   |          |
+| Multi-part form data support                                |    🟡    |
+| Refresh Token implementation                                |    ✅     |
+| Enhance logging capabilities with customizable log levels   |    ✅     |
+| Implement retry logic for failed requests                   |    🟡    |
 | Add more tests to ensure the package is robust and reliable |    ✅     |
-| Add Migration Guide for breaking changes                    |          |
+| Add Migration Guide for breaking changes                    |    🟡    |
 | Authentication Feature                                      |    ✅     |
 
 ## Contributing

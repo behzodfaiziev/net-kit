@@ -66,12 +66,7 @@ class ErrorHandlingInterceptor {
         if (error.requestOptions.path == refreshTokenPath) {
           // If it's from the refresh token path, reject with the error
           logger?.error('refresh token error: ${error.message}');
-          handler.reject(
-            DioException(
-              requestOptions: error.requestOptions,
-              error: 'Refresh token expired',
-            ),
-          );
+          handler.reject(error);
 
           // Reject all queued requests as the token is no longer valid
           requestQueue.rejectQueuedRequests();
