@@ -483,6 +483,7 @@ class NetKitManager extends ErrorHandler
     parameters.internetStatusSubscription?.cancel();
   }
 
+  /// Method to get the access token from the headers.
   String getRefreshToken() {
     final token = baseOptions.headers[parameters.refreshTokenKey];
     if (token == null) return '';
