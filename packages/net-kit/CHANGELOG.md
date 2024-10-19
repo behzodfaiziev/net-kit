@@ -1,4 +1,10 @@
-# 2.4.3-dev
+## 2.4.4-dev
+
+- added loggers in error handling interceptor
+- fixed issue in error handling interceptor
+
+## 2.4.3-dev
+
 - added `refreshToken` feature
 
 # 2.4.1, 2.4.2

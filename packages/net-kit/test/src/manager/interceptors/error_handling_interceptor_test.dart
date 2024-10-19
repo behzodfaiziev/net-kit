@@ -229,4 +229,51 @@ void main() {
     verify(() => mockHandler.next(mockError)).called(1);
     verifyNever(() => requestQueue.processQueue());
   });
+
+  /// 5. **should reject if refresh token request returns 401**:
+  ///    - **Purpose**: Validates the interceptor's behavior when the refresh
+  ///      token request itself fails with a 401 error, indicating the refresh
+  ///      token has expired.
+  ///    - **Expected**: The test asserts that the error handler's `reject`
+  ///      method is called with a specific error message, and queued requests
+  ///      are rejected, confirming proper handling of the expired
+  ///      refresh token.
+  test('should reject if refresh token request returns 401', () async {
+    final mockHandler = MockErrorInterceptorHandler();
+
+    // Create a DioException simulating a 401 error
+    // from the refresh token request
+    final mockError = DioException(
+      requestOptions: RequestOptions(path: '/refresh-token'),
+      response: Response(
+        statusCode: 401,
+        requestOptions: RequestOptions(path: '/refresh-token'),
+      ),
+    );
+
+    // Set up a completer to track when the reject method is called
+    final completer = Completer<void>();
+
+    // Mock the reject method to complete the completer
+    when(() => mockHandler.reject(any())).thenAnswer((_) {
+      completer.complete();
+    });
+
+    // Invoke the interceptor with the 401 error from the refresh token request
+    interceptor.getErrorInterceptor().onError(mockError, mockHandler);
+
+    // Wait until the completer is completed
+    await completer.future;
+
+    // Capture the argument passed to the reject method
+    final capturedException = verify(() => mockHandler.reject(captureAny()))
+        .captured
+        .single as DioException;
+
+    // Verify that the captured exception has the expected properties
+    expect(capturedException.requestOptions.path, '/refresh-token');
+
+    // Verify that queued requests are rejected
+    verify(() => requestQueue.rejectQueuedRequests()).called(1);
+  });
 }

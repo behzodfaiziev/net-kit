@@ -416,6 +416,7 @@ class NetKitManager extends ErrorHandler
         refreshTokenRequest: _refreshTokenRequest,
         retryRequest: _retryRequest,
         onTokensUpdated: _onTokensUpdated,
+        logger: _logger,
       ),
     ).getErrorInterceptor();
 

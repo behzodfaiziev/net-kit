@@ -1,4 +1,5 @@
 import '../../../net_kit.dart';
+import '../logger/i_net_kit_logger.dart';
 
 /// A class that manages the authentication tokens used for
 /// API requests, handling token refresh logic and request retries.
@@ -28,6 +29,7 @@ class TokenManager {
     required this.refreshTokenRequest,
     required this.retryRequest, // Added this
     this.onTokensUpdated,
+    this.logger,
   });
 
   /// A function that retrieves the current refresh token.
@@ -38,6 +40,9 @@ class TokenManager {
 
   /// A function that stores the new refresh token.
   final void Function(String refreshToken) addRefreshToken;
+
+  /// An optional logger for logging token refresh operations.
+  final INetKitLogger? logger;
 
   /// A function that makes the request to refresh the access token.
   ///
@@ -75,19 +80,28 @@ class TokenManager {
       // Retrieve the current refresh token
       final refreshToken = getRefreshToken();
 
+      logger?.info('Refreshing token...');
+
       // Make the request to refresh the token
       final authToken =
           await refreshTokenRequest(refreshTokenPath, refreshToken);
+
+      logger?.info('Token refreshed successfully.');
 
       // Update the tokens using the provided functions
       addBearerToken(authToken.accessToken ?? '');
       addRefreshToken(authToken.refreshToken ?? '');
 
+      logger?.info('Tokens updated successfully.');
+
       // Notify that the tokens were updated
+
       if (onTokensUpdated != null) {
+        logger?.info('Notifying tokens updated...');
         onTokensUpdated!.call(authToken);
       }
     } catch (e) {
+      logger?.warning('Token refresh failed: $e');
       // Propagate the error for handling in the interceptor
       rethrow;
     }
