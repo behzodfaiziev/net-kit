@@ -1,3 +1,6 @@
+# 2.4.3-dev
+- added `refreshToken` feature
+
 # 2.4.1, 2.4.2
 
 - updated Readme (authentication example upd)

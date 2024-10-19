@@ -2,7 +2,7 @@ name: net_kit
 
 description: "Netkit is a library that provides a set of tools to work with network requests."
 
-version: 2.4.2
+version: 2.4.3-dev
 
 homepage: https://github.com/behzodfaiziev/net-kit/tree/main/packages/net-kit
 repository: https://github.com/behzodfaiziev/net-kit/tree/main/packages/net-kit
