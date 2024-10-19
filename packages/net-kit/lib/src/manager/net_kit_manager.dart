@@ -8,7 +8,7 @@ import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
-    if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
+if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'logger/i_net_kit_logger.dart';
@@ -18,6 +18,7 @@ import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
 
 part 'error/error_handler.dart';
+
 part 'interceptors/error_handling_interceptor.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -94,6 +95,27 @@ class NetKitManager extends ErrorHandler
 
   @override
   late final NetKitParams parameters;
+
+  /// The callback function that is called when the tokens are updated
+  /// This function can be used to update the tokens in the app
+  /// or perform any other actions that are required when the tokens are updated
+  /// The callback function is optional and can be
+  /// set when initializing the network manager
+  /// Example:
+  /// ```dart
+  /// final netKitManager = NetKitManager(
+  ///  baseUrl: 'https://api.example.com',
+  ///  onTokenRefreshed: (authToken) {
+  ///  // Update the tokens in the app
+  ///  },
+  ///  );
+  ///  ```
+  ///  The callback function takes an [AuthTokenModel] as a parameter
+  ///  which contains the access token and refresh token.
+  ///  The callback function is called when the tokens are updated
+  ///  after a successful refresh token request.
+  ///  The callback function is optional and can
+  ///  be set when initializing the network manager.
 
   late final void Function(AuthTokenModel)? onTokenRefreshed;
 
@@ -383,12 +405,11 @@ class NetKitManager extends ErrorHandler
       interceptors.add(LogInterceptor());
     }
 
-    if (refreshTokenPath != null) {
-      ErrorHandlingInterceptor(
-        netKitManager: this,
-        refreshTokenPath: refreshTokenPath,
-      );
-    }
+    ErrorHandlingInterceptor(
+      netKitManager: this,
+      refreshTokenPath: refreshTokenPath,
+      requestQueue: RequestQueue(),
+    );
   }
 
   /// Method to extract access and refresh tokens from headers or body.
@@ -460,7 +481,11 @@ class NetKitManager extends ErrorHandler
     return 'baseOptions.headers[parameters.refreshTokenKey].;';
   }
 
-  void onTokensUpdated(AuthTokenModel authToken) {
+  /// Method to be called when the tokens are updated.
+  /// Calls the onTokenRefreshed callback if provided.
+  /// The callback function is optional and can be set w
+  /// hen initializing the network manager.
+  void _onTokensUpdated(AuthTokenModel authToken) {
     // Call the callback if provided
     if (onTokenRefreshed != null) {
       onTokenRefreshed!.call(authToken);

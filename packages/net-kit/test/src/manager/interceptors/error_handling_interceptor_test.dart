@@ -5,7 +5,8 @@
 
 // // Mock classes
 // class MockNetKitManager extends Mock implements NetKitManager {}
-// class MockErrorInterceptorHandler extends Mock implements ErrorInterceptorHandler {}
+// class MockErrorInterceptorHandler extends Mock implements
+// ErrorInterceptorHandler {}
 
 // void main() {
 //   late MockNetKitManager netKitManager;
@@ -40,7 +41,8 @@
 //       data: any(named: 'data'),
 //       queryParameters: any(named: 'queryParameters'),
 //     )).thenAnswer((_) async => Response(
-//       data: {'accessToken': 'newAccessToken', 'refreshToken': 'newRefreshToken'},
+//       data: {'accessToken': 'newAccessToken', 'refreshToken':
+//       'newRefreshToken'},
 //       statusCode: 200,
 //     ));
 
@@ -96,7 +98,8 @@
 //       queryParameters: any(named: 'queryParameters'),
 //     )).thenAnswer((_) async {
 //       await Future.delayed(Duration(seconds: 1)); // Simulate network delay
-//       return Response(data: {'accessToken': 'newAccessToken', 'refreshToken': 'newRefreshToken'}, statusCode: 200);
+//       return Response(data: {'accessToken': 'newAccessToken',
+//       'refreshToken': 'newRefreshToken'}, statusCode: 200);
 //     });
 
 //     final handler1 = MockErrorInterceptorHandler();

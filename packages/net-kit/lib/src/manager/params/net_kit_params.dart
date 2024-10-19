@@ -43,8 +43,16 @@ class NetKitParams {
   /// The log level for the logger
   final LogLevel logLevel;
 
+  /// The access token key.
+  /// The default value is ['Authorization']
+  /// The access token key is used to get the access token from the headers
+  /// of the network responses
   final String accessTokenKey;
 
+  /// The refresh token key.
+  /// The default value is ['Refresh-Token']
+  /// The refresh token key is used to get the refresh token from the headers
+  /// of the network responses
   final String refreshTokenKey;
 
   /// Whether the NetKit logger is enabled
