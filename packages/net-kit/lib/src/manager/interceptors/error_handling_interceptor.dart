@@ -98,9 +98,9 @@ class ErrorHandlingInterceptor {
   /// - [error]: The original `DioException` that triggered the retry.
   /// - [handler]: The interceptor handler that manages the request flow.
   Future<void> _retryRequest(
-      DioException error,
-      ErrorInterceptorHandler handler,
-      ) async {
+    DioException error,
+    ErrorInterceptorHandler handler,
+  ) async {
     try {
       // Attempt to retry the original request.
       final response = await tokenManager.retryRequest(error.requestOptions);

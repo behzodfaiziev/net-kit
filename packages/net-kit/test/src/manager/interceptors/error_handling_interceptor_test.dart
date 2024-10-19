@@ -41,8 +41,9 @@ void main() {
         addRefreshToken: (_) {},
         refreshTokenRequest: (_, __) async {
           return const AuthTokenModel(
-              accessToken: 'new-access-token',
-              refreshToken: 'new-refresh-token',);
+            accessToken: 'new-access-token',
+            refreshToken: 'new-refresh-token',
+          );
         },
         retryRequest: (requestOptions) async {
           return Response<dynamic>(
