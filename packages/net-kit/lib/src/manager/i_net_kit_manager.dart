@@ -202,8 +202,6 @@ abstract class INetKitManager {
     MapType? body,
     Options? options,
     String? socialAccessToken,
-    String accessTokenKey = 'Authorization',
-    String refreshTokenKey = 'Refresh-Token',
   });
 
   /// Get all headers
@@ -219,25 +217,25 @@ abstract class INetKitManager {
   /// ```
   void addHeader(MapEntry<String, String> mapEntry);
 
-  /// Add a bearer token to the network manager
+  /// Set an access token to the network manager
   /// It takes a `String` as a parameter
-  /// The bearer token is added to the network manager
+  /// The access token is added to the network manager
   /// Example:
   /// ```dart
-  /// netKitManager.addBearerToken('YOUR_BEARER_TOKEN');
+  /// netKitManager.setAccessToken('YOUR_ACCESS_TOKEN');
   /// ```
-  void addBearerToken(String? token);
+  void setAccessToken(String? token);
 
-  /// Add a refresh token to the network manager
+  /// Set a refresh token to the network manager
   /// It takes a `String` as a parameter
   /// The refresh token is added to the network manager
   /// Example:
   /// ```dart
-  /// netKitManager.addRefreshToken('YOUR_REFRESH_TOKEN');
+  /// netKitManager.setRefreshToken('YOUR_REFRESH_TOKEN');
   /// ```
   /// Usecase: when the user logs in
   /// and the refresh token is received
-  void addRefreshToken(String? token);
+  void setRefreshToken(String? token);
 
   /// Remove the refresh token from the network manager
   /// The refresh token is removed from the network manager
@@ -248,14 +246,14 @@ abstract class INetKitManager {
   /// Usecase: when the user logs out or the token expires
   void removeRefreshToken();
 
-  /// Remove the bearer token from the network manager
-  /// The bearer token is removed from the network manager
+  /// Remove access token from the network manager
+  /// The access token is removed from the network manager
   /// Example:
   /// ```dart
   /// netKitManager.removeBearerToken();
   /// ```
   /// Usecase: when the user logs out or the token expires
-  void removeBearerToken();
+  void removeAccessToken();
 
   /// Clear all headers
   /// All headers are removed from the network manager

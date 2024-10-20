@@ -4,6 +4,7 @@ import '../enum/http_status_codes.dart';
 import '../enum/log_level.dart';
 import '../enum/request_method.dart';
 import '../model/auth_token_model.dart';
+import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
@@ -15,8 +16,11 @@ import 'logger/i_net_kit_logger.dart';
 import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
+import 'queue/request_queue.dart';
+import 'token/token_manager.dart';
 
 part 'error/error_handler.dart';
+part 'interceptors/error_handling_interceptor.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
 /// implements the INetKitManager interface.
@@ -68,6 +72,10 @@ class NetKitManager extends ErrorHandler
 
     /// The stream for the internet status
     Stream<bool>? internetStatusStream,
+    String accessTokenKey = 'Authorization',
+    String refreshTokenKey = 'Refresh-Token',
+    String? refreshTokenPath,
+    this.onTokenRefreshed,
   }) {
     /// Initialize the network manager
     _initialize(
@@ -80,11 +88,37 @@ class NetKitManager extends ErrorHandler
       loggerEnabled: loggerEnabled,
       logLevel: logLevel,
       internetStatusStream: internetStatusStream,
+      accessTokenKey: accessTokenKey,
+      refreshTokenKey: refreshTokenKey,
+      refreshTokenPath: refreshTokenPath,
     );
   }
 
   @override
   late final NetKitParams parameters;
+
+  /// The callback function that is called when the tokens are updated
+  /// This function can be used to update the tokens in the app
+  /// or perform any other actions that are required when the tokens are updated
+  /// The callback function is optional and can be
+  /// set when initializing the network manager
+  /// Example:
+  /// ```dart
+  /// final netKitManager = NetKitManager(
+  ///  baseUrl: 'https://api.example.com',
+  ///  onTokenRefreshed: (authToken) {
+  ///  // Update the tokens in the app
+  ///  },
+  ///  );
+  ///  ```
+  ///  The callback function takes an [AuthTokenModel] as a parameter
+  ///  which contains the access token and refresh token.
+  ///  The callback function is called when the tokens are updated
+  ///  after a successful refresh token request.
+  ///  The callback function is optional and can
+  ///  be set when initializing the network manager.
+
+  late final void Function(AuthTokenModel)? onTokenRefreshed;
 
   late final INetKitLogger _logger;
 
@@ -163,7 +197,6 @@ class NetKitManager extends ErrorHandler
       return _converter.toListModel(
         data: response.data,
         parseModel: model,
-        loggerEnabled: parameters.isNetKitLoggerEnabled,
       );
     } on DioException catch (error) {
       /// Parse the API exception and throw it
@@ -209,8 +242,6 @@ class NetKitManager extends ErrorHandler
     MapType? body,
     Options? options,
     String? socialAccessToken, // Optional social access token for social login
-    String accessTokenKey = 'Authorization',
-    String refreshTokenKey = 'Refresh-Token',
   }) async {
     try {
       // If it's a social login, attach the social access token to the headers
@@ -235,13 +266,13 @@ class NetKitManager extends ErrorHandler
       // Extract the tokens (access and refresh)
       final authToken = extractTokens(
         response: response,
-        accessTokenKey: accessTokenKey,
-        refreshTokenKey: refreshTokenKey,
+        accessTokenKey: parameters.accessTokenKey,
+        refreshTokenKey: parameters.refreshTokenKey,
       );
 
       // Add the tokens to headers for subsequent requests
-      addBearerToken(authToken.accessToken);
-      addRefreshToken(authToken.refreshToken);
+      setAccessToken(authToken.accessToken);
+      setRefreshToken(authToken.refreshToken);
 
       // Parse the response model
       final parsedModel = Converter.toModel<R>(response.data as MapType, model);
@@ -320,6 +351,9 @@ class NetKitManager extends ErrorHandler
     required LogLevel logLevel,
     required bool loggerEnabled,
     required bool testMode,
+    required String accessTokenKey,
+    required String refreshTokenKey,
+    String? refreshTokenPath,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -333,7 +367,7 @@ class NetKitManager extends ErrorHandler
     _logger.setLogLevel(logLevel);
 
     /// Initialize the converter
-    _converter = Converter(logger: _logger);
+    _converter = const Converter();
 
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
@@ -345,6 +379,8 @@ class NetKitManager extends ErrorHandler
       testMode: testMode,
       loggerEnabled: loggerEnabled,
       logLevel: logLevel,
+      accessTokenKey: accessTokenKey,
+      refreshTokenKey: refreshTokenKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value
@@ -368,6 +404,21 @@ class NetKitManager extends ErrorHandler
     if (parameters.loggerEnabled && testMode == false) {
       interceptors.add(LogInterceptor());
     }
+
+    final errorInterceptor = ErrorHandlingInterceptor(
+      refreshTokenPath: refreshTokenPath,
+      requestQueue: RequestQueue(),
+      tokenManager: TokenManager(
+        addBearerToken: setAccessToken,
+        addRefreshToken: setRefreshToken,
+        refreshTokenRequest: _refreshTokenRequest,
+        retryRequest: _retryRequest,
+        onTokensUpdated: _onTokensUpdated,
+        logger: _logger,
+      ),
+    ).getErrorInterceptor();
+
+    interceptors.add(errorInterceptor);
   }
 
   /// Method to extract access and refresh tokens from headers or body.
@@ -394,29 +445,25 @@ class NetKitManager extends ErrorHandler
   }
 
   @override
-  void addBearerToken(String? token) {
+  void setAccessToken(String? token) {
     if (token == null) return;
-    // TODO(bhz): set the name from config
-    baseOptions.headers.addAll({'Authorization': 'Bearer $token'});
+    baseOptions.headers.addAll({parameters.accessTokenKey: 'Bearer $token'});
   }
 
   @override
-  void addRefreshToken(String? token) {
+  void setRefreshToken(String? token) {
     if (token == null) return;
-    // TODO(bhz): set the name from config
-    baseOptions.headers.addAll({'Refresh-Token': 'Bearer $token'});
+    baseOptions.headers.addAll({parameters.refreshTokenKey: token});
+  }
+
+  @override
+  void removeAccessToken() {
+    baseOptions.headers.remove(parameters.accessTokenKey);
   }
 
   @override
   void removeRefreshToken() {
-    // TODO(bhz): set the name from config
-    baseOptions.headers.remove('Refresh-Token');
-  }
-
-  @override
-  void removeBearerToken() {
-    // TODO(bhz): set the name from config
-    baseOptions.headers.remove('Authorization');
+    baseOptions.headers.remove(parameters.refreshTokenKey);
   }
 
   @override
@@ -433,5 +480,56 @@ class NetKitManager extends ErrorHandler
   void dispose() {
     httpClientAdapter.close(force: true);
     parameters.internetStatusSubscription?.cancel();
+  }
+
+  /// Method to get the access token from the headers.
+  String getRefreshToken() {
+    final token = baseOptions.headers[parameters.refreshTokenKey];
+    if (token == null) return '';
+    return token is String ? token : '';
+  }
+
+  /// Method to be called when the tokens are updated.
+  /// Calls the onTokenRefreshed callback if provided.
+  /// The callback function is optional and can be set w
+  /// hen initializing the network manager.
+  void _onTokensUpdated(AuthTokenModel authToken) {
+    // Call the callback if provided
+    if (onTokenRefreshed != null) {
+      onTokenRefreshed!.call(authToken);
+    }
+  }
+
+  Future<AuthTokenModel> _refreshTokenRequest(String refreshTokenPath) async {
+    // Remove the access token before refreshing
+    removeAccessToken();
+
+    final refreshResponse = await request<dynamic>(
+      refreshTokenPath,
+      options: Options(
+        method: RequestMethod.post.name.toUpperCase(),
+        headers: {
+          parameters.refreshTokenKey: getRefreshToken(),
+        },
+      ),
+    );
+    return extractTokens(
+      response: refreshResponse,
+      accessTokenKey: parameters.accessTokenKey,
+      refreshTokenKey: parameters.refreshTokenKey,
+    );
+  }
+
+  Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
+    return request<dynamic>(
+      requestOptions.path,
+      options: Options(
+        method: requestOptions.method,
+        // Make sure to add the new access token to the headers
+        headers: baseOptions.headers,
+      ),
+      data: requestOptions.data,
+      queryParameters: requestOptions.queryParameters,
+    );
   }
 }

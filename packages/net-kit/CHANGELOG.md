@@ -1,3 +1,30 @@
+# 3.0.0-dev
+
+> Note: This release has breaking change.
+
+- `Breaking change`: Renamed methods
+    - `addBearerToken` to `setAccessToken`
+    - `addRefreshToken` to `setRefreshToken`
+    - `removeBearerToken` to `removeAccessToken`
+- `Feature`: Added `refreshToken` feature. Refresh token is automatically refreshed when the access
+  token is expired. Just add `refreshTokenPath` to the `NetKitManager` and it will automatically
+  refresh the token. Note: the refresh token API in backend should return the new access token and,
+  if needed, the new refresh token via headers for more security. If you want to handle the refresh
+  token manually, you can use add custom interceptor to handle the refresh token.
+
+## 2.4.5-dev
+
+- updated error handling
+
+## 2.4.4-dev
+
+- added loggers in error handling interceptor
+- fixed issue in error handling interceptor
+
+## 2.4.3-dev
+
+- added `refreshToken` feature
+
 # 2.4.1, 2.4.2
 
 - updated Readme (authentication example upd)

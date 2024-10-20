@@ -25,6 +25,13 @@
     - [Sign In with Credentials](#sign-in-with-credentials)
     - [Sign Up](#sign-up)
     - [Sign In with Social Accounts](#sign-in-with-social-accounts)
+    - [Setting Tokens](#setting-tokens)
+    - [User Logout](#user-logout)
+- [Refresh Token](#refresh-token)
+    - [Refresh Token Initialization](#refresh-token-initialization)
+    - [Refresh Token Example](#refresh-token-example)
+    - [How refresh token works](#how-refresh-token-works)
+
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
@@ -129,7 +136,6 @@ Future<void> deleteProduct() async {
 }
 ```
 
-
 ## **Authentication Methods**
 
 The `authenticate()` method in `NetKitManager` allows you to handle all types of authentication
@@ -231,7 +237,7 @@ Future<UserModel> loginWithGoogle(String googleAccessToken) async {
 
 ```
 
-How It Works:
+**How It Works:**
 
 - `signInWithSocial`:
     - `socialAccessToken`: This is the token provided by the social login provider (e.g., Google,
@@ -241,12 +247,102 @@ How It Works:
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
+## **Setting Tokens**
 
-[//]: # (## **Best Practices**)
+The **NetKitManager** allows you to set and manage access and refresh tokens, which are essential
+for
+authenticated API requests. Below are the methods provided to set, update, and remove tokens.
 
-[//]: # (#### **Extend the model**)
+**Setting Access and Refresh Tokens**
+To set the access and refresh tokens, use the `setAccessToken` and `setRefreshToken` methods. These
+tokens will be added to the headers of every request made by the NetKitManager.
+Note: these should be set on every app launch or when the user logs in.
 
-## *Planned Enhancements*
+```dart
+/// Your method to set the tokens
+void setTokens(String accessToken, String refreshToken) {
+  netKitManager.setAccessToken(accessToken);
+  netKitManager.setRefreshToken(refreshToken);
+}
+```
+
+## **User Logout**
+
+When a user logs out, you should remove the access and refresh tokens using the `removeAccessToken`
+and `removeRefreshToken` methods.
+
+**Example:**
+
+```dart
+/// Method to log out the user
+void logoutUser() {
+  netKitManager.removeAccessToken();
+  netKitManager.removeRefreshToken();
+}
+```
+
+This method ensures that the tokens are removed from the headers, effectively logging out the user.
+
+# **Refresh Token**
+
+The NetKitManager provides a built-in mechanism for handling token refresh. This feature ensures
+that your access tokens are automatically refreshed when they expire, allowing for seamless and
+uninterrupted API requests.
+
+## **Refresh Token Initialization**
+
+To use the refresh token feature, you need to initialize the NetKitManager with the following
+parameters:
+
+- `refreshTokenPath`: The API endpoint used to refresh the tokens.
+- `onTokenRefreshed`: A callback function that is called when the tokens are successfully
+  refreshed.
+
+## **Refresh Token Example**
+
+```dart
+
+final netKitManager = NetKitManager(
+  baseUrl: 'https://api.<URL>.com',
+  devBaseUrl: 'https://dev.<URL>.com',
+  loggerEnabled: true,
+  testMode: true,
+  refreshTokenPath: '/auth/refresh-token',
+  onTokenRefreshed: (authToken) async {
+    /// Save the new access token to the storage
+  },
+);
+```
+
+## **How refresh token works**
+
+The refresh token mechanism in `NetKitManager` ensures that your access tokens are automatically
+refreshed when they expire, allowing for seamless and uninterrupted API requests. Here’s how it
+works:
+
+**Token Expiry Detection:**
+
+- When an API request fails due to an expired access token, the `NetKitManager` detects this
+  failure(401 status code) and automatically triggers the refresh token process.
+
+**Token Refresh Request:**
+
+- The NetKitManager automatically sends a request to the refreshTokenPath endpoint to obtain new
+  access and refresh tokens.
+
+**Updating Tokens:**
+
+- Upon receiving the new tokens, the NetKitManager updates the headers with the new access token.
+- The onTokenRefreshed callback is called with the new tokens, allowing you to store them securely.
+
+**Retrying the Original Request:**
+
+- The original API request that failed due to token expiry is retried with the new access token.
+
+This process ensures that your application can continue to make authenticated requests without
+requiring user intervention when tokens expire.
+
+## **Planned Enhancements**
 
 | *Feature*                                                   | *Status* |
 |:------------------------------------------------------------|:--------:|
@@ -254,13 +350,14 @@ How It Works:
 | No internet connection handling                             |    ✅     |
 | Provide basic example                                       |    ✅     |
 | Provide more examples and use cases in the documentation    |    ✅     |
-| Multi-part form data support                                |          |
-| Refresh Token implementation                                |          |
-| Enhance logging capabilities with customizable log levels   |          |
-| Implement retry logic for failed requests                   |          |
+| Multi-part form data support                                |    🟡    |
+| Refresh Token implementation                                |    ✅     |
+| Enhance logging capabilities with customizable log levels   |    ✅     |
+| Implement retry logic for failed requests                   |    🟡    |
 | Add more tests to ensure the package is robust and reliable |    ✅     |
-| Add Migration Guide for breaking changes                    |          |
+| Add Migration Guide for breaking changes                    |    🟡    |
 | Authentication Feature                                      |    ✅     |
+| Add Clean Architecture example                              |    🟡    |
 
 ## Contributing
 
