@@ -503,6 +503,9 @@ class NetKitManager extends ErrorHandler
   }
 
   Future<AuthTokenModel> _refreshTokenRequest(String refreshTokenPath) async {
+    // Remove the access token before refreshing
+    removeAccessToken();
+
     final refreshResponse = await request<dynamic>(
       refreshTokenPath,
       options: Options(
