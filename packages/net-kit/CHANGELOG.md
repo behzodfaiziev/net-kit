@@ -1,4 +1,8 @@
-# 3.0.0-dev
+# 3.0.1
+
+- updated README.md
+
+# 3.0.0
 
 > Note: This release has breaking change.
 
@@ -25,7 +29,7 @@
 
 - added `refreshToken` feature
 
-# 2.4.1, 2.4.2
+# 2.4.2
 
 - updated Readme (authentication example upd)
 

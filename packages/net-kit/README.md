@@ -31,7 +31,6 @@
     - [Refresh Token Initialization](#refresh-token-initialization)
     - [Refresh Token Example](#refresh-token-example)
     - [How refresh token works](#how-refresh-token-works)
-
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
