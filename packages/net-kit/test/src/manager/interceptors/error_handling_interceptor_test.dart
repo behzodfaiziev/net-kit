@@ -69,10 +69,9 @@ void main() {
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
       tokenManager: TokenManager(
-        getRefreshToken: () => 'some-refresh-token',
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
-        refreshTokenRequest: (_, __) async {
+        refreshTokenRequest: (_) async {
           return authTokenModel;
         },
         retryRequest: (requestOptions) async {
@@ -169,10 +168,9 @@ void main() {
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
       tokenManager: TokenManager(
-        getRefreshToken: () => 'some-refresh-token',
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
-        refreshTokenRequest: (_, __) async {
+        refreshTokenRequest: (_) async {
           throw invalidRefreshTokenException;
         },
         retryRequest: (requestOptions) async {
@@ -263,10 +261,9 @@ void main() {
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
       tokenManager: TokenManager(
-        getRefreshToken: () => 'some-refresh-token',
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
-        refreshTokenRequest: (_, __) async {
+        refreshTokenRequest: (_) async {
           throw invalidRefreshTokenException;
         },
         retryRequest: (requestOptions) async {
@@ -309,10 +306,9 @@ void main() {
         refreshTokenPath: '/refresh-token',
         requestQueue: requestQueue,
         tokenManager: TokenManager(
-          getRefreshToken: () => 'some-refresh-token',
           addBearerToken: (_) {},
           addRefreshToken: (_) {},
-          refreshTokenRequest: (_, __) async {
+          refreshTokenRequest: (_) async {
             return authTokenModel;
           },
           retryRequest: (requestOptions) async {
@@ -333,7 +329,7 @@ void main() {
 
       await completer.future;
 
-// Verify that the error was rejected after refresh token failure
+      // Verify that the error was rejected after refresh token failure
       final capturedException = verify(() => mockHandler.reject(captureAny()))
           .captured
           .single as DioException;

@@ -9,7 +9,7 @@ import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
-    if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
+if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'logger/i_net_kit_logger.dart';
@@ -273,8 +273,8 @@ class NetKitManager extends ErrorHandler
       );
 
       // Add the tokens to headers for subsequent requests
-      addBearerToken(authToken.accessToken);
-      addRefreshToken(authToken.refreshToken);
+      setAccessToken(authToken.accessToken);
+      setRefreshToken(authToken.refreshToken);
 
       // Parse the response model
       final parsedModel = Converter.toModel<R>(response.data as MapType, model);
@@ -411,9 +411,8 @@ class NetKitManager extends ErrorHandler
       refreshTokenPath: refreshTokenPath,
       requestQueue: RequestQueue(),
       tokenManager: TokenManager(
-        addBearerToken: addBearerToken,
-        addRefreshToken: addRefreshToken,
-        getRefreshToken: getRefreshToken,
+        addBearerToken: setAccessToken,
+        addRefreshToken: setRefreshToken,
         refreshTokenRequest: _refreshTokenRequest,
         retryRequest: _retryRequest,
         onTokensUpdated: _onTokensUpdated,
@@ -448,19 +447,19 @@ class NetKitManager extends ErrorHandler
   }
 
   @override
-  void addBearerToken(String? token) {
+  void setAccessToken(String? token) {
     if (token == null) return;
     baseOptions.headers.addAll({parameters.accessTokenKey: 'Bearer $token'});
   }
 
   @override
-  void addRefreshToken(String? token) {
+  void setRefreshToken(String? token) {
     if (token == null) return;
-    baseOptions.headers.addAll({parameters.refreshTokenKey: 'Bearer $token'});
+    baseOptions.headers.addAll({parameters.refreshTokenKey: token});
   }
 
   @override
-  void removeBearerToken() {
+  void removeAccessToken() {
     baseOptions.headers.remove(parameters.accessTokenKey);
   }
 
@@ -503,16 +502,13 @@ class NetKitManager extends ErrorHandler
     }
   }
 
-  Future<AuthTokenModel> _refreshTokenRequest(
-    String refreshTokenPath,
-    String refreshToken,
-  ) async {
+  Future<AuthTokenModel> _refreshTokenRequest(String refreshTokenPath) async {
     final refreshResponse = await request<dynamic>(
       refreshTokenPath,
       options: Options(
         method: RequestMethod.post.name.toUpperCase(),
         headers: {
-          parameters.refreshTokenKey: refreshToken,
+          parameters.refreshTokenKey: getRefreshToken(),
         },
       ),
     );

@@ -259,6 +259,7 @@ How It Works:
 | Add more tests to ensure the package is robust and reliable |    ✅     |
 | Add Migration Guide for breaking changes                    |    🟡    |
 | Authentication Feature                                      |    ✅     |
+| Add Clean Architecture example                              |    🟡    |
 
 ## Contributing
 

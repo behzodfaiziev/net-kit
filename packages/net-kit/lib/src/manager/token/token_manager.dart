@@ -23,7 +23,6 @@ class TokenManager {
   /// - [onTokensUpdated]: An optional callback function that
   ///   is invoked when tokens are updated.
   TokenManager({
-    required this.getRefreshToken,
     required this.addBearerToken,
     required this.addRefreshToken,
     required this.refreshTokenRequest,
@@ -31,9 +30,6 @@ class TokenManager {
     this.onTokensUpdated,
     this.logger,
   });
-
-  /// A function that retrieves the current refresh token.
-  final String Function() getRefreshToken;
 
   /// A function that stores the new access token.
   final void Function(String accessToken) addBearerToken;
@@ -48,10 +44,8 @@ class TokenManager {
   ///
   /// This function is expected to return an instance of
   /// `AuthTokenModel`, which contains the new access and refresh tokens.
-  final Future<AuthTokenModel> Function(
-    String refreshTokenPath,
-    String refreshToken,
-  ) refreshTokenRequest;
+  final Future<AuthTokenModel> Function(String refreshTokenPath)
+      refreshTokenRequest;
 
   /// A function that retries the original request after
   /// the token has been refreshed.
@@ -77,14 +71,10 @@ class TokenManager {
   ///   request, allowing for handling in the calling context.
   Future<void> refreshTokens(String refreshTokenPath) async {
     try {
-      // Retrieve the current refresh token
-      final refreshToken = getRefreshToken();
-
       logger?.info('Refreshing token...');
 
       // Make the request to refresh the token
-      final authToken =
-          await refreshTokenRequest(refreshTokenPath, refreshToken);
+      final authToken = await refreshTokenRequest(refreshTokenPath);
 
       logger?.info('Token refreshed successfully.');
 
