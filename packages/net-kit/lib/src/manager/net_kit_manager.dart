@@ -197,7 +197,7 @@ class NetKitManager extends ErrorHandler
       return _converter.toListModel(
         data: response.data,
         parseModel: model,
-           );
+      );
     } on DioException catch (error) {
       /// Parse the API exception and throw it
       throw _parseToApiException(error);
