@@ -20,6 +20,7 @@ import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
 part 'error/error_handler.dart';
+
 part 'interceptors/error_handling_interceptor.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -510,8 +511,10 @@ class NetKitManager extends ErrorHandler
       refreshTokenPath,
       options: Options(
         method: RequestMethod.post.name.toUpperCase(),
+        headers: {
+          parameters.refreshTokenKey: refreshToken,
+        },
       ),
-      data: {parameters.refreshTokenKey: refreshToken},
     );
     return extractTokens(
       response: refreshResponse,
