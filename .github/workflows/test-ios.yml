@@ -1,9 +1,9 @@
 name: Test iOS
 
 on:
-  create:
+  push:
     tags:
-      - "*-release"
+      - '*-release'
 jobs:
   test-ios:
     runs-on: macOS-latest
