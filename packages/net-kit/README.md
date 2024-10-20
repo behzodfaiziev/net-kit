@@ -366,26 +366,3 @@ or submit a [pull request](https://github.com/behzodfaiziev/net-kit/pulls).
 ## License
 
 This project is licensed under the MIT License.
-
-<!-- Future<UserModel> loginWithGoogle(String googleAccessToken) async {
-  try {
-    // Call signInWithSocial with the Google access token
-    final result = await netKitManager.signInWithSocial<UserModel>(
-      path: '/auth/social-login',  // API endpoint for social login
-      method: RequestMethod.post,   // POST request for login
-      model: UserModel(),          // User model to parse response
-      socialAccessToken: googleAccessToken, // The Google access token
-    );
-    
-    final user = result.item1;  // Parsed user model
-    final authToken = result.item2;  // AuthTokenModel containing access and refresh tokens
-
-    print('User signed in with Google: ${user.name}');
-    print('Access token: ${authToken.accessToken}');
-    
-    // You can now use the user's information and authentication tokens in your app
-    return user;
-  } catch (e) {
-    throw Exception('Google login failed: $e');
-  }
-} -->
