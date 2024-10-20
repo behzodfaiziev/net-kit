@@ -20,7 +20,6 @@ import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
 part 'error/error_handler.dart';
-
 part 'interceptors/error_handling_interceptor.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -198,8 +197,7 @@ class NetKitManager extends ErrorHandler
       return _converter.toListModel(
         data: response.data,
         parseModel: model,
-        loggerEnabled: parameters.isNetKitLoggerEnabled,
-      );
+           );
     } on DioException catch (error) {
       /// Parse the API exception and throw it
       throw _parseToApiException(error);
@@ -369,7 +367,7 @@ class NetKitManager extends ErrorHandler
     _logger.setLogLevel(logLevel);
 
     /// Initialize the converter
-    _converter = Converter(logger: _logger);
+    _converter = const Converter();
 
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
@@ -527,7 +525,8 @@ class NetKitManager extends ErrorHandler
       requestOptions.path,
       options: Options(
         method: requestOptions.method,
-        headers: requestOptions.headers,
+        // Make sure to add the new access token to the headers
+        headers: baseOptions.headers,
       ),
       data: requestOptions.data,
       queryParameters: requestOptions.queryParameters,
