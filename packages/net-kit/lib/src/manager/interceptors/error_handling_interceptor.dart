@@ -88,6 +88,11 @@ class ErrorHandlingInterceptor {
           await _retryRequest(error, handler);
           // Process any queued requests after a successful refresh.
           await requestQueue.processQueue();
+        } on DioException catch (e) {
+          // Reject the original request if token refresh fails.
+          handler.reject(e);
+          // Reject all queued requests due to the failure.
+          requestQueue.rejectQueuedRequests();
         } catch (e) {
           // Reject the original request if token refresh fails.
           handler.reject(
@@ -123,12 +128,19 @@ class ErrorHandlingInterceptor {
       final response = await tokenManager.retryRequest(error.requestOptions);
       logger?.info('Original request retried successfully');
       handler.resolve(response);
-    } catch (e) {
-      logger
-          ?.fatal('Error retrying original request after token refreshed: $e');
+    } on DioException catch (e) {
+      logger?.error(
+        'DioException: Error retrying original '
+        'request after token refreshed: $e',
+      );
       // Reject the request if retry fails.
-      handler
-          .reject(DioException(requestOptions: error.requestOptions, error: e));
+      rethrow;
+    } catch (e) {
+      logger?.fatal(
+        'Error retrying original request after token refreshed: $e',
+      );
+      // Reject the request if retry fails.
+      rethrow;
     }
   }
 }

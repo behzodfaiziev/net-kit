@@ -23,7 +23,41 @@ class FakeDioException extends Fake implements DioException {}
 void main() {
   late MockRequestQueue requestQueue;
   late ErrorHandlingInterceptor interceptor;
+  final mockHandler = MockErrorInterceptorHandler();
 
+  final invalidRefreshTokenException = DioException(
+    requestOptions: RequestOptions(path: '/refresh-token'),
+    response: Response(
+      statusCode: 401,
+      requestOptions: RequestOptions(path: '/refresh-token'),
+    ),
+  );
+  final unauthorizedException = DioException(
+    requestOptions: RequestOptions(path: '/some-path'),
+    response: Response(
+      statusCode: 401,
+      requestOptions: RequestOptions(path: '/some-path'),
+    ),
+  );
+  final unauthorizedException2 = DioException(
+    requestOptions: RequestOptions(path: '/some-path=2'),
+    response: Response(
+      statusCode: 401,
+      requestOptions: RequestOptions(path: '/some-path=2'),
+    ),
+  );
+  const authTokenModel = AuthTokenModel(
+    accessToken: 'new-access-token',
+    refreshToken: 'new-refresh-token',
+  );
+
+  final internalServerException = DioException(
+    requestOptions: RequestOptions(path: '/some-path'),
+    response: Response(
+      statusCode: 500,
+      requestOptions: RequestOptions(path: '/some-path'),
+    ),
+  );
   setUpAll(() {
     /// Register the fake DioException as a fallback value
     registerFallbackValue(FakeDioException());
@@ -31,7 +65,6 @@ void main() {
 
   setUp(() {
     requestQueue = MockRequestQueue();
-
     interceptor = ErrorHandlingInterceptor(
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
@@ -40,17 +73,10 @@ void main() {
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
         refreshTokenRequest: (_, __) async {
-          return const AuthTokenModel(
-            accessToken: 'new-access-token',
-            refreshToken: 'new-refresh-token',
-          );
+          return authTokenModel;
         },
         retryRequest: (requestOptions) async {
-          return Response<dynamic>(
-            data: 'Retry successful',
-            requestOptions: requestOptions,
-            statusCode: 200,
-          );
+          return successfulRetryResponse(requestOptions);
         },
         onTokensUpdated: (_) {},
       ),
@@ -64,22 +90,14 @@ void main() {
   ///      `requestQueue.processQueue()` is called once, indicating the
   ///      original request was retried.
   test('should refresh token and retry request (single request)', () async {
-    final mockHandler = MockErrorInterceptorHandler();
-    final mockError = DioException(
-      requestOptions: RequestOptions(path: '/some-path'),
-      response: Response(
-        statusCode: 401,
-        requestOptions: RequestOptions(path: '/some-path'),
-      ),
-    );
-
     final completer = Completer<void>();
 
-    when(() => requestQueue.processQueue()).thenAnswer((_) async {
-      completer.complete();
-    });
+    when(() => requestQueue.processQueue())
+        .thenAnswer((_) async => completer.complete());
 
-    interceptor.getErrorInterceptor().onError(mockError, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
     await completer.future;
 
@@ -96,27 +114,12 @@ void main() {
   ///
   test('should refresh token and handle multiple requests waiting (queued)',
       () async {
-    final mockHandler1 = MockErrorInterceptorHandler();
     final mockHandler2 = MockErrorInterceptorHandler();
-    final mockError1 = DioException(
-      requestOptions: RequestOptions(path: '/request-1'),
-      response: Response(
-        statusCode: 401,
-        requestOptions: RequestOptions(path: '/request-1'),
-      ),
-    );
-    final mockError2 = DioException(
-      requestOptions: RequestOptions(path: '/request-2'),
-      response: Response(
-        statusCode: 401,
-        requestOptions: RequestOptions(path: '/request-2'),
-      ),
-    );
 
     final completer = Completer<void>();
     final completer2 = Completer<void>();
 
-    // Mock for both requests being queued while refreshing the token
+// Mock for both requests being queued while refreshing the token
     when(() => requestQueue.processQueue()).thenAnswer((_) async {
       completer.complete();
     });
@@ -128,22 +131,26 @@ void main() {
       completer2.complete();
     });
 
-    // Trigger the first error
-    interceptor.getErrorInterceptor().onError(mockError1, mockHandler1);
+// Trigger the first error
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
-    // Trigger the second error, which should
-    // queue since the first one is still refreshing
-    interceptor.getErrorInterceptor().onError(mockError2, mockHandler2);
+// Trigger the second error, which should
+// queue since the first one is still refreshing
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException2, mockHandler2);
 
-    // Wait until the first refresh process is completed
+// Wait until the first refresh process is completed
     await completer.future;
 
-    // Ensure the queue gets processed after the first refresh completes
+// Ensure the queue gets processed after the first refresh completes
     await completer2.future;
 
-    // Verify that the queue was processed once
+// Verify that the queue was processed once
     verify(() => requestQueue.processQueue()).called(1);
-    // Verify both requests were retried after token refresh
+// Verify both requests were retried after token refresh
     verify(() => requestQueue.add(any())).called(1);
   });
 
@@ -155,18 +162,9 @@ void main() {
   ///      queued requests are not retried, ensuring proper error handling.
   ///
   test('should handle refresh token failure', () async {
-    final mockHandler = MockErrorInterceptorHandler();
-    final mockError = DioException(
-      requestOptions: RequestOptions(path: '/some-path'),
-      response: Response(
-        statusCode: 401,
-        requestOptions: RequestOptions(path: '/some-path'),
-      ),
-    );
-
     final completer = Completer<void>();
 
-    // Simulate an error during the token refresh process
+// Simulate an error during the token refresh process
     interceptor = ErrorHandlingInterceptor(
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
@@ -175,16 +173,10 @@ void main() {
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
         refreshTokenRequest: (_, __) async {
-          throw DioException(
-            requestOptions: RequestOptions(path: '/refresh-token-fail'),
-          );
+          throw invalidRefreshTokenException;
         },
         retryRequest: (requestOptions) async {
-          return Response<dynamic>(
-            data: 'Retry successful',
-            requestOptions: requestOptions,
-            statusCode: 200,
-          );
+          return successfulRetryResponse(requestOptions);
         },
         onTokensUpdated: (_) {},
       ),
@@ -195,11 +187,13 @@ void main() {
     });
     when(() => requestQueue.processQueue()).thenAnswer((_) async {});
 
-    interceptor.getErrorInterceptor().onError(mockError, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
     await completer.future;
 
-    // Verify that the error was rejected after refresh token failure
+// Verify that the error was rejected after refresh token failure
     verify(() => mockHandler.reject(any())).called(1);
     verifyNever(() => requestQueue.processQueue());
   });
@@ -214,19 +208,12 @@ void main() {
   ///      is not invoked, confirming correct bypassing of token refresh logic.
   ///
   test('should pass non-401 errors directly to the next handler', () async {
-    final mockHandler = MockErrorInterceptorHandler();
-    final mockError = DioException(
-      requestOptions: RequestOptions(path: '/some-path'),
-      response: Response(
-        statusCode: 500,
-        requestOptions: RequestOptions(path: '/some-path'),
-      ),
-    );
+    interceptor
+        .getErrorInterceptor()
+        .onError(internalServerException, mockHandler);
 
-    interceptor.getErrorInterceptor().onError(mockError, mockHandler);
-
-    // Ensure that the error is passed directly to the handler without retry
-    verify(() => mockHandler.next(mockError)).called(1);
+// Ensure that the error is passed directly to the handler without retry
+    verify(() => mockHandler.next(internalServerException)).called(1);
     verifyNever(() => requestQueue.processQueue());
   });
 
@@ -239,18 +226,6 @@ void main() {
   ///      are rejected, confirming proper handling of the expired
   ///      refresh token.
   test('should reject if refresh token request returns 401', () async {
-    final mockHandler = MockErrorInterceptorHandler();
-
-    // Create a DioException simulating a 401 error
-    // from the refresh token request
-    final mockError = DioException(
-      requestOptions: RequestOptions(path: '/refresh-token'),
-      response: Response(
-        statusCode: 401,
-        requestOptions: RequestOptions(path: '/refresh-token'),
-      ),
-    );
-
     // Set up a completer to track when the reject method is called
     final completer = Completer<void>();
 
@@ -260,7 +235,9 @@ void main() {
     });
 
     // Invoke the interceptor with the 401 error from the refresh token request
-    interceptor.getErrorInterceptor().onError(mockError, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(invalidRefreshTokenException, mockHandler);
 
     // Wait until the completer is completed
     await completer.future;
@@ -270,10 +247,115 @@ void main() {
         .captured
         .single as DioException;
 
-    // Verify that the captured exception has the expected properties
+// Verify that the captured exception has the expected properties
     expect(capturedException.requestOptions.path, '/refresh-token');
 
-    // Verify that queued requests are rejected
+// Verify that queued requests are rejected
     verify(() => requestQueue.rejectQueuedRequests()).called(1);
   });
+  test(
+      'should throw DioException with correct message '
+      'and status code on error in when refreshTokenRequest fails', () async {
+    final completer = Completer<void>();
+
+// Simulate an error during the token refresh process
+    interceptor = ErrorHandlingInterceptor(
+      refreshTokenPath: '/refresh-token',
+      requestQueue: requestQueue,
+      tokenManager: TokenManager(
+        getRefreshToken: () => 'some-refresh-token',
+        addBearerToken: (_) {},
+        addRefreshToken: (_) {},
+        refreshTokenRequest: (_, __) async {
+          throw invalidRefreshTokenException;
+        },
+        retryRequest: (requestOptions) async {
+          return successfulRetryResponse(requestOptions);
+        },
+        onTokensUpdated: (_) {},
+      ),
+    );
+
+    when(() => mockHandler.reject(any())).thenAnswer((_) {
+      completer.complete(); // Complete when reject is called
+    });
+    when(() => requestQueue.rejectQueuedRequests()).thenAnswer((_) async {});
+
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
+
+    await completer.future;
+
+// Verify that the error was rejected after refresh token failure
+    final capturedException = verify(() => mockHandler.reject(captureAny()))
+        .captured
+        .single as DioException;
+
+    expect(capturedException.requestOptions.path, '/refresh-token');
+    expect(capturedException.response?.statusCode, 401);
+    verifyNever(() => requestQueue.processQueue());
+    verify(() => requestQueue.rejectQueuedRequests()).called(1);
+  });
+
+  test(
+    'should throw DioException with correct message '
+    'and status code on error in when refreshTokenRequest fails.',
+    () async {
+      final completer = Completer<void>();
+
+// Simulate an error during the token refresh process
+      interceptor = ErrorHandlingInterceptor(
+        refreshTokenPath: '/refresh-token',
+        requestQueue: requestQueue,
+        tokenManager: TokenManager(
+          getRefreshToken: () => 'some-refresh-token',
+          addBearerToken: (_) {},
+          addRefreshToken: (_) {},
+          refreshTokenRequest: (_, __) async {
+            return authTokenModel;
+          },
+          retryRequest: (requestOptions) async {
+            throw internalServerException;
+          },
+          onTokensUpdated: (_) {},
+        ),
+      );
+
+      when(() => mockHandler.reject(any())).thenAnswer((_) {
+        completer.complete(); // Complete when reject is called
+      });
+      when(() => requestQueue.rejectQueuedRequests()).thenAnswer((_) async {});
+
+      interceptor
+          .getErrorInterceptor()
+          .onError(unauthorizedException, mockHandler);
+
+      await completer.future;
+
+// Verify that the error was rejected after refresh token failure
+      final capturedException = verify(() => mockHandler.reject(captureAny()))
+          .captured
+          .single as DioException;
+
+      expect(
+        capturedException.requestOptions.path,
+        internalServerException.requestOptions.path,
+      );
+      expect(
+        capturedException.response?.statusCode,
+        internalServerException.response?.statusCode,
+      );
+      verifyNever(() => requestQueue.processQueue());
+      verify(() => requestQueue.rejectQueuedRequests()).called(1);
+    },
+  );
+}
+
+Response<dynamic> successfulRetryResponse(RequestOptions requestOptions) {
+  return Response<dynamic>(
+    data: 'Retry successful',
+    requestOptions: requestOptions,
+    statusCode: 200,
+  );
 }
