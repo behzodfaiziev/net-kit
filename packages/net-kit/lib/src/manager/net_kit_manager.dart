@@ -295,7 +295,7 @@ class NetKitManager extends ErrorHandler
 
     /// The model to parse the data to
     required R model,
-    required MultipartFile formData,
+    required MultipartFile multipartFile,
     required RequestMethod method,
     Options? options,
     Map<String, dynamic>? queryParameters,
@@ -308,7 +308,7 @@ class NetKitManager extends ErrorHandler
       return _uploadMultipartData(
         path: path,
         model: model,
-        formData: formData,
+        formData: multipartFile,
         method: method,
       );
     } on DioException catch (error) {

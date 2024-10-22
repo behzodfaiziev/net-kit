@@ -216,7 +216,7 @@ abstract class INetKitManager {
 
     /// The model to parse the data to
     required R model,
-    required MultipartFile formData,
+    required MultipartFile multipartFile,
     required RequestMethod method,
     Options? options,
     Map<String, dynamic>? queryParameters,
