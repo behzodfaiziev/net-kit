@@ -31,6 +31,7 @@
     - [Refresh Token Initialization](#refresh-token-initialization)
     - [Refresh Token Example](#refresh-token-example)
     - [How refresh token works](#how-refresh-token-works)
+- [Upload Files](#upload-files)
 
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
@@ -254,6 +255,7 @@ for
 authenticated API requests. Below are the methods provided to set, update, and remove tokens.
 
 **Setting Access and Refresh Tokens**
+
 To set the access and refresh tokens, use the `setAccessToken` and `setRefreshToken` methods. These
 tokens will be added to the headers of every request made by the NetKitManager.
 Note: these should be set on every app launch or when the user logs in.
@@ -332,8 +334,8 @@ works:
 
 **Updating Tokens:**
 
-- Upon receiving the new tokens, the NetKitManager updates the headers with the new access token.
-- The onTokenRefreshed callback is called with the new tokens, allowing you to store them securely.
+- Upon receiving new tokens, NetKitManager updates headers with the new access token.
+- The onTokenRefreshed callback is called with new tokens, allowing you to store them securely.
 
 **Retrying the Original Request:**
 
@@ -341,6 +343,10 @@ works:
 
 This process ensures that your application can continue to make authenticated requests without
 requiring user intervention when tokens expire.
+
+## **Upload Files**
+
+`Working on **uploadMultipartData** method documentation`
 
 ## **Planned Enhancements**
 

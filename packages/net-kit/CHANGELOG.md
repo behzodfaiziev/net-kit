@@ -1,4 +1,12 @@
-# 3.0.0-dev
+## 3.0.2-dev
+
+- added `uploadMultipartData` method
+
+# 3.0.1
+
+- updated README.md
+
+# 3.0.0
 
 > Note: This release has breaking change.
 
