@@ -1,4 +1,5 @@
 part of '../net_kit_manager.dart';
+
 /// Mixin for request manager
 mixin RequestManagerMixin on DioMixin {
   /// Overridden parameters getter
