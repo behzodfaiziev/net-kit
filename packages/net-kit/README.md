@@ -32,7 +32,6 @@
     - [Refresh Token Example](#refresh-token-example)
     - [How refresh token works](#how-refresh-token-works)
 - [Upload Files](#upload-files)
-
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
