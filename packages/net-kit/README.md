@@ -13,6 +13,8 @@
 
 ## **Contents**
 
+<details>
+<summary>Click to expand</summary>
 - [Features](#features)
 - [Getting started](#getting-started)
     - [Initialize](#initialize)
@@ -36,6 +38,7 @@
 - [Contributing](#contributing)
 - [License](#license)
 
+</details>  
 ## **Features**
 
 - 📝 Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
