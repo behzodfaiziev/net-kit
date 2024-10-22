@@ -9,7 +9,6 @@
 
 <details>
 
-
 <!-- TOC -->
   * [**Contents**](#contents)
   * [**Features**](#features)
@@ -31,7 +30,7 @@
   * [**Refresh Token Initialization**](#refresh-token-initialization)
   * [**Refresh Token Example**](#refresh-token-example)
   * [**How refresh token works**](#how-refresh-token-works)
-  * [**Upload Files**](#upload-files)
+* [**Upload Files**](#upload-files)
   * [**Planned Enhancements**](#planned-enhancements)
   * [Contributing](#contributing)
   * [License](#license)
@@ -352,7 +351,7 @@ works:
 This process ensures that your application can continue to make authenticated requests without
 requiring user intervention when tokens expire.
 
-## **Upload Files**
+# **Upload Files**
 
 `Working on **uploadMultipartData** method documentation`
 
