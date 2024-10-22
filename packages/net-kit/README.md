@@ -5,40 +5,38 @@
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
 
-### Sponsors
-
-#### A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
-
-<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
-
 ## **Contents**
 
 <details>
+
 <summary>Click to expand</summary>
+
 <!-- TOC -->
-- [Features](#features)
-- [Getting started](#getting-started)
-    - [Initialize](#initialize)
-    - [Extend the model](#extend-the-model)
-- [Sending requests](#sending-requests)
-    - [Request a Single Model](#request-a-single-model)
-    - [Request a List of Models](#request-a-list-of-models)
-    - [Send a Void Request](#send-a-void-request)
-- [Authentication Methods](#authentication-methods)
-    - [Sign In with Credentials](#sign-in-with-credentials)
-    - [Sign Up](#sign-up)
-    - [Sign In with Social Accounts](#sign-in-with-social-accounts)
-    - [Setting Tokens](#setting-tokens)
-    - [User Logout](#user-logout)
-- [Refresh Token](#refresh-token)
-    - [Refresh Token Initialization](#refresh-token-initialization)
-    - [Refresh Token Example](#refresh-token-example)
-    - [How refresh token works](#how-refresh-token-works)
-- [Upload Files](#upload-files)
-- [Planned Enhancements](#planned-enhancements)
-- [Contributing](#contributing)
-- [License](#license)
+  * [**Contents**](#contents)
+  * [Sponsors](#sponsors)
+  * [**Getting started**](#getting-started)
+    * [**Initialize**](#initialize)
+    * [**Extend the model**](#extend-the-model)
+  * [**Sending requests**](#sending-requests)
+      * [**Request a Single Model**](#request-a-single-model)
+      * [**Request a List of Models**](#request-a-list-of-models)
+      * [**Send a void Request**](#send-a-void-request)
+  * [**Authentication Methods**](#authentication-methods)
+    * [**Sign In with Credentials**](#sign-in-with-credentials)
+    * [**Sign Up**](#sign-up)
+    * [**Sign In with Social Accounts**](#sign-in-with-social-accounts)
+  * [**Setting Tokens**](#setting-tokens)
+  * [**User Logout**](#user-logout)
+* [**Refresh Token**](#refresh-token)
+  * [**Refresh Token Initialization**](#refresh-token-initialization)
+  * [**Refresh Token Example**](#refresh-token-example)
+  * [**How refresh token works**](#how-refresh-token-works)
+  * [**Upload Files**](#upload-files)
+  * [**Planned Enhancements**](#planned-enhancements)
+  * [Contributing](#contributing)
+  * [License](#license)
 <!-- TOC -->
+
 </details>  
 ## **Features**
 
@@ -47,6 +45,12 @@
 - 📊 Logging of network requests and responses
 - ❗ Error handling and response validation
 - 🛠 Parsing responses into models or lists of models using `INetKitModel`
+
+## Sponsors
+
+A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
+
+<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
 
 ## **Getting started**
 
