@@ -15,6 +15,7 @@
 
 <details>
 <summary>Click to expand</summary>
+<!-- TOC -->
 - [Features](#features)
 - [Getting started](#getting-started)
     - [Initialize](#initialize)
@@ -37,7 +38,7 @@
 - [Planned Enhancements](#planned-enhancements)
 - [Contributing](#contributing)
 - [License](#license)
-
+<!-- TOC -->
 </details>  
 ## **Features**
 
