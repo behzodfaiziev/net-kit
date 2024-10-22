@@ -13,6 +13,7 @@
 
 <!-- TOC -->
   * [**Contents**](#contents)
+  * [**Features**](#features)
   * [Sponsors](#sponsors)
   * [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
@@ -38,6 +39,7 @@
 <!-- TOC -->
 
 </details>  
+
 ## **Features**
 
 - 📝 Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
