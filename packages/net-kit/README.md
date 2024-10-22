@@ -9,7 +9,6 @@
 
 <details>
 
-<summary>Click to expand</summary>
 
 <!-- TOC -->
   * [**Contents**](#contents)
