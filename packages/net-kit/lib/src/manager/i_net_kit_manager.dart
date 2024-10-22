@@ -204,6 +204,30 @@ abstract class INetKitManager {
     String? socialAccessToken,
   });
 
+  /// This method is responsible for uploading multipart form data to a
+  /// specified endpoint. Typically used for uploading files or other
+  /// data where multipart encoding is required.
+  ///
+  /// R extends INetKitModel: The generic type R must extend the INetKitModel.
+  /// This allows the server response to be parsed into a specific model
+  /// class that represents the data returned by the API.
+  Future<R?> uploadMultipartData<R extends INetKitModel>({
+    required String path,
+
+    /// The model to parse the data to
+    required R model,
+    required MultipartFile formData,
+    required RequestMethod method,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+
+    /// The content type of the file. Defaults to `application/form-data`.
+    String? contentType,
+  });
+
   /// Get all headers
   /// It returns a map of all headers
   Map<String, dynamic> getAllHeaders();

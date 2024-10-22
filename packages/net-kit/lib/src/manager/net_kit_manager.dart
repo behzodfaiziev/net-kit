@@ -9,7 +9,7 @@ import '../model/i_net_kit_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
-    if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
+if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'logger/i_net_kit_logger.dart';
@@ -21,6 +21,8 @@ import 'token/token_manager.dart';
 
 part 'error/error_handler.dart';
 part 'interceptors/error_handling_interceptor.dart';
+part 'mixin/request_manager_mixin.dart';
+part 'mixin/upload_manager_mixin.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
 /// implements the INetKitManager interface.
@@ -32,7 +34,7 @@ part 'interceptors/error_handling_interceptor.dart';
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
 class NetKitManager extends ErrorHandler
-    with DioMixin
+    with DioMixin, RequestManagerMixin, UploadManagerMixin
     implements INetKitManager {
   /// The constructor for the NetKitManager class
   NetKitManager({
@@ -129,6 +131,9 @@ class NetKitManager extends ErrorHandler
   /// the internet is enabled by default.
   /// The value is updated based on the internet status stream.
   bool _internetEnabled = true;
+
+  @override
+  bool get internetEnabled => _internetEnabled;
 
   @override
   BaseOptions get baseOptions => parameters.baseOptions;
@@ -284,66 +289,31 @@ class NetKitManager extends ErrorHandler
     }
   }
 
-  Future<Response<dynamic>> _sendRequest({
+  @override
+  Future<R?> uploadMultipartData<R extends INetKitModel>({
     required String path,
+
+    /// The model to parse the data to
+    required R model,
+    required MultipartFile formData,
     required RequestMethod method,
-    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    String? contentType,
   }) async {
     try {
-      if (!_internetEnabled) {
-        throw ApiException(
-          message: errorParams.noInternetError,
-          statusCode: HttpStatuses.serviceUnavailable.code,
-        );
-      }
-
-      options ??= Options();
-
-      /// Set the request method
-      options.method = method.name.toUpperCase();
-
-      final response = await request<dynamic>(
-        path,
-        data: body,
-        options: options,
-        onReceiveProgress: onReceiveProgress,
-        onSendProgress: onSendProgress,
-        queryParameters: queryParameters,
-        cancelToken: cancelToken,
+      return _uploadMultipartData(
+        path: path,
+        model: model,
+        formData: formData,
+        method: method,
       );
-
-      if (isRequestFailed(response.statusCode)) {
-        /// Throw an exception if the request failed
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          stackTrace: StackTrace.current,
-        );
-      }
-      return response;
-    } on DioException {
-      rethrow;
-    } on ApiException {
-      rethrow;
+    } on DioException catch (error) {
+      throw _parseToApiException(error);
     }
-  }
-
-  /// Check if the request failed
-  /// If the status code is null or not in the range of 200-299, return true
-  /// Otherwise, return false
-  bool isRequestFailed(int? statusCode) {
-    /// If the status code is null, return true (request failed)
-    if (statusCode == null) return true;
-
-    /// If the status code is not in the range of 200-299,
-    /// return true (request failed)
-    return statusCode < HttpStatuses.ok.code ||
-        statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   void _initialize({
