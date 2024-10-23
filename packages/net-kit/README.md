@@ -5,7 +5,7 @@
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
 
-# **Contents**
+## **Contents**
 
 <details>
 
@@ -40,7 +40,7 @@
 
 </details>  
 
-# **Features**
+## **Features**
 
 - 📝 Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
 - 🌐 Configurable base URLs for development and production
@@ -48,16 +48,16 @@
 - ❗ Error handling and response validation
 - 🛠 Parsing responses into models or lists of models using `INetKitModel`
 
-# **Sponsors**
+## **Sponsors**
 
 A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
 becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 
 <img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
 
-# **Getting started**
+## **Getting started**
 
-## Initialize
+### Initialize
 
 Initialize the NetKitManager with the parameters:
 
@@ -72,7 +72,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-## Extend the model
+### Extend the model
 
 Requests such as: `requestModel` and`requestList` require the model to
 extend `INetKitModel` in order to be used with the NetKitManager. By extending, `INetKitModel`
@@ -83,9 +83,9 @@ deserialized.
 class TodoModel extends INetKitModel {}
 ```
 
-# **Sending requests**
+## **Sending requests**
 
-### Request a Single Model
+#### Request a Single Model
 
 ```dart
 Future<RandomUserModel> getRandomUser() async {
@@ -106,7 +106,7 @@ Future<RandomUserModel> getRandomUser() async {
 }
 ```
 
-### Request a List of Models
+#### Request a List of Models
 
 ```dart
 Future<List<ProductModel>> getProducts() async {
@@ -127,7 +127,7 @@ Future<List<ProductModel>> getProducts() async {
 }
 ```
 
-### Send a void Request
+#### Send a void Request
 
 ```dart
 Future<void> deleteProduct() async {
@@ -147,13 +147,13 @@ Future<void> deleteProduct() async {
 }
 ```
 
-# **Authentication Methods**
+## **Authentication Methods**
 
 The `authenticate()` method in `NetKitManager` allows you to handle all types of authentication
 needs, including user sign-in, user sign-up, and social logins (Google, Facebook, etc.). Below are
 examples of how to use it for each scenario.
 
-## Sign In with Credentials
+### Sign In with Credentials
 
 This method authenticates users with their username and password by providing SignInRequestModel.
 After a successful sign-in, it
@@ -184,7 +184,7 @@ Future<UserModel> loginWithCredentials(SignInRequestModel signInRequest) async {
 }
 ```
 
-## Sign Up
+### Sign Up
 
 This method registers a new user by sending their details to the server. After successful
 registration, the user model and authentication tokens are returned. Note: backend API may
@@ -216,7 +216,7 @@ Future<UserModel> signUpUser(SignUpRequestModel signUpRequest) async {
 }
 ```
 
-## Sign In with Social Accounts
+### Sign In with Social Accounts
 
 This method allows users to authenticate using their social media accounts, such as Google,
 Facebook, etc. It requires the access token received from the social provider, which is then sent to
@@ -258,7 +258,7 @@ Future<UserModel> loginWithGoogle(String googleAccessToken) async {
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
-## Setting Tokens
+### Setting Tokens
 
 The **NetKitManager** allows you to set and manage access and refresh tokens, which are essential
 for
@@ -278,7 +278,7 @@ void setTokens(String accessToken, String refreshToken) {
 }
 ```
 
-## User Logout
+### User Logout
 
 When a user logs out, you should remove the access and refresh tokens using the `removeAccessToken`
 and `removeRefreshToken` methods.
@@ -295,13 +295,13 @@ void logoutUser() {
 
 This method ensures that the tokens are removed from the headers, effectively logging out the user.
 
-# **Refresh Token**
+## **Refresh Token**
 
 The NetKitManager provides a built-in mechanism for handling token refresh. This feature ensures
 that your access tokens are automatically refreshed when they expire, allowing for seamless and
 uninterrupted API requests.
 
-## Refresh Token Initialization
+### Refresh Token Initialization
 
 To use the refresh token feature, you need to initialize the NetKitManager with the following
 parameters:
@@ -310,7 +310,7 @@ parameters:
 - `onTokenRefreshed`: A callback function that is called when the tokens are successfully
   refreshed.
 
-## Refresh Token Example
+### Refresh Token Example
 
 ```dart
 
@@ -326,7 +326,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-## How refresh token works
+### How refresh token works
 
 The refresh token mechanism in `NetKitManager` ensures that your access tokens are automatically
 refreshed when they expire, allowing for seamless and uninterrupted API requests. Here’s how it
@@ -354,11 +354,11 @@ works:
 This process ensures that your application can continue to make authenticated requests without
 requiring user intervention when tokens expire.
 
-# **Upload Files**
+## **Upload Files**
 
 `Working on **uploadMultipartData** method documentation`
 
-# **Planned Enhancements**
+## **Planned Enhancements**
 
 | *Feature*                                                   | *Status* |
 |:------------------------------------------------------------|:--------:|
@@ -374,12 +374,12 @@ requiring user intervention when tokens expire.
 | Authentication Feature                                      |    ✅     |
 | Add Clean Architecture example                              |    🟡    |
 
-# **Contributing**
+## **Contributing**
 
 Contributions are welcome! Please open an [issue](https://github.com/behzodfaiziev/net-kit/issues)
 or submit a [pull request](https://github.com/behzodfaiziev/net-kit/pulls).
 
-# **License**
+## **License**
 
 This project is licensed under the MIT License.
 
