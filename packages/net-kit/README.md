@@ -5,29 +5,29 @@
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
 
-## **Contents**
+# **Contents**
 
 <details>
 
 <summary>Click to expand</summary>
 
 <!-- TOC -->
-  * [**Contents**](#contents)
-  * [**Features**](#features)
-  * [**Sponsors**](#sponsors)
-  * [**Getting started**](#getting-started)
-    * [Initialize](#initialize)
-    * [Extend the model](#extend-the-model)
-  * [**Sending requests**](#sending-requests)
-      * [Request a Single Model](#request-a-single-model)
-      * [Request a List of Models](#request-a-list-of-models)
-      * [Send a void Request](#send-a-void-request)
-  * [**Authentication Methods**](#authentication-methods)
-    * [Sign In with Credentials](#sign-in-with-credentials)
-    * [Sign Up](#sign-up)
-    * [Sign In with Social Accounts](#sign-in-with-social-accounts)
-    * [Setting Tokens](#setting-tokens)
-    * [User Logout](#user-logout)
+* [**Contents**](#contents)
+* [**Features**](#features)
+* [**Sponsors**](#sponsors)
+* [**Getting started**](#getting-started)
+  * [Initialize](#initialize)
+  * [Extend the model](#extend-the-model)
+* [**Sending requests**](#sending-requests)
+    * [Request a Single Model](#request-a-single-model)
+    * [Request a List of Models](#request-a-list-of-models)
+    * [Send a void Request](#send-a-void-request)
+* [**Authentication Methods**](#authentication-methods)
+  * [Sign In with Credentials](#sign-in-with-credentials)
+  * [Sign Up](#sign-up)
+  * [Sign In with Social Accounts](#sign-in-with-social-accounts)
+  * [Setting Tokens](#setting-tokens)
+  * [User Logout](#user-logout)
 * [**Refresh Token**](#refresh-token)
   * [Refresh Token Initialization](#refresh-token-initialization)
   * [Refresh Token Example](#refresh-token-example)
@@ -40,7 +40,7 @@
 
 </details>  
 
-## **Features**
+# **Features**
 
 - 📝 Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
 - 🌐 Configurable base URLs for development and production
@@ -48,15 +48,16 @@
 - ❗ Error handling and response validation
 - 🛠 Parsing responses into models or lists of models using `INetKitModel`
 
-## **Sponsors**
+# **Sponsors**
 
-A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
+A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
+becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 
 <img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
 
-## **Getting started**
+# **Getting started**
 
-### Initialize
+## Initialize
 
 Initialize the NetKitManager with the parameters:
 
@@ -71,7 +72,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-### Extend the model
+## Extend the model
 
 Requests such as: `requestModel` and`requestList` require the model to
 extend `INetKitModel` in order to be used with the NetKitManager. By extending, `INetKitModel`
@@ -82,9 +83,9 @@ deserialized.
 class TodoModel extends INetKitModel {}
 ```
 
-## **Sending requests**
+# **Sending requests**
 
-#### Request a Single Model
+### Request a Single Model
 
 ```dart
 Future<RandomUserModel> getRandomUser() async {
@@ -105,7 +106,7 @@ Future<RandomUserModel> getRandomUser() async {
 }
 ```
 
-#### Request a List of Models
+### Request a List of Models
 
 ```dart
 Future<List<ProductModel>> getProducts() async {
@@ -126,7 +127,7 @@ Future<List<ProductModel>> getProducts() async {
 }
 ```
 
-#### Send a void Request
+### Send a void Request
 
 ```dart
 Future<void> deleteProduct() async {
@@ -146,13 +147,13 @@ Future<void> deleteProduct() async {
 }
 ```
 
-## **Authentication Methods**
+# **Authentication Methods**
 
 The `authenticate()` method in `NetKitManager` allows you to handle all types of authentication
 needs, including user sign-in, user sign-up, and social logins (Google, Facebook, etc.). Below are
 examples of how to use it for each scenario.
 
-### Sign In with Credentials
+## Sign In with Credentials
 
 This method authenticates users with their username and password by providing SignInRequestModel.
 After a successful sign-in, it
@@ -183,7 +184,7 @@ Future<UserModel> loginWithCredentials(SignInRequestModel signInRequest) async {
 }
 ```
 
-### Sign Up
+## Sign Up
 
 This method registers a new user by sending their details to the server. After successful
 registration, the user model and authentication tokens are returned. Note: backend API may
@@ -215,7 +216,7 @@ Future<UserModel> signUpUser(SignUpRequestModel signUpRequest) async {
 }
 ```
 
-### Sign In with Social Accounts
+## Sign In with Social Accounts
 
 This method allows users to authenticate using their social media accounts, such as Google,
 Facebook, etc. It requires the access token received from the social provider, which is then sent to
@@ -257,7 +258,7 @@ Future<UserModel> loginWithGoogle(String googleAccessToken) async {
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
-### Setting Tokens
+## Setting Tokens
 
 The **NetKitManager** allows you to set and manage access and refresh tokens, which are essential
 for
@@ -277,7 +278,7 @@ void setTokens(String accessToken, String refreshToken) {
 }
 ```
 
-### User Logout
+## User Logout
 
 When a user logs out, you should remove the access and refresh tokens using the `removeAccessToken`
 and `removeRefreshToken` methods.
@@ -365,12 +366,11 @@ requiring user intervention when tokens expire.
 | No internet connection handling                             |    ✅     |
 | Provide basic example                                       |    ✅     |
 | Provide more examples and use cases in the documentation    |    ✅     |
-| Multi-part form data support                                |    🟡    |
+| MultiPartFile upload support                                |    ✅     |
 | Refresh Token implementation                                |    ✅     |
 | Enhance logging capabilities with customizable log levels   |    ✅     |
 | Implement retry logic for failed requests                   |    🟡    |
 | Add more tests to ensure the package is robust and reliable |    ✅     |
-| Add Migration Guide for breaking changes                    |    🟡    |
 | Authentication Feature                                      |    ✅     |
 | Add Clean Architecture example                              |    🟡    |
 
