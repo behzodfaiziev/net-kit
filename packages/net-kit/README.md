@@ -24,16 +24,16 @@
     * [**Sign In with Credentials**](#sign-in-with-credentials)
     * [**Sign Up**](#sign-up)
     * [**Sign In with Social Accounts**](#sign-in-with-social-accounts)
-  * [**Setting Tokens**](#setting-tokens)
-  * [**User Logout**](#user-logout)
+    * [**Setting Tokens**](#setting-tokens)
+    * [**User Logout**](#user-logout)
 * [**Refresh Token**](#refresh-token)
   * [**Refresh Token Initialization**](#refresh-token-initialization)
   * [**Refresh Token Example**](#refresh-token-example)
   * [**How refresh token works**](#how-refresh-token-works)
 * [**Upload Files**](#upload-files)
-  * [**Planned Enhancements**](#planned-enhancements)
-  * [Contributing](#contributing)
-  * [License](#license)
+* [**Planned Enhancements**](#planned-enhancements)
+* [**Contributing**](#contributing)
+* [**License**](#license)
 <!-- TOC -->
 
 </details>  
@@ -255,7 +255,7 @@ Future<UserModel> loginWithGoogle(String googleAccessToken) async {
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
-## **Setting Tokens**
+### **Setting Tokens**
 
 The **NetKitManager** allows you to set and manage access and refresh tokens, which are essential
 for
@@ -275,7 +275,7 @@ void setTokens(String accessToken, String refreshToken) {
 }
 ```
 
-## **User Logout**
+### **User Logout**
 
 When a user logs out, you should remove the access and refresh tokens using the `removeAccessToken`
 and `removeRefreshToken` methods.
@@ -355,7 +355,7 @@ requiring user intervention when tokens expire.
 
 `Working on **uploadMultipartData** method documentation`
 
-## **Planned Enhancements**
+# **Planned Enhancements**
 
 | *Feature*                                                   | *Status* |
 |:------------------------------------------------------------|:--------:|
@@ -372,12 +372,12 @@ requiring user intervention when tokens expire.
 | Authentication Feature                                      |    ✅     |
 | Add Clean Architecture example                              |    🟡    |
 
-## Contributing
+# **Contributing**
 
 Contributions are welcome! Please open an [issue](https://github.com/behzodfaiziev/net-kit/issues)
 or submit a [pull request](https://github.com/behzodfaiziev/net-kit/pulls).
 
-## License
+# **License**
 
 This project is licensed under the MIT License.
 
