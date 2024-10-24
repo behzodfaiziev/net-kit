@@ -212,13 +212,49 @@ abstract class INetKitManager {
   /// This allows the server response to be parsed into a specific model
   /// class that represents the data returned by the API.
   ///
-  /// ## If return type is not need then use VoidModel as R
+  /// ### **If return type is not need then use VoidModel as R**
   Future<R> uploadMultipartData<R extends INetKitModel>({
     required String path,
 
     /// The model to parse the data to
     required R model,
     required MultipartFile multipartFile,
+    required RequestMethod method,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+
+    /// The content type of the file. Defaults to `application/form-data`.
+    String? contentType,
+  });
+
+  /// This method is responsible for uploading form data to
+  /// a specified endpoint. Typically used for submitting forms or
+  /// other data where multipart encoding is required.
+  ///
+  /// R extends INetKitModel: The generic type R must extend the INetKitModel.
+  /// This allows the server response to be parsed into a specific model class
+  /// that represents the data returned by the API.
+  ///
+  /// ### **If return type is not need then use VoidModel as R**
+  /// ## Returns:
+  /// - A Future that resolves to an instance of R, which extends INetKitModel.
+  ///
+  /// ## Example:
+  /// ```dart
+  /// final result = await netKitManager.uploadFormData<UserModel>(
+  ///   path: '/upload',
+  ///   model: UserModel(),
+  ///   formData: formData,
+  ///   method: RequestMethod.post,
+  /// );
+  /// ```
+  Future<R> uploadFormData<R extends INetKitModel>({
+    required String path,
+    required R model,
+    required FormData formData,
     required RequestMethod method,
     Options? options,
     Map<String, dynamic>? queryParameters,

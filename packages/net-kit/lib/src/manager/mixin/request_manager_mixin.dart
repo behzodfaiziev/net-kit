@@ -6,10 +6,16 @@ mixin RequestManagerMixin on DioMixin {
   NetKitParams get parameters;
 
   /// Overridden errorParams getter
-  NetKitErrorParams get errorParams;
+  NetKitErrorParams get _errorParams;
 
   /// Overridden internetEnabled getter
-  bool get internetEnabled;
+  bool get _internetEnabled;
+
+  /// Overridden converter getter
+  Converter get _converter;
+
+  /// Overridden baseOptions getter
+  BaseOptions get baseOptions;
 
   Future<Response<dynamic>> _sendRequest({
     required String path,
@@ -22,9 +28,9 @@ mixin RequestManagerMixin on DioMixin {
     ProgressCallback? onSendProgress,
   }) async {
     try {
-      if (!internetEnabled) {
+      if (!_internetEnabled) {
         throw ApiException(
-          message: errorParams.noInternetError,
+          message: _errorParams.noInternetError,
           statusCode: HttpStatuses.serviceUnavailable.code,
         );
       }
@@ -76,5 +82,18 @@ mixin RequestManagerMixin on DioMixin {
     /// return true (request failed)
     return statusCode < HttpStatuses.ok.code ||
         statusCode >= HttpStatuses.multipleChoices.code;
+  }
+
+  Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
+    return request<dynamic>(
+      requestOptions.path,
+      options: Options(
+        method: requestOptions.method,
+        // Make sure to add the new access token to the headers
+        headers: baseOptions.headers,
+      ),
+      data: requestOptions.data,
+      queryParameters: requestOptions.queryParameters,
+    );
   }
 }
