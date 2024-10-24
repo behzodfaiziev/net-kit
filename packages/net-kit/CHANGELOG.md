@@ -1,3 +1,7 @@
+## 3.0.8-dev
+
+- added `VoidModel` class
+
 ## 3.0.2-dev
 
 - added `uploadMultipartData` method

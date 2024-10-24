@@ -6,6 +6,7 @@ import '../enum/request_method.dart';
 import '../model/auth_token_model.dart';
 import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
+import '../model/void_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
@@ -290,7 +291,7 @@ class NetKitManager extends ErrorHandler
   }
 
   @override
-  Future<R?> uploadMultipartData<R extends INetKitModel>({
+  Future<R> uploadMultipartData<R extends INetKitModel>({
     required String path,
 
     /// The model to parse the data to

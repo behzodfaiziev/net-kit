@@ -11,7 +11,7 @@ mixin UploadManagerMixin on DioMixin {
   /// Overridden internetEnabled getter
   bool get internetEnabled;
 
-  Future<R?> _uploadMultipartData<R extends INetKitModel>({
+  Future<R> _uploadMultipartData<R extends INetKitModel>({
     required String path,
 
     /// The model to parse the data to
@@ -47,10 +47,16 @@ mixin UploadManagerMixin on DioMixin {
       onReceiveProgress: onReceiveProgress,
     );
 
+    if (R == VoidModel) {
+      return VoidModel() as R;
+    }
     if ((response.data is MapType) == false) {
       return Converter.toModel<R>(response.data as MapType, model);
     }
 
-    return null;
+    throw ApiException(
+      message: errorParams.notMapTypeError,
+      statusCode: response.statusCode,
+    );
   }
 }

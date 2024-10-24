@@ -211,7 +211,9 @@ abstract class INetKitManager {
   /// R extends INetKitModel: The generic type R must extend the INetKitModel.
   /// This allows the server response to be parsed into a specific model
   /// class that represents the data returned by the API.
-  Future<R?> uploadMultipartData<R extends INetKitModel>({
+  ///
+  /// ## If return type is not need then use VoidModel as R
+  Future<R> uploadMultipartData<R extends INetKitModel>({
     required String path,
 
     /// The model to parse the data to
