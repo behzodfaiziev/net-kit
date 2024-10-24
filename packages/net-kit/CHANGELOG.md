@@ -1,3 +1,8 @@
+# 3.1.0
+- added `VoidModel` class for void responses
+- added `uploadMultipartData` method to upload files
+- internal refactoring
+
 ## 3.0.9-dev
 
 - internal refactoring
