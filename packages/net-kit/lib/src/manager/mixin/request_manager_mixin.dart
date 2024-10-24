@@ -75,16 +75,22 @@ mixin RequestManagerMixin on DioMixin {
   /// If the status code is null or not in the range of 200-299, return true
   /// Otherwise, return false
   bool _isRequestFailed(int? statusCode) {
-    /// If the status code is null, return true (request failed)
+    // If the status code is null, return true (request failed)
     if (statusCode == null) return true;
 
-    /// If the status code is not in the range of 200-299,
-    /// return true (request failed)
+    // If the status code is not in the range of 200-299,
+    // return true (request failed)
     return statusCode < HttpStatuses.ok.code ||
         statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
+    // Check if the request's body is FormData
+    if (requestOptions.data is FormData && requestOptions.data != null) {
+      final formData = requestOptions.data as FormData;
+      final newFormData = formData.clone();
+      requestOptions.data = newFormData;
+    }
     return request<dynamic>(
       requestOptions.path,
       options: Options(

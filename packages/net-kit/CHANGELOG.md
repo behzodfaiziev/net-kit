@@ -1,4 +1,9 @@
+## 3.2.0
+
+- fixed bug in _retryRequest with FormData
+
 # 3.1.0
+
 - added `VoidModel` class for void responses
 - added `uploadMultipartData` method to upload files
 - internal refactoring
