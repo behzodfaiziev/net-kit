@@ -6,6 +6,7 @@ import '../enum/request_method.dart';
 import '../model/auth_token_model.dart';
 import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
+import '../model/void_model.dart';
 import '../utility/converter.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
@@ -19,8 +20,17 @@ import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
-part 'error/error_handler.dart';
 part 'interceptors/error_handling_interceptor.dart';
+
+part 'mixin/authentication_manager_mixin.dart';
+
+part 'mixin/error_handling_mixin.dart';
+
+part 'mixin/request_manager_mixin.dart';
+
+part 'mixin/token_manager_mixin.dart';
+
+part 'mixin/upload_manager_mixin.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
 /// implements the INetKitManager interface.
@@ -31,16 +41,21 @@ part 'interceptors/error_handling_interceptor.dart';
 /// response validation mechanisms. The NetKitManager is initialized with
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
-class NetKitManager extends ErrorHandler
-    with DioMixin
-    implements INetKitManager {
+class NetKitManager extends INetKitManager
+    with
+        DioMixin,
+        RequestManagerMixin,
+        ErrorHandlingMixin,
+        TokenManagerMixin,
+        UploadManagerMixin,
+        AuthenticationManagerMixin {
   /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
     required String baseUrl,
 
     /// The parameters for error messages and error keys
-    super.errorParams,
+    NetKitErrorParams? errorParams,
 
     /// The HTTP client adapter
     HttpClientAdapter? httpClientAdapter,
@@ -81,6 +96,7 @@ class NetKitManager extends ErrorHandler
     _initialize(
       clientAdapter: httpClientAdapter,
       baseUrl: baseUrl,
+      errorParams: errorParams,
       devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
@@ -96,6 +112,9 @@ class NetKitManager extends ErrorHandler
 
   @override
   late final NetKitParams parameters;
+
+  @override
+  late final NetKitErrorParams _errorParams;
 
   /// The callback function that is called when the tokens are updated
   /// This function can be used to update the tokens in the app
@@ -122,12 +141,14 @@ class NetKitManager extends ErrorHandler
 
   late final INetKitLogger _logger;
 
+  @override
   late final Converter _converter;
 
   /// This boolean value is used to determine if the internet is enabled
   /// The default value is true, meaning that
   /// the internet is enabled by default.
   /// The value is updated based on the internet status stream.
+  @override
   bool _internetEnabled = true;
 
   @override
@@ -162,7 +183,8 @@ class NetKitManager extends ErrorHandler
       if ((response.data is MapType) == false) {
         throw _notMapTypeError(response);
       }
-      final parsedModel = Converter.toModel<R>(response.data as MapType, model);
+      final parsedModel =
+          _converter.toModel<R>(response.data as MapType, model);
 
       return parsedModel;
     } on DioException catch (error) {
@@ -243,107 +265,78 @@ class NetKitManager extends ErrorHandler
     Options? options,
     String? socialAccessToken, // Optional social access token for social login
   }) async {
+    return _authenticate<R>(
+      path: path,
+      model: model,
+      method: method,
+      body: body,
+      socialAccessToken: socialAccessToken,
+      options: options,
+    );
+  }
+
+  @override
+  Future<R> uploadMultipartData<R extends INetKitModel>({
+    required String path,
+
+    /// The model to parse the data to
+    required R model,
+    required MultipartFile multipartFile,
+    required RequestMethod method,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    String? contentType,
+  }) async {
     try {
-      // If it's a social login, attach the social access token to the headers
-      if (socialAccessToken != null) {
-        options ??= Options(); // Ensure options is not null
-        options.headers ??= {}; // Ensure headers is not null
-        options.headers!['Authorization'] = 'Bearer $socialAccessToken';
-      }
-
-      final response = await _sendRequest(
+      return _uploadMultipartData(
         path: path,
+        model: model,
+        multipartFile: multipartFile,
         method: method,
-        body: body,
         options: options,
+        onSendProgress: onSendProgress,
+        cancelToken: cancelToken,
+        contentType: contentType,
+        onReceiveProgress: onReceiveProgress,
+        queryParameters: queryParameters,
       );
-
-      // Ensure the response data is a map
-      if ((response.data is MapType) == false) {
-        throw _notMapTypeError(response);
-      }
-
-      // Extract the tokens (access and refresh)
-      final authToken = extractTokens(
-        response: response,
-        accessTokenKey: parameters.accessTokenKey,
-        refreshTokenKey: parameters.refreshTokenKey,
-      );
-
-      // Add the tokens to headers for subsequent requests
-      setAccessToken(authToken.accessToken);
-      setRefreshToken(authToken.refreshToken);
-
-      // Parse the response model
-      final parsedModel = Converter.toModel<R>(response.data as MapType, model);
-
-      return (parsedModel, authToken);
     } on DioException catch (error) {
-      // Handle DioException errors
       throw _parseToApiException(error);
     }
   }
 
-  Future<Response<dynamic>> _sendRequest({
+  @override
+  Future<R> uploadFormData<R extends INetKitModel>({
     required String path,
+    required R model,
+    required FormData formData,
     required RequestMethod method,
-    MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    String? contentType,
   }) async {
     try {
-      if (!_internetEnabled) {
-        throw ApiException(
-          message: errorParams.noInternetError,
-          statusCode: HttpStatuses.serviceUnavailable.code,
-        );
-      }
-
-      options ??= Options();
-
-      /// Set the request method
-      options.method = method.name.toUpperCase();
-
-      final response = await request<dynamic>(
-        path,
-        data: body,
+      return _uploadFormData(
+        path: path,
+        model: model,
+        formData: formData,
+        method: method,
         options: options,
-        onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
-        queryParameters: queryParameters,
         cancelToken: cancelToken,
+        contentType: contentType,
+        onReceiveProgress: onReceiveProgress,
+        queryParameters: queryParameters,
       );
-
-      if (isRequestFailed(response.statusCode)) {
-        /// Throw an exception if the request failed
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          stackTrace: StackTrace.current,
-        );
-      }
-      return response;
-    } on DioException {
-      rethrow;
-    } on ApiException {
-      rethrow;
+    } on DioException catch (error) {
+      throw _parseToApiException(error);
     }
-  }
-
-  /// Check if the request failed
-  /// If the status code is null or not in the range of 200-299, return true
-  /// Otherwise, return false
-  bool isRequestFailed(int? statusCode) {
-    /// If the status code is null, return true (request failed)
-    if (statusCode == null) return true;
-
-    /// If the status code is not in the range of 200-299,
-    /// return true (request failed)
-    return statusCode < HttpStatuses.ok.code ||
-        statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   void _initialize({
@@ -353,6 +346,7 @@ class NetKitManager extends ErrorHandler
     required bool testMode,
     required String accessTokenKey,
     required String refreshTokenKey,
+    NetKitErrorParams? errorParams,
     String? refreshTokenPath,
     String? devBaseUrl,
     BaseOptions? baseOptions,
@@ -372,6 +366,8 @@ class NetKitManager extends ErrorHandler
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
     baseOptions ??= BaseOptions();
+
+    _errorParams = errorParams ?? const NetKitErrorParams();
 
     parameters = NetKitParams(
       baseOptions: baseOptions,
@@ -421,19 +417,6 @@ class NetKitManager extends ErrorHandler
     interceptors.add(errorInterceptor);
   }
 
-  /// Method to extract access and refresh tokens from headers or body.
-  /// Returns an AuthTokenModel containing both tokens.
-  AuthTokenModel extractTokens({
-    required Response<dynamic> response,
-    required String accessTokenKey,
-    required String refreshTokenKey,
-  }) {
-    // Try to extract tokens from headers
-    final accessToken = response.headers.value(accessTokenKey);
-    final refreshToken = response.headers.value(refreshTokenKey);
-    return AuthTokenModel(accessToken: accessToken, refreshToken: refreshToken);
-  }
-
   @override
   Map<String, dynamic> getAllHeaders() {
     return baseOptions.headers;
@@ -442,28 +425,6 @@ class NetKitManager extends ErrorHandler
   @override
   void addHeader(MapEntry<String, String> mapEntry) {
     baseOptions.headers.addAll({mapEntry.key: mapEntry.value});
-  }
-
-  @override
-  void setAccessToken(String? token) {
-    if (token == null) return;
-    baseOptions.headers.addAll({parameters.accessTokenKey: 'Bearer $token'});
-  }
-
-  @override
-  void setRefreshToken(String? token) {
-    if (token == null) return;
-    baseOptions.headers.addAll({parameters.refreshTokenKey: token});
-  }
-
-  @override
-  void removeAccessToken() {
-    baseOptions.headers.remove(parameters.accessTokenKey);
-  }
-
-  @override
-  void removeRefreshToken() {
-    baseOptions.headers.remove(parameters.refreshTokenKey);
   }
 
   @override
@@ -517,19 +478,6 @@ class NetKitManager extends ErrorHandler
       response: refreshResponse,
       accessTokenKey: parameters.accessTokenKey,
       refreshTokenKey: parameters.refreshTokenKey,
-    );
-  }
-
-  Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
-    return request<dynamic>(
-      requestOptions.path,
-      options: Options(
-        method: requestOptions.method,
-        // Make sure to add the new access token to the headers
-        headers: baseOptions.headers,
-      ),
-      data: requestOptions.data,
-      queryParameters: requestOptions.queryParameters,
     );
   }
 }

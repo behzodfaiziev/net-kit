@@ -60,7 +60,7 @@ class Converter {
   /// `data`: The data to convert
   /// `parsingModel`: The model to parse the data to
   /// It returns a model
-  static R toModel<R extends INetKitModel>(MapType data, R parsingModel) {
+  R toModel<R extends INetKitModel>(MapType data, R parsingModel) {
     try {
       /// Convert the data to a model
       return parsingModel.fromJson(data) as R;
