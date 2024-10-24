@@ -265,45 +265,14 @@ class NetKitManager extends INetKitManager
     Options? options,
     String? socialAccessToken, // Optional social access token for social login
   }) async {
-    try {
-      // If it's a social login, attach the social access token to the headers
-      if (socialAccessToken != null) {
-        options ??= Options(); // Ensure options is not null
-        options.headers ??= {}; // Ensure headers is not null
-        options.headers!['Authorization'] = 'Bearer $socialAccessToken';
-      }
-
-      final response = await _sendRequest(
-        path: path,
-        method: method,
-        body: body,
-        options: options,
-      );
-
-      // Ensure the response data is a map
-      if ((response.data is MapType) == false) {
-        throw _notMapTypeError(response);
-      }
-
-      // Extract the tokens (access and refresh)
-      final authToken = extractTokens(
-        response: response,
-        accessTokenKey: parameters.accessTokenKey,
-        refreshTokenKey: parameters.refreshTokenKey,
-      );
-
-      // Add the tokens to headers for subsequent requests
-      setAccessToken(authToken.accessToken);
-      setRefreshToken(authToken.refreshToken);
-
-      // Parse the response model
-      final parsedModel = _converter.toModel<R>(response.data as MapType, model);
-
-      return (parsedModel, authToken);
-    } on DioException catch (error) {
-      // Handle DioException errors
-      throw _parseToApiException(error);
-    }
+    return _authenticate<R>(
+      path: path,
+      model: model,
+      method: method,
+      body: body,
+      socialAccessToken: socialAccessToken,
+      options: options,
+    );
   }
 
   @override
@@ -456,16 +425,6 @@ class NetKitManager extends INetKitManager
   @override
   void addHeader(MapEntry<String, String> mapEntry) {
     baseOptions.headers.addAll({mapEntry.key: mapEntry.value});
-  }
-
-  @override
-  void removeAccessToken() {
-    baseOptions.headers.remove(parameters.accessTokenKey);
-  }
-
-  @override
-  void removeRefreshToken() {
-    baseOptions.headers.remove(parameters.refreshTokenKey);
   }
 
   @override

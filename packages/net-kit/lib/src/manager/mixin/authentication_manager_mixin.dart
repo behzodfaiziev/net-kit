@@ -3,7 +3,7 @@ part of '../net_kit_manager.dart';
 /// Mixin for authentication manager
 mixin AuthenticationManagerMixin
     on DioMixin, RequestManagerMixin, ErrorHandlingMixin, TokenManagerMixin {
-  Future<(R, AuthTokenModel)> authenticate<R extends INetKitModel>({
+  Future<(R, AuthTokenModel)> _authenticate<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,

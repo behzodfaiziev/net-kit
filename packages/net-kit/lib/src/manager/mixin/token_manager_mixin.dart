@@ -2,30 +2,37 @@ part of '../net_kit_manager.dart';
 
 /// Token manager mixin
 mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
+  /// Implementation of setting the access token
   void setAccessToken(String? token) {
     if (token == null) return;
     baseOptions.headers.addAll({parameters.accessTokenKey: 'Bearer $token'});
   }
 
+  /// Implementation of setting the refresh token
   void setRefreshToken(String? token) {
     if (token == null) return;
     baseOptions.headers.addAll({parameters.refreshTokenKey: token});
   }
 
-  /// Extracts the tokens from the response
+  /// Implementation of removing the access token
+  void removeAccessToken() {
+    baseOptions.headers.remove(parameters.accessTokenKey);
+  }
+
+  /// Implementation of removing the refresh token
+  void removeRefreshToken() {
+    baseOptions.headers.remove(parameters.refreshTokenKey);
+  }
+
+  /// Extracts the tokens from the response's headers
   AuthTokenModel extractTokens({
     required Response<dynamic> response,
     required String accessTokenKey,
     required String refreshTokenKey,
   }) {
-    final data = response.data as MapType;
-
-    final accessToken = data[accessTokenKey] as String;
-    final refreshToken = data[refreshTokenKey] as String;
-
-    return AuthTokenModel(
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-    );
+    // Try to extract tokens from headers
+    final accessToken = response.headers.value(accessTokenKey);
+    final refreshToken = response.headers.value(refreshTokenKey);
+    return AuthTokenModel(accessToken: accessToken, refreshToken: refreshToken);
   }
 }
