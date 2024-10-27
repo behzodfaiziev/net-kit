@@ -20,6 +20,7 @@ mixin RequestManagerMixin on DioMixin {
   Future<Response<dynamic>> _sendRequest({
     required String path,
     required RequestMethod method,
+    bool? containsAccessToken,
     MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
@@ -37,8 +38,13 @@ mixin RequestManagerMixin on DioMixin {
 
       options ??= Options();
 
-      /// Set the request method
+      // Set the request method
       options.method = method.name.toUpperCase();
+
+      // Remove the access token from the headers if it's not needed.
+      if (containsAccessToken == false) {
+        options.headers?.remove(parameters.accessTokenKey);
+      }
 
       final response = await request<dynamic>(
         path,
@@ -51,7 +57,7 @@ mixin RequestManagerMixin on DioMixin {
       );
 
       if (_isRequestFailed(response.statusCode)) {
-        /// Throw an exception if the request failed
+        // Throw an exception if the request failed
         throw DioException(
           requestOptions: response.requestOptions,
           response: response,

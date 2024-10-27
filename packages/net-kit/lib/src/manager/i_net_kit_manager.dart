@@ -61,6 +61,7 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    bool? containsAccessToken,
   });
 
   /// The `requestList()` method is responsible for making a network request
@@ -100,6 +101,7 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    bool? containsAccessToken,
   });
 
   /// The `requestVoid()` method is responsible for making a network request
@@ -135,6 +137,7 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    bool? containsAccessToken,
   });
 
   /// General authentication method that handles

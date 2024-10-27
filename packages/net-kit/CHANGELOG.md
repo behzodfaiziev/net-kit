@@ -1,4 +1,7 @@
-## 3.2.0
+## 3.2.1-dev
+- added `containsAccessToken` to requests
+
+# 3.2.0
 
 - fixed bug in _retryRequest with FormData
 
