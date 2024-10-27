@@ -45,7 +45,8 @@ mixin RequestManagerMixin on DioMixin {
       options.method = method.name.toUpperCase();
 
       // Remove the access token from the headers if it's not needed.
-      if (containsAccessToken == false) {
+      if (containsAccessToken == false &&
+          options.headers?[parameters.accessTokenKey] != null) {
         // Preserve the access token to set it back after the request
         accessToken = options.headers?[parameters.accessTokenKey] as String;
         // Remove the access token from the headers
