@@ -1,4 +1,8 @@
-## 3.3.0
+# 3.3.1
+
+- fixed `authentication` issue while parsing the response
+
+# 3.3.0
 
 - added `containsAccessToken` to requests
 

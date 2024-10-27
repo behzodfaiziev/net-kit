@@ -143,6 +143,8 @@ abstract class INetKitManager {
   /// General authentication method that handles
   /// sign-in, sign-up, and social login.
   ///
+  /// ### **IMPORTANT: If the result is not needed then use VoidModel as R**
+  ///
   /// This method can be used for:
   /// - **Sign In**: Authenticate users
   /// with their credentials (username, password).
