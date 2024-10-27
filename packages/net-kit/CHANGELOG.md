@@ -1,3 +1,7 @@
+# 3.3.4
+
+- authentication issue fixed
+
 # 3.3.2
 
 - exported `VoidModel` class

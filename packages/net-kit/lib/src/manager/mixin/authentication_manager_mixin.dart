@@ -28,10 +28,11 @@ mixin AuthenticationManagerMixin
         containsAccessToken: true,
       );
 
+      final responseEmpty = response.data.toString().isEmpty;
+
       // If the response data is not a MapType and the response is not empty
       // then throw an error
-      if ((response.data is MapType) == false &&
-          response.data.toString().isNotEmpty) {
+      if ((response.data is MapType) == false && responseEmpty == false) {
         throw _notMapTypeError(response);
       }
 
@@ -45,6 +46,11 @@ mixin AuthenticationManagerMixin
       // Add the tokens to headers for subsequent requests
       setAccessToken(authToken.accessToken);
       setRefreshToken(authToken.refreshToken);
+
+      // if the response is empty, return the model and token
+      if (responseEmpty) {
+        return (model, authToken);
+      }
 
       // Parse the response model
       final parsedModel =
