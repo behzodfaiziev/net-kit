@@ -9,7 +9,7 @@
 
 <details>
 
-<summary>Click to expand</summary>
+<summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
   * [**Contents**](#contents)

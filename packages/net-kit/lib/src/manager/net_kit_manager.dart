@@ -21,15 +21,10 @@ import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
 part 'interceptors/error_handling_interceptor.dart';
-
 part 'mixin/authentication_manager_mixin.dart';
-
 part 'mixin/error_handling_mixin.dart';
-
 part 'mixin/request_manager_mixin.dart';
-
 part 'mixin/token_manager_mixin.dart';
-
 part 'mixin/upload_manager_mixin.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -165,6 +160,7 @@ class NetKitManager extends INetKitManager
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
   }) async {
     try {
       final response = await _sendRequest(
@@ -176,6 +172,7 @@ class NetKitManager extends INetKitManager
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
+        containsAccessToken: containsAccessToken,
       );
 
       /// Check if the response data is a map
@@ -204,6 +201,7 @@ class NetKitManager extends INetKitManager
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
   }) async {
     try {
       final response = await _sendRequest(
@@ -215,6 +213,7 @@ class NetKitManager extends INetKitManager
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
+        containsAccessToken: containsAccessToken,
       );
       return _converter.toListModel(
         data: response.data,
@@ -236,6 +235,7 @@ class NetKitManager extends INetKitManager
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
   }) async {
     try {
       await _sendRequest(
@@ -247,6 +247,7 @@ class NetKitManager extends INetKitManager
         cancelToken: cancelToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
+        containsAccessToken: containsAccessToken,
       );
 
       return;
