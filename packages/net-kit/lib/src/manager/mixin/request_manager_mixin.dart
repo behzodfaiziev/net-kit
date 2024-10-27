@@ -48,7 +48,7 @@ mixin RequestManagerMixin on DioMixin {
       if (containsAccessToken == false &&
           baseOptions.headers[parameters.accessTokenKey] != null) {
         // Preserve the access token to set it back after the request
-        accessToken = options.headers?[parameters.accessTokenKey] as String;
+        accessToken = baseOptions.headers[parameters.accessTokenKey] as String;
         // Remove the access token from the headers
         baseOptions.headers.remove(parameters.accessTokenKey);
       }
