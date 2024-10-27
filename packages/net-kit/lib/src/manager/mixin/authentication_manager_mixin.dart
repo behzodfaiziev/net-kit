@@ -28,9 +28,10 @@ mixin AuthenticationManagerMixin
         containsAccessToken: true,
       );
 
-      // If the response data is not a MapType and the model is not a VoidModel
+      // If the response data is not a MapType and the response is not empty
       // then throw an error
-      if ((response.data is MapType) == false && model is! VoidModel) {
+      if ((response.data is MapType) == false &&
+          response.data.toString().isNotEmpty) {
         throw _notMapTypeError(response);
       }
 
