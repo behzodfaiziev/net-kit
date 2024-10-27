@@ -1,3 +1,7 @@
+# 3.3.2
+
+- exported `VoidModel` class
+
 # 3.3.1
 
 - fixed `authentication` issue while parsing the response

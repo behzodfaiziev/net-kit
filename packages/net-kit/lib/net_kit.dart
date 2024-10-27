@@ -29,3 +29,6 @@ export 'src/model/auth_token_model.dart';
 
 /// INetKitModel
 export 'src/model/i_net_kit_model.dart';
+
+/// VoidModel
+export 'src/model/void_model.dart';
