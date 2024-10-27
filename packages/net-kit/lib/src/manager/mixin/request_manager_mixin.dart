@@ -28,6 +28,9 @@ mixin RequestManagerMixin on DioMixin {
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
   }) async {
+    // Preserved access token. Used when the access token is removed
+    // from the headers and needs to be set back after the request
+    String? accessToken;
     try {
       if (!_internetEnabled) {
         throw ApiException(
@@ -43,7 +46,10 @@ mixin RequestManagerMixin on DioMixin {
 
       // Remove the access token from the headers if it's not needed.
       if (containsAccessToken == false) {
-        options.headers?.remove(parameters.accessTokenKey);
+        // Preserve the access token to set it back after the request
+        accessToken = options.headers?[parameters.accessTokenKey] as String;
+        // Remove the access token from the headers
+        baseOptions.headers.remove(parameters.accessTokenKey);
       }
 
       final response = await request<dynamic>(
@@ -74,6 +80,11 @@ mixin RequestManagerMixin on DioMixin {
         message: error.toString(),
         statusCode: HttpStatuses.expectationFailed.code,
       );
+    } finally {
+      // Set the access token back to the headers if it was removed
+      if (accessToken != null && containsAccessToken == false) {
+        baseOptions.headers[parameters.accessTokenKey] = accessToken;
+      }
     }
   }
 

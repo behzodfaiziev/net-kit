@@ -1,4 +1,4 @@
-## 3.2.1-dev
+## 3.2.2-dev
 - added `containsAccessToken` to requests
 
 # 3.2.0
