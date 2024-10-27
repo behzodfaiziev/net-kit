@@ -16,7 +16,8 @@ mixin AuthenticationManagerMixin
       if (socialAccessToken != null) {
         options ??= Options(); // Ensure options is not null
         options.headers ??= {}; // Ensure headers is not null
-        options.headers!['Authorization'] = 'Bearer $socialAccessToken';
+        options.headers![parameters.accessTokenKey] =
+            'Bearer $socialAccessToken';
       }
 
       final response = await _sendRequest(
@@ -24,6 +25,7 @@ mixin AuthenticationManagerMixin
         method: method,
         body: body,
         options: options,
+        containsAccessToken: true,
       );
 
       // Ensure the response data is a map
