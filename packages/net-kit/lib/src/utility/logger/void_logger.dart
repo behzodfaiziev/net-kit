@@ -4,7 +4,10 @@ import 'i_net_kit_logger.dart';
 /// which does not log anything. In order to use this logger,
 /// a custom instance of the [INetKitLogger] class must be created.
 /// And injected into the NetKitManager class.
-class VoidLogger implements INetKitLogger {
+final class VoidLogger implements INetKitLogger {
+  /// Default constructor
+  const VoidLogger();
+
   @override
   void trace(String message) {}
 

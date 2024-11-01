@@ -18,6 +18,7 @@
   * [**Getting started**](#getting-started)
     * [Initialize](#initialize)
     * [Extend the model](#extend-the-model)
+    * [Logger Integration](#logger-integration)
   * [**Sending requests**](#sending-requests)
       * [Request a Single Model](#request-a-single-model)
       * [Request a List of Models](#request-a-list-of-models)
@@ -41,18 +42,18 @@
 
 ## **Features**
 
-- 📝 Supports various HTTP methods (GET, POST, PUT, DELETE, PATCH)
-- 🌐 Configurable base URLs for development and production
-- 📊 Logging of network requests and responses
-- ❗ Error handling and response validation
+- 🔄 Automatic token refresh
 - 🛠 Parsing responses into models or lists of models using `INetKitModel`
+- 🧪 Configurable base URLs for development and production
+- 🌐 Internationalization support for error messages
+- 🔒 Authentication support (Sign In, Sign Up, Social Logins)
 
 ## **Sponsors**
 
 A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
 becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 
-<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="200px">
+<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="150px">
 
 ## **Getting started**
 
@@ -68,6 +69,7 @@ final netKitManager = NetKitManager(
   devBaseUrl: 'https://dev.<URL>.com',
   loggerEnabled: true,
   testMode: true,
+  // ... other parameters
 );
 ```
 
@@ -80,6 +82,24 @@ deserialized.
 
 ```dart
 class TodoModel extends INetKitModel {}
+```
+
+### Logger Integration
+
+The `NetKitManager` uses a logger internally, for example, during the refresh token stages. To add
+custom logging, you need to create a class that implements the `INetKitLogger` interface. Below is
+an example of how to create a `NetworkLogger` class:
+
+You can find the full example
+of `NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/lib/core/network/logger/network_logger.dart).
+
+```dart
+
+final netKitManager = NetKitManager(
+  baseUrl: 'https://api.<URL>.com',
+  logger: NetworkLogger(),
+  // ... other parameters
+);
 ```
 
 ## **Sending requests**
@@ -322,6 +342,7 @@ final netKitManager = NetKitManager(
   onTokenRefreshed: (authToken) async {
     /// Save the new access token to the storage
   },
+  // ... other parameters
 );
 ```
 
