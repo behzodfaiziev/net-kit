@@ -1,7 +1,6 @@
 import 'package:net_kit/net_kit.dart';
-import 'package:net_kit/src/manager/logger/i_net_kit_logger.dart';
-import 'package:net_kit/src/manager/logger/net_kit_logger.dart';
-
+import 'package:net_kit/src/utility/logger/i_net_kit_logger.dart';
+import 'package:net_kit/src/utility/logger/net_kit_logger.dart';
 import 'models/todo_model.dart';
 
 /// A very basic example of how to use the NetKit package.

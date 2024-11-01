@@ -8,13 +8,13 @@ import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
 import '../model/void_model.dart';
 import '../utility/converter.dart';
+import '../utility/logger/i_net_kit_logger.dart';
+import '../utility/logger/net_kit_logger.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
     if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
-import 'logger/i_net_kit_logger.dart';
-import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
