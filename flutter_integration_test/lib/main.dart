@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:net_kit/net_kit.dart';
 
+import 'core/network/logger/network_logger.dart';
 import 'models/typicode_comment_model.dart';
 
 void main() {
@@ -30,8 +31,10 @@ class CommentPage extends StatefulWidget {
 }
 
 class CommentPageState extends State<CommentPage> {
-  final INetKitManager _netKitManager =
-      NetKitManager(baseUrl: 'https://jsonplaceholder.typicode.com');
+  final INetKitManager _netKitManager = NetKitManager(
+    baseUrl: 'https://jsonplaceholder.typicode.com',
+    logger: NetworkLogger(),
+  );
   List<TypicodeCommentModel> _comments = [];
   String? errorMessage;
 

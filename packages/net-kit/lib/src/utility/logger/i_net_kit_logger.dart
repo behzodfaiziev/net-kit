@@ -1,10 +1,5 @@
-import '../../enum/log_level.dart';
-
 /// Logger for network operations
 abstract class INetKitLogger {
-  /// Sets the log level
-  void setLogLevel(LogLevel level);
-
   /// Logs the trace event
   void trace(String message);
 

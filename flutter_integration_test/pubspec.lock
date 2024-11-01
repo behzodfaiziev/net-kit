@@ -131,7 +131,7 @@ packages:
     source: hosted
     version: "3.0.1"
   logger:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: logger
       sha256: "697d067c60c20999686a0add96cf6aba723b3aa1f83ecf806a8097231529ec32"
@@ -168,7 +168,7 @@ packages:
       path: "../packages/net-kit"
       relative: true
     source: path
-    version: "3.2.0"
+    version: "3.3.4"
   path:
     dependency: transitive
     description:

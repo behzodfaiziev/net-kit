@@ -1,30 +1,34 @@
 import 'package:dio/dio.dart';
 
 import '../enum/http_status_codes.dart';
-import '../enum/log_level.dart';
 import '../enum/request_method.dart';
 import '../model/auth_token_model.dart';
 import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
 import '../model/void_model.dart';
 import '../utility/converter.dart';
+import '../utility/logger/i_net_kit_logger.dart';
+import '../utility/logger/void_logger.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
     if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
-import 'logger/i_net_kit_logger.dart';
-import 'logger/net_kit_logger.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
 part 'interceptors/error_handling_interceptor.dart';
+
 part 'mixin/authentication_manager_mixin.dart';
+
 part 'mixin/error_handling_mixin.dart';
+
 part 'mixin/request_manager_mixin.dart';
+
 part 'mixin/token_manager_mixin.dart';
+
 part 'mixin/upload_manager_mixin.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -70,24 +74,28 @@ class NetKitManager extends INetKitManager
     /// CAUTION: Make sure that it is set to false in production environments
     bool testMode = false,
 
-    /// Whether the logger is enabled for Dio requests,
-    /// Note: This is independent of the ['logLevel'] parameter,
-    bool loggerEnabled = false,
-
-    /// Set the log level for the network manager.
-    /// Note: This is independent of the ['loggerEnabled'] parameter,
-    /// and will only affect the log level of the network manager.
-    /// The default value is [LogLevel.off].
-    LogLevel logLevel = LogLevel.off,
-
     /// The stream for the internet status
     Stream<bool>? internetStatusStream,
+
+    /// The key for the access token in the headers
     String accessTokenKey = 'Authorization',
+
+    /// The key for the refresh token in the headers
     String refreshTokenKey = 'Refresh-Token',
+
+    /// The path for the refresh token request
     String? refreshTokenPath,
+
+    /// Logger for the network manager. The default logger is VoidLogger
+    /// which does not log anything. To enable logging, a custom logger
+    /// must be created and injected into the NetKitManager class.
+    INetKitLogger logger = const VoidLogger(),
+
+    /// Whether the logger is enabled for Dio requests
+    bool logInterceptorEnabled = false,
     this.onTokenRefreshed,
   }) {
-    /// Initialize the network manager
+    // Initialize the network manager
     _initialize(
       clientAdapter: httpClientAdapter,
       baseUrl: baseUrl,
@@ -96,8 +104,8 @@ class NetKitManager extends INetKitManager
       baseOptions: baseOptions,
       interceptor: interceptor,
       testMode: testMode,
-      loggerEnabled: loggerEnabled,
-      logLevel: logLevel,
+      logInterceptorEnabled: logInterceptorEnabled,
+      logger: logger,
       internetStatusStream: internetStatusStream,
       accessTokenKey: accessTokenKey,
       refreshTokenKey: refreshTokenKey,
@@ -131,7 +139,6 @@ class NetKitManager extends INetKitManager
   ///  after a successful refresh token request.
   ///  The callback function is optional and can
   ///  be set when initializing the network manager.
-
   late final void Function(AuthTokenModel)? onTokenRefreshed;
 
   late final INetKitLogger _logger;
@@ -342,11 +349,11 @@ class NetKitManager extends INetKitManager
 
   void _initialize({
     required String baseUrl,
-    required LogLevel logLevel,
-    required bool loggerEnabled,
+    required bool logInterceptorEnabled,
     required bool testMode,
     required String accessTokenKey,
     required String refreshTokenKey,
+    required INetKitLogger logger,
     NetKitErrorParams? errorParams,
     String? refreshTokenPath,
     String? devBaseUrl,
@@ -356,10 +363,7 @@ class NetKitManager extends INetKitManager
     Stream<bool>? internetStatusStream,
   }) {
     /// Initialize the logger
-    _logger = NetKitLogger();
-
-    /// Set the log level for the logger
-    _logger.setLogLevel(logLevel);
+    _logger = logger;
 
     /// Initialize the converter
     _converter = const Converter();
@@ -374,8 +378,7 @@ class NetKitManager extends INetKitManager
       baseOptions: baseOptions,
       interceptor: interceptor,
       testMode: testMode,
-      loggerEnabled: loggerEnabled,
-      logLevel: logLevel,
+      logInterceptorEnabled: logInterceptorEnabled,
       accessTokenKey: accessTokenKey,
       refreshTokenKey: refreshTokenKey,
       internetStatusSubscription: internetStatusStream?.listen(
@@ -398,7 +401,7 @@ class NetKitManager extends INetKitManager
     options = parameters.baseOptions;
 
     /// Add log interceptor if logger is enabled and test mode is false
-    if (parameters.loggerEnabled && testMode == false) {
+    if (parameters.logInterceptorEnabled && testMode == false) {
       interceptors.add(LogInterceptor());
     }
 
