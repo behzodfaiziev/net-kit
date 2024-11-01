@@ -67,8 +67,6 @@ import 'package:net_kit/net_kit.dart';
 final netKitManager = NetKitManager(
   baseUrl: 'https://api.<URL>.com',
   devBaseUrl: 'https://dev.<URL>.com',
-  loggerEnabled: true,
-  testMode: true,
   // ... other parameters
 );
 ```
