@@ -1,5 +1,6 @@
 import 'package:net_kit/net_kit.dart';
-import 'package:net_kit/src/utility/logger/void_logger.dart';
+
+import 'core/logger/network_logger.dart';
 import 'models/todo_model.dart';
 
 /// A very basic example of how to use the NetKit package.
@@ -10,7 +11,7 @@ void main() {
     baseUrl: 'https://jsonplaceholder.typicode.com',
   );
 
-  final logger = VoidLogger();
+  const logger = NetworkLogger();
 
   /// This is an example of how to use the TodoRemoteDataSource class.
   TodoRemoteDataSourceImpl(netKitManager: netKitManager, logger: logger)
@@ -49,7 +50,12 @@ class TodoRemoteDataSourceImpl extends TodoRemoteDataSource {
   })  : _netKitManager = netKitManager,
         _logger = logger;
 
+  /// The instance of the NetKitManager class
+  /// which is used to make network requests.
   final INetKitManager _netKitManager;
+
+  /// The logger is used to log messages. It is not necessary to use the logger.
+  /// It is used for demonstration purposes.
   final INetKitLogger _logger;
 
   @override
