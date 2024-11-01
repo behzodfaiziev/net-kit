@@ -16,23 +16,23 @@
   * [**Features**](#features)
   * [**Sponsors**](#sponsors)
   * [**Getting started**](#getting-started)
-    * [Initialize](#initialize)
-    * [Extend the model](#extend-the-model)
-    * [Logger Integration](#logger-integration)
+    * [**Initialize**](#initialize)
+    * [**Extend the model**](#extend-the-model)
+    * [**Logger Integration**](#logger-integration)
   * [**Sending requests**](#sending-requests)
-      * [Request a Single Model](#request-a-single-model)
-      * [Request a List of Models](#request-a-list-of-models)
-      * [Send a void Request](#send-a-void-request)
+      * [**Request a Single Model**](#request-a-single-model)
+      * [**Request a List of Models**](#request-a-list-of-models)
+      * [**Send a void Request**](#send-a-void-request)
   * [**Authentication Methods**](#authentication-methods)
-    * [Sign In with Credentials](#sign-in-with-credentials)
-    * [Sign Up](#sign-up)
-    * [Sign In with Social Accounts](#sign-in-with-social-accounts)
-    * [Setting Tokens](#setting-tokens)
-    * [User Logout](#user-logout)
+    * [**Sign In with Credentials**](#sign-in-with-credentials)
+    * [**Sign Up**](#sign-up)
+    * [**Sign In with Social Accounts**](#sign-in-with-social-accounts)
+    * [**Setting Tokens**](#setting-tokens)
+    * [**User Logout**](#user-logout)
   * [**Refresh Token**](#refresh-token)
-    * [Refresh Token Initialization](#refresh-token-initialization)
-    * [Refresh Token Example](#refresh-token-example)
-    * [How refresh token works](#how-refresh-token-works)
+    * [**Refresh Token Initialization**](#refresh-token-initialization)
+    * [**Refresh Token Example**](#refresh-token-example)
+    * [**How refresh token works**](#how-refresh-token-works)
   * [**Planned Enhancements**](#planned-enhancements)
   * [**Contributing**](#contributing)
   * [**License**](#license)
@@ -57,7 +57,7 @@ becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 
 ## **Getting started**
 
-### Initialize
+### **Initialize**
 
 Initialize the NetKitManager with the parameters:
 
@@ -73,7 +73,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-### Extend the model
+### **Extend the model**
 
 Requests such as: `requestModel` and`requestList` require the model to
 extend `INetKitModel` in order to be used with the NetKitManager. By extending, `INetKitModel`
@@ -84,14 +84,14 @@ deserialized.
 class TodoModel extends INetKitModel {}
 ```
 
-### Logger Integration
+### **Logger Integration**
 
 The `NetKitManager` uses a logger internally, for example, during the refresh token stages. To add
 custom logging, you need to create a class that implements the `INetKitLogger` interface. Below is
 an example of how to create a `NetworkLogger` class:
 
 You can find the full example
-of `NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/lib/core/network/logger/network_logger.dart).
+of `NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/flutter_integration_test/lib/core/network/logger/network_logger.dart).
 
 ```dart
 
@@ -104,7 +104,7 @@ final netKitManager = NetKitManager(
 
 ## **Sending requests**
 
-#### Request a Single Model
+#### **Request a Single Model**
 
 ```dart
 Future<RandomUserModel> getRandomUser() async {
@@ -125,7 +125,7 @@ Future<RandomUserModel> getRandomUser() async {
 }
 ```
 
-#### Request a List of Models
+#### **Request a List of Models**
 
 ```dart
 Future<List<ProductModel>> getProducts() async {
@@ -146,7 +146,7 @@ Future<List<ProductModel>> getProducts() async {
 }
 ```
 
-#### Send a void Request
+#### **Send a void Request**
 
 ```dart
 Future<void> deleteProduct() async {
@@ -172,7 +172,7 @@ The `authenticate()` method in `NetKitManager` allows you to handle all types of
 needs, including user sign-in, user sign-up, and social logins (Google, Facebook, etc.). Below are
 examples of how to use it for each scenario.
 
-### Sign In with Credentials
+### **Sign In with Credentials**
 
 This method authenticates users with their username and password by providing SignInRequestModel.
 After a successful sign-in, it
@@ -203,7 +203,7 @@ Future<UserModel> loginWithCredentials(SignInRequestModel signInRequest) async {
 }
 ```
 
-### Sign Up
+### **Sign Up**
 
 This method registers a new user by sending their details to the server. After successful
 registration, the user model and authentication tokens are returned. Note: backend API may
@@ -235,7 +235,7 @@ Future<UserModel> signUpUser(SignUpRequestModel signUpRequest) async {
 }
 ```
 
-### Sign In with Social Accounts
+### **Sign In with Social Accounts**
 
 This method allows users to authenticate using their social media accounts, such as Google,
 Facebook, etc. It requires the access token received from the social provider, which is then sent to
@@ -277,7 +277,7 @@ Future<UserModel> loginWithGoogle(String googleAccessToken) async {
     - The authToken contains both the access token (for authorized requests) and the refresh token (
       for obtaining a new access token when the current one expires).
 
-### Setting Tokens
+### **Setting Tokens**
 
 The **NetKitManager** allows you to set and manage access and refresh tokens, which are essential
 for
@@ -297,7 +297,7 @@ void setTokens(String accessToken, String refreshToken) {
 }
 ```
 
-### User Logout
+### **User Logout**
 
 When a user logs out, you should remove the access and refresh tokens using the `removeAccessToken`
 and `removeRefreshToken` methods.
@@ -320,7 +320,7 @@ The NetKitManager provides a built-in mechanism for handling token refresh. This
 that your access tokens are automatically refreshed when they expire, allowing for seamless and
 uninterrupted API requests.
 
-### Refresh Token Initialization
+### **Refresh Token Initialization**
 
 To use the refresh token feature, you need to initialize the NetKitManager with the following
 parameters:
@@ -329,7 +329,7 @@ parameters:
 - `onTokenRefreshed`: A callback function that is called when the tokens are successfully
   refreshed.
 
-### Refresh Token Example
+### **Refresh Token Example**
 
 ```dart
 
@@ -346,7 +346,7 @@ final netKitManager = NetKitManager(
 );
 ```
 
-### How refresh token works
+### **How refresh token works**
 
 The refresh token mechanism in `NetKitManager` ensures that your access tokens are automatically
 refreshed when they expire, allowing for seamless and uninterrupted API requests. Here’s how it
