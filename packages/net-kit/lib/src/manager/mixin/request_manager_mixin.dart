@@ -11,6 +11,8 @@ mixin RequestManagerMixin on DioMixin {
   /// Overridden internetEnabled getter
   bool get _internetEnabled;
 
+  INetKitLogger get _logger;
+
   /// Overridden converter getter
   Converter get _converter;
 
@@ -73,10 +75,13 @@ mixin RequestManagerMixin on DioMixin {
       }
       return response;
     } on DioException {
+      _logger.error('_sendRequest.DioException: Request failed: $path');
       rethrow;
     } on ApiException {
+      _logger.error('_sendRequest.ApiException: Request failed: $path');
       rethrow;
     } catch (error) {
+      _logger.error('_sendRequest.Exception: Request failed: $path');
       throw ApiException(
         message: error.toString(),
         statusCode: HttpStatuses.expectationFailed.code,
