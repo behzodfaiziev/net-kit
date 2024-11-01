@@ -1,4 +1,4 @@
-# 3.4.0-development
+# 3.4.0
 
 > Note: This release has breaking changes.
 
