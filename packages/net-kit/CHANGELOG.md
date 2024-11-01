@@ -1,3 +1,6 @@
+# 3.4.1
+- added logger.error in _sendRequest method
+
 # 3.4.0
 
 > Note: This release has breaking changes.
