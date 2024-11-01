@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  logger: ^2.4.0
   net_kit:
     path: ../packages/net-kit
 
