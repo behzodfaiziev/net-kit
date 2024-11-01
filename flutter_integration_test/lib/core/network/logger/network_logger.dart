@@ -1,15 +1,21 @@
-import 'package:logger/logger.dart' show Logger, PrettyPrinter;
+import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 import 'package:net_kit/net_kit.dart';
 
 /// Implementation of the [INetKitLogger] interface
 class NetworkLogger implements INetKitLogger {
-  final _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 0,
-      errorMethodCount: 5,
-      lineLength: 50,
-    ),
-  );
+  NetworkLogger() {
+    _logger = Logger(
+      printer: PrettyPrinter(
+        methodCount: 0,
+        errorMethodCount: 5,
+        lineLength: 50,
+      ),
+    );
+    Logger.level = kDebugMode ? Level.all : Level.off;
+  }
+
+  late final Logger _logger;
 
   @override
   void trace(String message) {
