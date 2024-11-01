@@ -1,5 +1,4 @@
 import '../../../net_kit.dart';
-import '../../utility/logger/i_net_kit_logger.dart';
 
 /// A class that manages the authentication tokens used for
 /// API requests, handling token refresh logic and request retries.

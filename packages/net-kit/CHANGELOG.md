@@ -1,3 +1,12 @@
+# 3.4.0-dev1
+
+> Note: This release has breaking changes.
+
+- `logLevel` is removed, since INetKitLogger instance injected to the NetKitManager. This is
+  done to provide more flexibility to the developers to use their own logger.
+- `loggerEnabled` is renamed to `logInterceptorEnabled` in `NetKitManager` to provide more clarity.
+- added
+
 # 3.3.4
 
 - authentication issue fixed
