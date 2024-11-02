@@ -141,6 +141,7 @@ class NetKitManager extends INetKitManager
   ///  be set when initializing the network manager.
   late final void Function(AuthTokenModel)? onTokenRefreshed;
 
+  @override
   late final INetKitLogger _logger;
 
   @override
