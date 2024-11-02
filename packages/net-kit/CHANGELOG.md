@@ -1,3 +1,6 @@
+# 3.4.2 
+- added @override to _logger in NetKitManager
+
 # 3.4.1
 - added logger.error in _sendRequest method
 
