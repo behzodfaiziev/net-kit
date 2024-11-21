@@ -11,7 +11,8 @@ import '../utility/logger/i_net_kit_logger.dart';
 import '../utility/logger/void_logger.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
-    if (dart.library.html) 'adapter/web_http_adapter.dart' as adapter;
+    if (dart.library.io) 'adapter/io_http_adapter.dart'
+    if (dart.library.html) 'adapter/web_http_adapter.dart';
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'params/net_kit_error_params.dart';
@@ -391,7 +392,7 @@ class NetKitManager extends INetKitManager
     );
 
     /// Set up the http client adapter
-    httpClientAdapter = clientAdapter ?? adapter.HttpAdapter().getAdapter();
+    httpClientAdapter = clientAdapter ?? HttpAdapter().getAdapter();
 
     /// If test mode is enabled, use devBaseUrl
     parameters.testMode

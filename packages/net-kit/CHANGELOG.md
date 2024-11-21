@@ -1,3 +1,6 @@
+# 3.4.3 
+- configured import of http-adapter to support wasm
+
 # 3.4.2 
 - added @override to _logger in NetKitManager
 
