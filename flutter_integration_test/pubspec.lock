@@ -168,7 +168,7 @@ packages:
       path: "../packages/net-kit"
       relative: true
     source: path
-    version: "3.4.2"
+    version: "3.4.3"
   path:
     dependency: transitive
     description:
