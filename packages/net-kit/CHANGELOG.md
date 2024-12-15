@@ -1,10 +1,17 @@
-# 3.4.3 
+# 3.5.0
+
+- fixed: uploadMultipartData and uploadMultipartDataList methods do not all cover error handling
+
+# 3.4.3
+
 - configured import of http-adapter to support wasm
 
-# 3.4.2 
+# 3.4.2
+
 - added @override to _logger in NetKitManager
 
 # 3.4.1
+
 - added logger.error in _sendRequest method
 
 # 3.4.0
