@@ -161,9 +161,6 @@ abstract class INetKitManager {
   /// containing credentials or user details.
   /// - [options]: Optional Dio request options.
   /// - [socialAccessToken]: Optional access token for social login.
-  /// - [accessTokenKey]: The key for accessing
-  /// the authorization token in headers.
-  /// - [refreshTokenKey]: The key for accessing the refresh token in headers.
   ///
   /// Example for Sign In:
   /// ```dart
