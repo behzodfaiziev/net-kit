@@ -12,7 +12,6 @@ class TokenManager {
   ///
   /// The constructor requires the following parameters:
   ///
-  /// - [getRefreshToken]: A function to retrieve the current refresh token.
   /// - [addBearerToken]: A function to store the new access token.
   /// - [addRefreshToken]: A function to store the new refresh token.
   /// - [refreshTokenRequest]: A function to make the request for

@@ -19,8 +19,6 @@ class ApiException implements Exception {
   /// The factory method to parse the error response
   /// It takes in the following parameters:
   /// - [json]: The JSON response from the server
-  /// - [statusCodeKey]: The key to use for the status code parsing
-  /// - [messageKey]: The key to use for the error message parsing
   /// - [statusCode]: The status code of the error
   /// It returns an ErrorModel object
   /// If the error response cannot be parsed, it returns a default error message
