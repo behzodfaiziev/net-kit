@@ -1,6 +1,6 @@
 # 3.5.0
 
-- fixed: uploadMultipartData and uploadMultipartDataList methods do not all cover error handling
+- fixed: uploadMultipartData and uploadMultipartDataList methods do not cover all error handling
 
 # 3.4.3
 
