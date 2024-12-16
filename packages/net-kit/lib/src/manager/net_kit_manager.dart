@@ -301,7 +301,7 @@ class NetKitManager extends INetKitManager
     String? contentType,
   }) async {
     try {
-      return _uploadMultipartData(
+      return await _uploadMultipartData(
         path: path,
         model: model,
         multipartFile: multipartFile,
@@ -339,7 +339,7 @@ class NetKitManager extends INetKitManager
     String? contentType,
   }) async {
     try {
-      return _uploadFormData(
+      return await _uploadFormData(
         path: path,
         model: model,
         formData: formData,
