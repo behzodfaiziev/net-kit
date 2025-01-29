@@ -94,7 +94,7 @@ class ApiException implements Exception {
       );
     } on ApiException catch (e) {
       return e;
-    } catch (e) {
+    } on Exception {
       return ApiException(
         statusCode: HttpStatuses.badRequest.code,
         message: params.couldNotParseError,

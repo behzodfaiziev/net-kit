@@ -26,16 +26,16 @@ class Converter {
       if (data is List<dynamic>) {
         return data
 
-            /// Filter the data to only include maps
+        /// Filter the data to only include maps
             .whereType<MapType>()
 
-            /// Convert the data to a model
+        /// Convert the data to a model
             .map((data) => parseModel.fromJson(data))
 
-            /// Cast the data to the model type
+        /// Cast the data to the model type
             .cast<T>()
 
-            /// Convert the converted models to a list
+        /// Convert the converted models to a list
             .toList();
       }
 
@@ -46,7 +46,7 @@ class Converter {
       );
     } on ApiException {
       rethrow;
-    } catch (e) {
+    } on Exception catch (_) {
       /// If an error occurs, throw ApiException
       throw ApiException(
         message: 'Could not parse the list response',
@@ -64,7 +64,7 @@ class Converter {
     try {
       /// Convert the data to a model
       return parsingModel.fromJson(data) as R;
-    } catch (e) {
+    } on Exception catch (_) {
       /// If an error occurs, throw ApiException
       throw ApiException(
         message: 'Could not parse the response: ${R.runtimeType}',

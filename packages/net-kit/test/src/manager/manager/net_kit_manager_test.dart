@@ -45,7 +45,7 @@ void main() {
           model: MockINetKitModel(),
         );
         fail('Expected an ApiException to be thrown');
-      } catch (e) {
+      } on Exception catch (e) {
         expect(e, isA<ApiException>());
         final apiException = e as ApiException;
         expect(apiException.message, 'No internet connection');

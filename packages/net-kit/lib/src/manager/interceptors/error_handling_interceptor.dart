@@ -93,7 +93,7 @@ class ErrorHandlingInterceptor {
           handler.reject(e);
           // Reject all queued requests due to the failure.
           requestQueue.rejectQueuedRequests();
-        } catch (e) {
+        } on Exception catch (e) {
           // Reject the original request if token refresh fails.
           handler.reject(
             DioException(requestOptions: error.requestOptions, error: e),
