@@ -1,3 +1,8 @@
+## 3.6.0-dev
+
+- deprecated `authenticate` method
+- updated the code for the latest lint rules
+
 # 3.5.1
 
 - improved error handling in uploadMultipartData and uploadMultipartDataList methods
