@@ -1,4 +1,4 @@
-## 3.6.0-dev
+## 3.6.0
 
 - deprecated `authenticate` method
 - updated the code for the latest lint rules
