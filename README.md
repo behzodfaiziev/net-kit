@@ -10,5 +10,5 @@ responses, and managing errors.
 ## Contributors
 
 <a href="https://github.com/behzodfaiziev/net-kit/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=behzodfaiziev/net-kit" />
+  <img src="https://contrib.rocks/image?repo=behzodfaiziev/net-kit"  alt="contributors"/>
 </a>

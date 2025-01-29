@@ -46,7 +46,7 @@ class Converter {
       );
     } on ApiException {
       rethrow;
-    } catch (e) {
+    } on Exception catch (_) {
       /// If an error occurs, throw ApiException
       throw ApiException(
         message: 'Could not parse the list response',
@@ -64,7 +64,7 @@ class Converter {
     try {
       /// Convert the data to a model
       return parsingModel.fromJson(data) as R;
-    } catch (e) {
+    } on Exception catch (_) {
       /// If an error occurs, throw ApiException
       throw ApiException(
         message: 'Could not parse the response: ${R.runtimeType}',

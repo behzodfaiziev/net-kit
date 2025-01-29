@@ -3,10 +3,10 @@
 /// [INetKitModel] is the model type
 ///
 /// Convert the json to model
-/// - INetKitModel fromJson(Map<String, dynamic> json);
+/// - `INetKitModel fromJson(Map<String, dynamic> json);`
 ///
 /// Convert the model to json
-/// - Map<String, dynamic>? toJson();
+/// - `Map<String, dynamic>? toJson();`
 ///
 /// It is required to implement the [fromJson] and [toJson] methods
 /// to convert the model to json and vice versa

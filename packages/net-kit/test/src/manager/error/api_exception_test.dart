@@ -58,8 +58,8 @@ void main() {
         json: json,
         params: errorParams,
       );
-      expect(apiException.statusCode, 400);
-      expect(apiException.message, 'Could not parse the error');
+      expect(apiException.statusCode, 417);
+      expect(apiException.message, 'Internal Server Error');
       expect(apiException.messages, isNull);
     });
 
@@ -155,7 +155,7 @@ void main() {
         json: json,
         params: errorParams,
       );
-      expect(apiException.statusCode, 400);
+      expect(apiException.statusCode, 417);
       expect(apiException.message, errorMessage);
       expect(apiException.messages, isNull);
     });

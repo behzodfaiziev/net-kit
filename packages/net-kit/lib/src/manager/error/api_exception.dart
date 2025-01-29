@@ -75,11 +75,12 @@ class ApiException implements Exception {
 
         /// Get the status code
 
-        final status = statusCode ?? json[params.statusCodeKey] as int?;
+        final status = statusCode ?? json[params.statusCodeKey];
 
         /// Return the error model
         throw ApiException(
-          statusCode: status ?? HttpStatuses.badRequest.code,
+          statusCode:
+              status is int ? status : HttpStatuses.expectationFailed.code,
           message: (singleMessage ?? '').isNotEmpty
               ? singleMessage
               : params.couldNotParseError,
@@ -94,7 +95,7 @@ class ApiException implements Exception {
       );
     } on ApiException catch (e) {
       return e;
-    } catch (e) {
+    } on Exception {
       return ApiException(
         statusCode: HttpStatuses.badRequest.code,
         message: params.couldNotParseError,

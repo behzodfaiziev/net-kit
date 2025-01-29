@@ -1,7 +1,3 @@
-/// NetKit is a library for network operations.
-library net_kit;
-
-/// Dio
 export 'package:dio/dio.dart';
 export 'package:dio/src/cancel_token.dart';
 export 'package:dio/src/dio_exception.dart';
