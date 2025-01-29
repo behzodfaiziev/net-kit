@@ -14,8 +14,7 @@ void main() {
     test('should add a request to the queue and process it', () async {
       // Arrange
 
-      // ignore: omit_local_variable_types
-      bool wasProcessed = false;
+      var wasProcessed = false;
 
       // Act
       requestQueue.add(() async {
@@ -63,8 +62,7 @@ void main() {
     test('should dequeue the first request from the queue', () async {
       // Arrange
 
-      // ignore: omit_local_variable_types
-      int counter = 0;
+      var counter = 0;
       requestQueue.add(() async {
         counter++;
       });
