@@ -26,16 +26,16 @@ class Converter {
       if (data is List<dynamic>) {
         return data
 
-        /// Filter the data to only include maps
+            /// Filter the data to only include maps
             .whereType<MapType>()
 
-        /// Convert the data to a model
+            /// Convert the data to a model
             .map((data) => parseModel.fromJson(data))
 
-        /// Cast the data to the model type
+            /// Cast the data to the model type
             .cast<T>()
 
-        /// Convert the converted models to a list
+            /// Convert the converted models to a list
             .toList();
       }
 
