@@ -12,30 +12,33 @@
 <summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
-  * [**Contents**](#contents)
-  * [**Features**](#features)
-  * [**Sponsors**](#sponsors)
-  * [**Getting started**](#getting-started)
+
+* [**Contents**](#contents)
+* [**Features**](#features)
+* [**Sponsors**](#sponsors)
+* [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
     * [**Logger Integration**](#logger-integration)
-  * [**Sending requests**](#sending-requests)
-      * [**Request a Single Model**](#request-a-single-model)
-      * [**Request a List of Models**](#request-a-list-of-models)
-      * [**Send a void Request**](#send-a-void-request)
-  * [**Authentication Methods**](#authentication-methods)
-    * [**Sign In with Credentials**](#sign-in-with-credentials)
-    * [**Sign Up**](#sign-up)
-    * [**Sign In with Social Accounts**](#sign-in-with-social-accounts)
+* [**Sending requests**](#sending-requests)
+    * [**Request a Single Model**](#request-a-single-model)
+    * [**Request a List of Models**](#request-a-list-of-models)
+    * [**Send a void Request**](#send-a-void-request)
+* [**Authentication Methods**](#authentication-methods)
     * [**Setting Tokens**](#setting-tokens)
     * [**User Logout**](#user-logout)
-  * [**Refresh Token**](#refresh-token)
+* [**Refresh Token**](#refresh-token)
     * [**Refresh Token Initialization**](#refresh-token-initialization)
     * [**Refresh Token Example**](#refresh-token-example)
     * [**How refresh token works**](#how-refresh-token-works)
-  * [**Planned Enhancements**](#planned-enhancements)
-  * [**Contributing**](#contributing)
-  * [**License**](#license)
+* [Migration Guidance](#migration-guidance)
+    * [authenticate Method Deprecation: v3.6.0](#authenticate-method-deprecation-v360)
+        * [Why is `authenticate` Deprecated?](#why-is-authenticate-deprecated)
+        * [How to Migrate](#how-to-migrate)
+    * [**Planned Enhancements**](#planned-enhancements)
+    * [**Contributing**](#contributing)
+    * [**License**](#license)
+
 <!-- TOC -->
 
 </details>  
@@ -89,7 +92,8 @@ custom logging, you need to create a class that implements the `INetKitLogger` i
 an example of how to create a `NetworkLogger` class:
 
 You can find the full example
-of `NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/flutter_integration_test/lib/core/network/logger/network_logger.dart).
+of
+`NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/flutter_integration_test/lib/core/network/logger/network_logger.dart).
 
 ```dart
 
@@ -170,110 +174,213 @@ The `authenticate()` method in `NetKitManager` allows you to handle all types of
 needs, including user sign-in, user sign-up, and social logins (Google, Facebook, etc.). Below are
 examples of how to use it for each scenario.
 
-### **Sign In with Credentials**
+[//]: # (### **Sign In with Credentials**)
 
-This method authenticates users with their username and password by providing SignInRequestModel.
-After a successful sign-in, it
-returns the user model and authentication tokens.
+[//]: # ()
 
-**Example:**
+[//]: # (This method authenticates users with their username and password by providing SignInRequestModel.)
 
-```dart
-Future<UserModel> loginWithCredentials(SignInRequestModel signInRequest) async {
-  try {
-    final result = await netKitManager.authenticate<UserModel>(
-      path: '/auth/signin', // API endpoint for sign-in
-      method: RequestMethod.post, // POST request for login
-      model: UserModel(), // User model to parse response
-      body: signInRequest.toJson(), // Credentials
-    );
+[//]: # (After a successful sign-in, it)
 
-    final user = result.$1; // Parsed user model
-    final authToken = result.$2; // AuthTokenModel with access and refresh tokens
+[//]: # (returns the user model and authentication tokens.)
 
-    print('User signed in: ${user.name}');
-    print('Access token: ${authToken.accessToken}');
+[//]: # ()
 
-    return user;
-  } catch (e) {
-    throw Exception('Login failed: $e');
-  }
-}
-```
+[//]: # (**Example:**)
 
-### **Sign Up**
+[//]: # ()
 
-This method registers a new user by sending their details to the server. After successful
-registration, the user model and authentication tokens are returned. Note: backend API may
-or may not return the userModel and authTokens after sign-up. So its userModel or authTokens can be
-null.
+[//]: # (```dart)
 
-**Example:**
+[//]: # (Future<UserModel> loginWithCredentials&#40;SignInRequestModel signInRequest&#41; async {)
 
-```dart
-Future<UserModel> signUpUser(SignUpRequestModel signUpRequest) async {
-  try {
-    final result = await netKitManager.authenticate<UserModel>(
-      path: '/auth/signup', // API endpoint for sign-up
-      method: RequestMethod.post, // POST request for sign-up
-      model: UserModel(), // User model to parse response
-      body: signUpRequest.toJson(), // User details
-    );
+[//]: # (  try {)
 
-    final user = result.$1; // Parsed user model
-    final authToken = result.$2; // AuthTokenModel with access and refresh tokens
+[//]: # (    final result = await netKitManager.authenticate<UserModel>&#40;)
 
-    print('User signed up: ${user.name}');
-    print('Access token: ${authToken.accessToken}');
+[//]: # (      path: '/auth/signin', // API endpoint for sign-in)
 
-    return user;
-  } catch (e) {
-    throw Exception('Sign up failed: $e');
-  }
-}
-```
+[//]: # (      method: RequestMethod.post, // POST request for login)
 
-### **Sign In with Social Accounts**
+[//]: # (      model: UserModel&#40;&#41;, // User model to parse response)
 
-This method allows users to authenticate using their social media accounts, such as Google,
-Facebook, etc. It requires the access token received from the social provider, which is then sent to
-the server for validation.
+[//]: # (      body: signInRequest.toJson&#40;&#41;, // Credentials)
 
-**Example for Google Sign-In:**
+[//]: # (    &#41;;)
 
-```dart
-Future<UserModel> loginWithGoogle(String googleAccessToken) async {
-  try {
-    final result = await netKitManager.authenticate<UserModel>(
-      path: '/auth/social-login', // API endpoint for social login
-      method: RequestMethod.post, // POST request for login
-      model: UserModel(), // User model to parse response
-      socialAccessToken: googleAccessToken, // The Google access token
-    );
+[//]: # ()
 
-    final user = result.$1; // Parsed user model
-    final authToken = result.$2; // AuthTokenModel containing access and refresh tokens
+[//]: # (    final user = result.$1; // Parsed user model)
 
-    print('User signed in with Google: ${user.name}');
-    print('Access token: ${authToken.accessToken}');
+[//]: # (    final authToken = result.$2; // AuthTokenModel with access and refresh tokens)
 
-    return user;
-  } catch (e) {
-    throw Exception('Google login failed: $e');
-  }
-}
+[//]: # ()
 
-```
+[//]: # (    print&#40;'User signed in: ${user.name}'&#41;;)
 
-**How It Works:**
+[//]: # (    print&#40;'Access token: ${authToken.accessToken}'&#41;;)
 
-- `signInWithSocial`:
-    - `socialAccessToken`: This is the token provided by the social login provider (e.g., Google,
-      Facebook).
-    - The server will validate the token with the social provider and, if successful, will return
-      the user's profile (model) and authentication tokens.
-    - The authToken contains both the access token (for authorized requests) and the refresh token (
-      for obtaining a new access token when the current one expires).
+[//]: # ()
+
+[//]: # (    return user;)
+
+[//]: # (  } catch &#40;e&#41; {)
+
+[//]: # (    throw Exception&#40;'Login failed: $e'&#41;;)
+
+[//]: # (  })
+
+[//]: # (})
+
+[//]: # (```)
+
+[//]: # ()
+
+[//]: # (### **Sign Up**)
+
+[//]: # ()
+
+[//]: # (This method registers a new user by sending their details to the server. After successful)
+
+[//]: # (registration, the user model and authentication tokens are returned. Note: backend API may)
+
+[//]: # (or may not return the userModel and authTokens after sign-up. So its userModel or authTokens can be)
+
+[//]: # (null.)
+
+[//]: # ()
+
+[//]: # (**Example:**)
+
+[//]: # ()
+
+[//]: # (```dart)
+
+[//]: # (Future<UserModel> signUpUser&#40;SignUpRequestModel signUpRequest&#41; async {)
+
+[//]: # (  try {)
+
+[//]: # (    final result = await netKitManager.authenticate<UserModel>&#40;)
+
+[//]: # (      path: '/auth/signup', // API endpoint for sign-up)
+
+[//]: # (      method: RequestMethod.post, // POST request for sign-up)
+
+[//]: # (      model: UserModel&#40;&#41;, // User model to parse response)
+
+[//]: # (      body: signUpRequest.toJson&#40;&#41;, // User details)
+
+[//]: # (    &#41;;)
+
+[//]: # ()
+
+[//]: # (    final user = result.$1; // Parsed user model)
+
+[//]: # (    final authToken = result.$2; // AuthTokenModel with access and refresh tokens)
+
+[//]: # ()
+
+[//]: # (    print&#40;'User signed up: ${user.name}'&#41;;)
+
+[//]: # (    print&#40;'Access token: ${authToken.accessToken}'&#41;;)
+
+[//]: # ()
+
+[//]: # (    return user;)
+
+[//]: # (  } catch &#40;e&#41; {)
+
+[//]: # (    throw Exception&#40;'Sign up failed: $e'&#41;;)
+
+[//]: # (  })
+
+[//]: # (})
+
+[//]: # (```)
+
+[//]: # ()
+
+[//]: # (### **Sign In with Social Accounts**)
+
+[//]: # ()
+
+[//]: # (This method allows users to authenticate using their social media accounts, such as Google,)
+
+[//]: # (Facebook, etc. It requires the access token received from the social provider, which is then sent to)
+
+[//]: # (the server for validation.)
+
+[//]: # ()
+
+[//]: # (**Example for Google Sign-In:**)
+
+[//]: # ()
+
+[//]: # (```dart)
+
+[//]: # (Future<UserModel> loginWithGoogle&#40;String googleAccessToken&#41; async {)
+
+[//]: # (  try {)
+
+[//]: # (    final result = await netKitManager.authenticate<UserModel>&#40;)
+
+[//]: # (      path: '/auth/social-login', // API endpoint for social login)
+
+[//]: # (      method: RequestMethod.post, // POST request for login)
+
+[//]: # (      model: UserModel&#40;&#41;, // User model to parse response)
+
+[//]: # (      socialAccessToken: googleAccessToken, // The Google access token)
+
+[//]: # (    &#41;;)
+
+[//]: # ()
+
+[//]: # (    final user = result.$1; // Parsed user model)
+
+[//]: # (    final authToken = result.$2; // AuthTokenModel containing access and refresh tokens)
+
+[//]: # ()
+
+[//]: # (    print&#40;'User signed in with Google: ${user.name}'&#41;;)
+
+[//]: # (    print&#40;'Access token: ${authToken.accessToken}'&#41;;)
+
+[//]: # ()
+
+[//]: # (    return user;)
+
+[//]: # (  } catch &#40;e&#41; {)
+
+[//]: # (    throw Exception&#40;'Google login failed: $e'&#41;;)
+
+[//]: # (  })
+
+[//]: # (})
+
+[//]: # ()
+
+[//]: # (```)
+
+[//]: # ()
+
+[//]: # (**How It Works:**)
+
+[//]: # ()
+
+[//]: # (- `signInWithSocial`:)
+
+[//]: # (    - `socialAccessToken`: This is the token provided by the social login provider &#40;e.g., Google,)
+
+[//]: # (      Facebook&#41;.)
+
+[//]: # (    - The server will validate the token with the social provider and, if successful, will return)
+
+[//]: # (      the user's profile &#40;model&#41; and authentication tokens.)
+
+[//]: # (    - The authToken contains both the access token &#40;for authorized requests&#41; and the refresh token &#40;)
+
+[//]: # (      for obtaining a new access token when the current one expires&#41;.)
 
 ### **Setting Tokens**
 
@@ -371,6 +478,56 @@ works:
 
 This process ensures that your application can continue to make authenticated requests without
 requiring user intervention when tokens expire.
+
+# Migration Guidance
+
+## authenticate Method Deprecation: v3.6.0
+
+### Why is `authenticate` Deprecated?
+
+- The `authenticate` method assumes tokens are sent via **headers**, which can be logged in certain
+  systems.
+- It is more secure to **receive tokens in the response body** instead.
+- The **requestModel** method gives developers more control over token parsing and storage.
+
+### How to Migrate
+
+- Before (Deprecated) ⛔
+
+```dart
+Future<(AuthResultModel, AuthTokenModel)> signIn({
+  required SignInParams signInParams,
+}) async {
+  return _network.authenticate<AuthResultModel>(
+    path: '/auth/sign-in',
+    method: RequestMethod.post,
+    model: AuthResultModel(),
+    body: signInParams.toJson(),
+  );
+}
+```
+
+- After (Recommended) ✅
+
+```dart
+/// The result returns both the user model and the auth tokens
+/// But it may differ based on your implementation
+Future<(AuthResultModel, AuthTokenModel)> signIn({
+  required SignInParams signInParams,
+}) async {
+  final response = await _network.requestModel<AuthResultModel>(
+    path: '/auth/sign-in',
+    method: RequestMethod.post,
+    model: AuthResultModel(),
+    body: signInParams.toJson(),
+  );
+
+  // Assuming `AuthResultModel` contains both user info and tokens
+  final authToken = AuthTokenModel.fromJson(response.toJson());
+
+  return (response, authToken);
+}
+```
 
 ## **Planned Enhancements**
 

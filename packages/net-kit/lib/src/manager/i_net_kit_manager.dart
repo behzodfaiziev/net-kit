@@ -197,6 +197,13 @@ abstract class INetKitManager {
   /// final user = result.$1;
   /// final authToken = result.$2;
   /// ```
+  @Deprecated('The authenticate method is no longer recommended as it assumes '
+      'tokens are sent via headers, which is discouraged for some backends due '
+      'to potential logging risks. If your backend securely sends tokens in '
+      'headers and you require this method, please create an issue with a '
+      'Proof of Concept (PoC) to discuss your use case. Alternatively, use '
+      'the more flexible requestModel method, which allows custom handling '
+      'of token management.')
   Future<(R, AuthTokenModel)> authenticate<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
