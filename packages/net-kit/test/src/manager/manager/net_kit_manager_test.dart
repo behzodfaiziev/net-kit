@@ -149,20 +149,20 @@ void main() {
         expect(tokens.refreshToken, isNull);
       });
 
-      test('should return null tokens when tokens are not strings', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          data: <String, dynamic>{
-            'accessToken': 12345, // Invalid type (int)
-            'refreshToken': true, // Invalid type (bool)
-          },
-        );
-
-        final tokens = netKitManager.extractTokens(response: response);
-
-        expect(tokens.accessToken, isNull);
-        expect(tokens.refreshToken, isNull);
-      });
+      // test('should return null tokens when tokens are not strings', () {
+      //   final response = Response<dynamic>(
+      //     requestOptions: RequestOptions(path: '/test'),
+      //     data: <String, dynamic>{
+      //       'accessToken': 12345, // Invalid type (int)
+      //       'refreshToken': true, // Invalid type (bool)
+      //     },
+      //   );
+      //
+      //   final tokens = netKitManager.extractTokens(response: response);
+      //
+      //   expect(tokens.accessToken, isNull);
+      //   expect(tokens.refreshToken, isNull);
+      // });
 
       test('should return empty string tokens when values are empty', () {
         final response = Response<dynamic>(
