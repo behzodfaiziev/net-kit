@@ -43,7 +43,7 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
         accessToken: data[parameters.accessTokenBodyKey] as String?,
         refreshToken: data[parameters.refreshTokenBodyKey] as String?,
       );
-    } on Exception catch (_) {
+    } on Object catch (_) {
       return const AuthTokenModel();
     }
   }
