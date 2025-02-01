@@ -1,4 +1,4 @@
-## 4.0.0-dev
+## 4.0.0
 
 - `Breaking change`: removed authenticate method
 - `Breaking change`: refresh tokens are now parsed from only body, since it is a common practice
