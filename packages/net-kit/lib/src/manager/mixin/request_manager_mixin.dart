@@ -48,11 +48,12 @@ mixin RequestManagerMixin on DioMixin {
 
       // Remove the access token from the headers if it's not needed.
       if (containsAccessToken == false &&
-          baseOptions.headers[parameters.accessTokenKey] != null) {
+          baseOptions.headers[parameters.accessTokenHeaderKey] != null) {
         // Preserve the access token to set it back after the request
-        accessToken = baseOptions.headers[parameters.accessTokenKey] as String;
+        accessToken =
+            baseOptions.headers[parameters.accessTokenHeaderKey] as String;
         // Remove the access token from the headers
-        baseOptions.headers.remove(parameters.accessTokenKey);
+        baseOptions.headers.remove(parameters.accessTokenHeaderKey);
       }
 
       final response = await request<dynamic>(
@@ -89,7 +90,7 @@ mixin RequestManagerMixin on DioMixin {
     } finally {
       // Set the access token back to the headers if it was removed
       if (accessToken != null && containsAccessToken == false) {
-        baseOptions.headers[parameters.accessTokenKey] = accessToken;
+        baseOptions.headers[parameters.accessTokenHeaderKey] = accessToken;
       }
     }
   }

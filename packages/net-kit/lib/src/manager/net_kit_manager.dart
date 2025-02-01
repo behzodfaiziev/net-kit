@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../enum/http_status_codes.dart';
@@ -21,15 +23,9 @@ import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
 part 'interceptors/error_handling_interceptor.dart';
-
-part 'mixin/authentication_manager_mixin.dart';
-
 part 'mixin/error_handling_mixin.dart';
-
 part 'mixin/request_manager_mixin.dart';
-
 part 'mixin/token_manager_mixin.dart';
-
 part 'mixin/upload_manager_mixin.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -47,8 +43,7 @@ class NetKitManager extends INetKitManager
         RequestManagerMixin,
         ErrorHandlingMixin,
         TokenManagerMixin,
-        UploadManagerMixin,
-        AuthenticationManagerMixin {
+        UploadManagerMixin {
   /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
@@ -79,13 +74,21 @@ class NetKitManager extends INetKitManager
     Stream<bool>? internetStatusStream,
 
     /// The key for the access token in the headers
-    String accessTokenKey = 'Authorization',
+    String accessTokenHeaderKey = 'Authorization',
 
     /// The key for the refresh token in the headers
-    String refreshTokenKey = 'Refresh-Token',
+    String refreshTokenHeaderKey = 'Refresh-Token',
 
     /// The path for the refresh token request
     String? refreshTokenPath,
+
+    /// The key for the access token in the body
+    /// Used for automatic token refresh
+    String accessTokenBodyKey = 'accessToken',
+
+    /// The key for the refresh token in the body
+    /// Used for automatic token refresh
+    String refreshTokenBodyKey = 'refreshToken',
 
     /// Logger for the network manager. The default logger is VoidLogger
     /// which does not log anything. To enable logging, a custom logger
@@ -108,8 +111,10 @@ class NetKitManager extends INetKitManager
       logInterceptorEnabled: logInterceptorEnabled,
       logger: logger,
       internetStatusStream: internetStatusStream,
-      accessTokenKey: accessTokenKey,
-      refreshTokenKey: refreshTokenKey,
+      accessTokenHeaderKey: accessTokenHeaderKey,
+      refreshTokenHeaderKey: refreshTokenHeaderKey,
+      accessTokenBodyKey: accessTokenBodyKey,
+      refreshTokenBodyKey: refreshTokenBodyKey,
       refreshTokenPath: refreshTokenPath,
     );
   }
@@ -267,25 +272,6 @@ class NetKitManager extends INetKitManager
   }
 
   @override
-  Future<(R, AuthTokenModel)> authenticate<R extends INetKitModel>({
-    required String path,
-    required RequestMethod method,
-    required R model,
-    MapType? body,
-    Options? options,
-    String? socialAccessToken, // Optional social access token for social login
-  }) async {
-    return _authenticate<R>(
-      path: path,
-      model: model,
-      method: method,
-      body: body,
-      socialAccessToken: socialAccessToken,
-      options: options,
-    );
-  }
-
-  @override
   Future<R> uploadMultipartData<R extends INetKitModel>({
     required String path,
 
@@ -367,8 +353,10 @@ class NetKitManager extends INetKitManager
     required String baseUrl,
     required bool logInterceptorEnabled,
     required bool testMode,
-    required String accessTokenKey,
-    required String refreshTokenKey,
+    required String accessTokenHeaderKey,
+    required String refreshTokenHeaderKey,
+    required String accessTokenBodyKey,
+    required String refreshTokenBodyKey,
     required INetKitLogger logger,
     NetKitErrorParams? errorParams,
     String? refreshTokenPath,
@@ -395,8 +383,10 @@ class NetKitManager extends INetKitManager
       interceptor: interceptor,
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
-      accessTokenKey: accessTokenKey,
-      refreshTokenKey: refreshTokenKey,
+      accessTokenHeaderKey: accessTokenHeaderKey,
+      refreshTokenHeaderKey: refreshTokenHeaderKey,
+      accessTokenBodyKey: accessTokenBodyKey,
+      refreshTokenBodyKey: refreshTokenBodyKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value
@@ -465,7 +455,7 @@ class NetKitManager extends INetKitManager
 
   /// Method to get the access token from the headers.
   String getRefreshToken() {
-    final token = baseOptions.headers[parameters.refreshTokenKey];
+    final token = baseOptions.headers[parameters.refreshTokenHeaderKey];
     if (token == null) return '';
     return token is String ? token : '';
   }
@@ -490,14 +480,10 @@ class NetKitManager extends INetKitManager
       options: Options(
         method: RequestMethod.post.name.toUpperCase(),
         headers: {
-          parameters.refreshTokenKey: getRefreshToken(),
+          parameters.refreshTokenHeaderKey: getRefreshToken(),
         },
       ),
     );
-    return extractTokens(
-      response: refreshResponse,
-      accessTokenKey: parameters.accessTokenKey,
-      refreshTokenKey: parameters.refreshTokenKey,
-    );
+    return extractTokens(response: refreshResponse);
   }
 }

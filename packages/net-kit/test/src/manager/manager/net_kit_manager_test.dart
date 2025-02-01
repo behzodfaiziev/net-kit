@@ -148,6 +148,87 @@ void main() {
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
       });
+
+      test('should return null tokens when tokens are not strings', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, dynamic>{
+            'accessToken': 12345, // Invalid type (int)
+            'refreshToken': true, // Invalid type (bool)
+          },
+        );
+
+        final tokens = netKitManager.extractTokens(response: response);
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test('should return empty string tokens when values are empty', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, dynamic>{
+            'accessToken': '',
+            'refreshToken': '',
+          },
+        );
+
+        final tokens = netKitManager.extractTokens(response: response);
+
+        expect(tokens.accessToken, '');
+        expect(tokens.refreshToken, '');
+      });
+      test(
+          'should return null tokens when response data is empty '
+          'a map with wrong type', () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, int>{}, // String instead of a map
+        );
+
+        final tokens = netKitManager.extractTokens(response: response);
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test('should return null tokens when response has an error status code',
+          () {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          statusCode: 500, // Internal server error
+          data: <String, dynamic>{
+            'accessToken': 'access-token-value',
+            'refreshToken': 'refresh-token-value',
+          },
+        );
+
+        final tokens = netKitManager.extractTokens(response: response);
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test('should extract tokens correctly in concurrent requests', () async {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(path: '/test'),
+          data: <String, dynamic>{
+            'accessToken': 'access-token-value',
+            'refreshToken': 'refresh-token-value',
+          },
+        );
+
+        final results = await Future.wait([
+          Future(() => netKitManager.extractTokens(response: response)),
+          Future(() => netKitManager.extractTokens(response: response)),
+          Future(() => netKitManager.extractTokens(response: response)),
+        ]);
+
+        for (final tokens in results) {
+          expect(tokens.accessToken, 'access-token-value');
+          expect(tokens.refreshToken, 'refresh-token-value');
+        }
+      });
     });
   });
 }

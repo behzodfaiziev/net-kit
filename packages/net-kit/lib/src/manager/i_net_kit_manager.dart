@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../enum/request_method.dart';
-import '../model/auth_token_model.dart';
 import '../model/i_net_kit_model.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'params/net_kit_params.dart';
@@ -138,79 +137,6 @@ abstract class INetKitManager {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     bool? containsAccessToken,
-  });
-
-  /// General authentication method that handles
-  /// sign-in, sign-up, and social login.
-  ///
-  /// ### **IMPORTANT: If the result is not needed then use VoidModel as R**
-  ///
-  /// This method can be used for:
-  /// - **Sign In**: Authenticate users
-  /// with their credentials (username, password).
-  /// - **Sign Up**: Register new users
-  /// with their details (username, password, email, etc.).
-  /// - **Social Login**: Authenticate users
-  /// with social media access tokens (e.g., Google, Facebook).
-  ///
-  /// Parameters:
-  /// - [path]: The API endpoint for the request.
-  /// - [method]: The HTTP request method (POST, GET, etc.).
-  /// - [model]: The model to parse the response.
-  /// - [body]: The request body, typically
-  /// containing credentials or user details.
-  /// - [options]: Optional Dio request options.
-  /// - [socialAccessToken]: Optional access token for social login.
-  ///
-  /// Example for Sign In:
-  /// ```dart
-  /// final result = await netKitManager.authenticate<UserModel>(
-  ///   path: '/auth/signin',
-  ///   method: RequestMethod.post,
-  ///   model: UserModel(),
-  ///   body: {'username': username, 'password': password},
-  /// );
-  /// final user = result.$1;
-  /// final authToken = result.$2;
-  /// ```
-  ///
-  /// Example for Sign Up:
-  /// ```dart
-  /// final result = await netKitManager.authenticate<UserModel>(
-  ///   path: '/auth/signup',
-  ///   method: RequestMethod.post,
-  ///   model: UserModel(),
-  ///   body: {'username': username, 'password': password, 'email': email},
-  /// );
-  /// final user = result.$1;
-  /// final authToken = result.$2;
-  /// ```
-  ///
-  /// Example for Social Login:
-  /// ```dart
-  /// final result = await netKitManager.authenticate<UserModel>(
-  ///   path: '/auth/social-login',
-  ///   method: RequestMethod.post,
-  ///   model: UserModel(),
-  ///   socialAccessToken: googleAccessToken,
-  /// );
-  /// final user = result.$1;
-  /// final authToken = result.$2;
-  /// ```
-  @Deprecated('The authenticate method is no longer recommended as it assumes '
-      'tokens are sent via headers, which is discouraged for some backends due '
-      'to potential logging risks. If your backend securely sends tokens in '
-      'headers and you require this method, please create an issue with a '
-      'Proof of Concept (PoC) to discuss your use case. Alternatively, use '
-      'the more flexible requestModel method, which allows custom handling '
-      'of token management.')
-  Future<(R, AuthTokenModel)> authenticate<R extends INetKitModel>({
-    required String path,
-    required RequestMethod method,
-    required R model,
-    MapType? body,
-    Options? options,
-    String? socialAccessToken,
   });
 
   /// This method is responsible for uploading multipart form data to a

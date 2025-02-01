@@ -1,3 +1,15 @@
+## 4.0.0-dev
+
+- `Breaking change`: removed authenticate method
+- `Breaking change`: refresh tokens are now parsed from only body, since it is a common practice
+  to return the new access token and, if needed, the new refresh token via body for more security.
+  If you want to handle the refresh token manually, you can use add custom interceptor to handle
+  the refresh token.
+- `Breaking change`: updated `accessTokenKey` as `accessTokenHeaderKey`
+- `Breaking change`: updated `refreshTokenKey` as `refreshTokenHeaderKey`
+- added `accessTokenBodyKey` to `NetKitManager` to parse the access token from the body
+- added `refreshTokenBodyKey` to `NetKitManager` to parse the refresh token from the body
+
 ## 3.6.0
 
 - deprecated `authenticate` method

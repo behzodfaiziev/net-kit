@@ -9,8 +9,10 @@ class NetKitParams {
     required this.baseOptions,
     required this.testMode,
     required this.logInterceptorEnabled,
-    required this.accessTokenKey,
-    required this.refreshTokenKey,
+    required this.accessTokenHeaderKey,
+    required this.refreshTokenHeaderKey,
+    required this.refreshTokenBodyKey,
+    required this.accessTokenBodyKey,
     this.interceptor,
     this.internetStatusSubscription,
   });
@@ -41,11 +43,23 @@ class NetKitParams {
   /// The default value is ['Authorization']
   /// The access token key is used to get the access token from the headers
   /// of the network responses
-  final String accessTokenKey;
+  final String accessTokenHeaderKey;
 
   /// The refresh token key.
   /// The default value is ['Refresh-Token']
   /// The refresh token key is used to get the refresh token from the headers
   /// of the network responses
-  final String refreshTokenKey;
+  final String refreshTokenHeaderKey;
+
+  /// The refresh token body key.
+  /// The default value is ['refreshToken']
+  /// The refresh token body key is used to get the refresh token from the body
+  /// to use for automatic token refreshing
+  final String refreshTokenBodyKey;
+
+  /// The access token body key.
+  /// The default value is ['accessToken']
+  /// The access token body key is used to get the access token from the body
+  /// to use for automatic token refreshing
+  final String accessTokenBodyKey;
 }
