@@ -51,7 +51,7 @@ void main() {
       debugPrint(tester.element(find.byType(app.MyApp)).toStringDeep());
 
       // Wait for a short duration to ensure the comment is created
-      await Future<void>.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 4));
 
       // Verify that the new comment is inserted at the beginning of the list
       final newComment = find.text('New Comment Name');
