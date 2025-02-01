@@ -10,7 +10,7 @@
 - added `accessTokenBodyKey` to `NetKitManager` to parse the access token from the body
 - added `refreshTokenBodyKey` to `NetKitManager` to parse the refresh token from the body
 
-## 3.6.0
+# 3.6.0
 
 - deprecated `authenticate` method
 - updated the code for the latest lint rules
