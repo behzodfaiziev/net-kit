@@ -12,13 +12,23 @@ class MockINetKitModel extends Mock implements INetKitModel {}
 void main() {
   group('NetKitManager', () {
     late NetKitManager netKitManager;
+    late NetKitManager netKitManagerWithCustomKeys;
     late StreamController<bool> internetStatusController;
 
     setUp(() {
-      internetStatusController = StreamController<bool>();
+      internetStatusController = StreamController<bool>.broadcast();
       netKitManager = NetKitManager(
         baseUrl: 'https://<TEST-API>.com',
         internetStatusStream: internetStatusController.stream,
+      );
+
+      netKitManagerWithCustomKeys = NetKitManager(
+        baseUrl: 'https://<TEST-API>.com',
+        internetStatusStream: internetStatusController.stream,
+        accessTokenBodyKey: 'access_token',
+        refreshTokenBodyKey: 'refresh_token',
+        accessTokenHeaderKey: 'custom_access_token_header',
+        refreshTokenHeaderKey: 'custom_refresh_token_header',
       );
     });
 
@@ -53,39 +63,29 @@ void main() {
       }
     });
 
-    group('Extract tokens from headers', () {
+    group('Extract tokens from body', () {
       test(
           'should extract tokens when both access and '
           'refresh tokens are present', () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
-          headers: Headers.fromMap({
-            'Authorization': ['access-token-value'],
-            'Refresh-Token': ['refresh-token-value'],
-          }),
+          data: <String, dynamic>{
+            'accessToken': 'access-token-value',
+            'refreshToken': 'refresh-token-value',
+          },
         );
 
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'Authorization',
-          refreshTokenKey: 'Refresh-Token',
-        );
+        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, 'refresh-token-value');
       });
 
-      test('should return null tokens when headers are missing', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          headers: Headers(),
-        );
+      test('should return null tokens when tokens are missing', () {
+        final response =
+            Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
 
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'Authorization',
-          refreshTokenKey: 'Refresh-Token',
-        );
+        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
@@ -95,16 +95,10 @@ void main() {
           () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
-          headers: Headers.fromMap({
-            'Refresh-Token': ['refresh-token-value'],
-          }),
+          data: <String, dynamic>{'refreshToken': 'refresh-token-value'},
         );
 
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'Authorization',
-          refreshTokenKey: 'Refresh-Token',
-        );
+        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, 'refresh-token-value');
@@ -114,16 +108,10 @@ void main() {
           () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
-          headers: Headers.fromMap({
-            'Authorization': ['access-token-value'],
-          }),
+          data: <String, dynamic>{'accessToken': 'access-token-value'},
         );
 
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'Authorization',
-          refreshTokenKey: 'Refresh-Token',
-        );
+        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, isNull);
@@ -134,56 +122,14 @@ void main() {
           'and refreshTokenKey are different', () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
-          headers: Headers.fromMap({
-            'Access-Token': ['access-token-value'],
-            'Refresh-Token': ['refresh-token-value'],
-          }),
+          data: <String, dynamic>{
+            'access_token': 'access-token-value',
+            'refresh_token': 'refresh-token-value',
+          },
         );
 
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'Access-Token',
-          refreshTokenKey: 'Refresh-Token',
-        );
-
-        expect(tokens.accessToken, 'access-token-value');
-        expect(tokens.refreshToken, 'refresh-token-value');
-      });
-
-      test(
-          'should return null tokens when accessTokenKey '
-          'and refreshTokenKey are different and missing', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          headers: Headers(),
-        );
-
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'Access-Token',
-          refreshTokenKey: 'Refresh-Token',
-        );
-
-        expect(tokens.accessToken, isNull);
-        expect(tokens.refreshToken, isNull);
-      });
-
-      test(
-          'should extract tokens when accessTokenKey is '
-          'AccessToken and refreshTokenKey is RefreshToken', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          headers: Headers.fromMap({
-            'AccessToken': ['access-token-value'],
-            'RefreshToken': ['refresh-token-value'],
-          }),
-        );
-
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'AccessToken',
-          refreshTokenKey: 'RefreshToken',
-        );
+        final tokens =
+            netKitManagerWithCustomKeys.extractTokens(response: response);
 
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, 'refresh-token-value');
@@ -197,11 +143,7 @@ void main() {
           headers: Headers(),
         );
 
-        final tokens = netKitManager.extractTokens(
-          response: response,
-          accessTokenKey: 'AccessToken',
-          refreshTokenKey: 'RefreshToken',
-        );
+        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
