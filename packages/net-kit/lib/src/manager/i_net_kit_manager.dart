@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
-
-import '../enum/request_method.dart';
-import '../model/i_net_kit_model.dart';
+import '../../net_kit.dart';
+import '../model/api_meta_response.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'params/net_kit_params.dart';
 
@@ -63,6 +61,32 @@ abstract class INetKitManager {
     bool? containsAccessToken,
   });
 
+  /// The `requestModelMeta()` method is similar to the `requestModel` method,
+  /// but it includes additional metadata in the response.
+  ///
+  /// This metadata can provide extra information about the model returned,
+  /// such as request details or other relevant data.
+  ///
+  /// The method signature and parameters are almost identical, but the
+  /// return type is `ApiResponse<R>`, which wraps the model along
+  /// with the metadata.
+  ///
+  /// The metadata is of type `MapType`, not a model.
+  Future<ApiMetaResponse<R, M>>
+      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    required M metadataModel, // Add required metadata model
+    MapType? body,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
+  });
+
   /// The `requestList()` method is responsible for making a network request
   /// to the specified path with the specified method. It takes in the following
   /// parameters:
@@ -100,6 +124,32 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    bool? containsAccessToken,
+  });
+
+  /// The `requestListMeta()` method is similar to the `requestList` method,
+  /// but it includes additional metadata in the response.
+  ///
+  /// This metadata can provide extra information about the list of items
+  /// returned, such as pagination details or other relevant data.
+  ///
+  /// The method signature and parameters are almost identical, but the
+  /// return type is `ApiResponse<List<R>>`, which wraps the list of items
+  /// along with the metadata.
+  ///
+  /// The metadata is of type `MapType`, not a model.
+  Future<ApiMetaResponse<List<R>, M>>
+      requestListMeta<R extends INetKitModel, M extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    required M metadataModel, // Add required metadata model
+    MapType? body,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
     bool? containsAccessToken,
   });
 

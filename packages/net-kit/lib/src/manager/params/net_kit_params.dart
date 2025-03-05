@@ -15,6 +15,7 @@ class NetKitParams {
     required this.accessTokenBodyKey,
     this.interceptor,
     this.internetStatusSubscription,
+    this.dataKey,
   });
 
   /// The subscription for the internet status
@@ -62,4 +63,8 @@ class NetKitParams {
   /// The access token body key is used to get the access token from the body
   /// to use for automatic token refreshing
   final String accessTokenBodyKey;
+
+  /// The key to extract data from the response.
+  /// If null, the response data will be used as is.
+  final String? dataKey;
 }

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../enum/http_status_codes.dart';
 import '../enum/request_method.dart';
+import '../model/api_meta_response.dart';
 import '../model/auth_token_model.dart';
 import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
@@ -90,6 +91,10 @@ class NetKitManager extends INetKitManager
     /// Used for automatic token refresh
     String refreshTokenBodyKey = 'refreshToken',
 
+    /// The key to extract data from the response.
+    /// If null, the response data will be used as is.
+    String? dataKey,
+
     /// Logger for the network manager. The default logger is VoidLogger
     /// which does not log anything. To enable logging, a custom logger
     /// must be created and injected into the NetKitManager class.
@@ -97,6 +102,8 @@ class NetKitManager extends INetKitManager
 
     /// Whether the logger is enabled for Dio requests
     bool logInterceptorEnabled = false,
+
+    /// The callback function that is called when the tokens are updated
     this.onTokenRefreshed,
   }) {
     // Initialize the network manager
@@ -116,6 +123,7 @@ class NetKitManager extends INetKitManager
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
       refreshTokenPath: refreshTokenPath,
+      dataKey: dataKey,
     );
   }
 
@@ -189,17 +197,61 @@ class NetKitManager extends INetKitManager
         containsAccessToken: containsAccessToken,
       );
 
-      /// Check if the response data is a map
-      /// If not, throw an exception
       if ((response.data is MapType) == false) {
         throw _notMapTypeError(response);
       }
-      final parsedModel =
-          _converter.toModel<R>(response.data as MapType, model);
+
+      final data = parameters.dataKey != null
+          ? (response.data as MapType)[parameters.dataKey]
+          : response.data;
+
+      final parsedModel = _converter.toModel<R>(data as MapType, model);
 
       return parsedModel;
     } on DioException catch (error) {
-      /// Parse the API exception and throw it
+      throw _parseToApiException(error);
+    }
+  }
+
+  @override
+  Future<ApiMetaResponse<R, M>>
+      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    required M metadataModel, // Add required metadata model
+    MapType? body,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
+  }) async {
+    try {
+      final response = await _sendRequest(
+        path: path,
+        method: method,
+        body: body,
+        options: options,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        onReceiveProgress: onReceiveProgress,
+        onSendProgress: onSendProgress,
+        containsAccessToken: containsAccessToken,
+      );
+
+      // Extract data and metadata
+      final data = (response.data as MapType)[parameters.dataKey];
+      final metadataMap = (response.data as MapType)
+        ..remove(parameters.dataKey);
+
+      // Parse both models
+      final parsedData = _converter.toModel<R>(data as MapType, model);
+      final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
+
+      return ApiMetaResponse(data: parsedData, metadata: parsedMetadata);
+    } on DioException catch (error) {
       throw _parseToApiException(error);
     }
   }
@@ -229,12 +281,60 @@ class NetKitManager extends INetKitManager
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
       );
+
+      final data = parameters.dataKey != null
+          ? (response.data as MapType)[parameters.dataKey]
+          : response.data;
+
       return _converter.toListModel(
-        data: response.data,
+        data: data,
         parseModel: model,
       );
     } on DioException catch (error) {
-      /// Parse the API exception and throw it
+      throw _parseToApiException(error);
+    }
+  }
+
+  @override
+  Future<ApiMetaResponse<List<R>, M>>
+      requestListMeta<R extends INetKitModel, M extends INetKitModel>({
+    required String path,
+    required RequestMethod method,
+    required R model,
+    required M metadataModel, // Add required metadata model
+    MapType? body,
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
+  }) async {
+    try {
+      final response = await _sendRequest(
+        path: path,
+        method: method,
+        body: body,
+        options: options,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        onReceiveProgress: onReceiveProgress,
+        onSendProgress: onSendProgress,
+        containsAccessToken: containsAccessToken,
+      );
+
+      // Extract data and metadata
+      final data = (response.data as MapType)[parameters.dataKey];
+      final metadataMap = (response.data as MapType)
+        ..remove(parameters.dataKey);
+
+      // Parse both models
+      final parsedList = _converter.toListModel(data: data, parseModel: model);
+
+      final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
+
+      return ApiMetaResponse(data: parsedList, metadata: parsedMetadata);
+    } on DioException catch (error) {
       throw _parseToApiException(error);
     }
   }
@@ -365,6 +465,7 @@ class NetKitManager extends INetKitManager
     Interceptor? interceptor,
     HttpClientAdapter? clientAdapter,
     Stream<bool>? internetStatusStream,
+    String? dataKey,
   }) {
     /// Initialize the logger
     _logger = logger;
@@ -387,6 +488,7 @@ class NetKitManager extends INetKitManager
       refreshTokenHeaderKey: refreshTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
+      dataKey: dataKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value

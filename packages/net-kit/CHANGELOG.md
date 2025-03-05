@@ -1,3 +1,7 @@
+## 4.1.0-dev
+
+- added `requestListMeta` and `requestModelMeta`
+
 ## 4.0.0
 
 - `Breaking change`: removed authenticate method
