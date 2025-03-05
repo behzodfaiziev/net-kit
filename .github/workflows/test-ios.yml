@@ -3,7 +3,7 @@ name: Test iOS
 on:
   push:
     tags:
-      - '*-release'
+      - '*-release1'
 jobs:
   test-ios:
     runs-on: macOS-latest
