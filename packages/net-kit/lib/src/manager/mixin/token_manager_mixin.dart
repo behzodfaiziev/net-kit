@@ -33,7 +33,9 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
       }
 
       // Ensure response.data is treated as a Map
-      final data = response.data as Map<String, dynamic>?;
+      final data = (parameters.dataKey != null
+          ? (response.data as MapType)[parameters.dataKey]
+          : response.data) as MapType?;
 
       if (data == null) {
         return const AuthTokenModel();
