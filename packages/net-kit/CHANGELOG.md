@@ -1,8 +1,12 @@
+## 4.1.1-dev
+
+- improved automatic refresh token on custom data key
+
 ## 4.1.0-dev
 
 - added `requestListMeta` and `requestModelMeta`
 
-## 4.0.0
+# 4.0.0
 
 - `Breaking change`: removed authenticate method
 - `Breaking change`: refresh tokens are now parsed from only body, since it is a common practice
