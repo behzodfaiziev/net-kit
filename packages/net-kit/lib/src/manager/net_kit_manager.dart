@@ -288,7 +288,7 @@ class NetKitManager extends INetKitManager
 
       return _converter.toListModel(
         data: data,
-        parseModel: model,
+        parsingModel: model,
       );
     } on DioException catch (error) {
       throw _parseToApiException(error);
@@ -329,7 +329,8 @@ class NetKitManager extends INetKitManager
         ..remove(parameters.dataKey);
 
       // Parse both models
-      final parsedList = _converter.toListModel(data: data, parseModel: model);
+      final parsedList =
+          _converter.toListModel(data: data, parsingModel: model);
 
       final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
 
@@ -407,6 +408,7 @@ class NetKitManager extends INetKitManager
       throw ApiException(
         message: e.toString(),
         statusCode: HttpStatuses.internalServerError.code,
+        error: e,
       );
     }
   }

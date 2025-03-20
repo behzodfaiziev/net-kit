@@ -3,6 +3,7 @@ import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:test/test.dart';
 
 import 'models/random_users_response_model.dart';
+import 'models/wrong_random_users_response_model.dart';
 
 void main() {
   group('Random User Integration Test', () {
@@ -60,6 +61,29 @@ void main() {
         expect(error.statusCode, isA<int>());
         expect(error.statusCode, HttpStatuses.expectationFailed.code);
         expect(error.message, 'The data is not a list');
+      }
+    });
+
+    test('Request a Single Model - Failure Case: Wrong UserModel type',
+        () async {
+      try {
+        final response =
+            await netKitManager.requestModel<WrongRandomUsersResponseModel>(
+          path: '/api',
+          method: RequestMethod.get,
+          model: const WrongRandomUsersResponseModel(),
+        );
+        fail('Request should have failed: $response');
+      } on ApiException catch (e) {
+        expect(e.message, isA<String>());
+        expect(e.message, 'Could not parse the response');
+        expect(e.debugMessage, isA<String>());
+        expect(
+          e.debugMessage,
+          'Could not parse the response: WrongRandomUsersResponseModel',
+        );
+        expect(e.statusCode, isA<int>());
+        expect(e.statusCode, HttpStatuses.expectationFailed.code);
       }
     });
   });

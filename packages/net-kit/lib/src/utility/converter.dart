@@ -19,7 +19,7 @@ class Converter {
   /// If the data is not within the above conditions, returns an empty list
   List<T> toListModel<T extends INetKitModel>({
     required dynamic data,
-    required T parseModel,
+    required T parsingModel,
   }) {
     try {
       /// If the data is a list, convert it to a list of models
@@ -30,7 +30,7 @@ class Converter {
             .whereType<MapType>()
 
             /// Convert the data to a model
-            .map((data) => parseModel.fromJson(data))
+            .map((data) => parsingModel.fromJson(data))
 
             /// Cast the data to the model type
             .cast<T>()
@@ -46,11 +46,13 @@ class Converter {
       );
     } on ApiException {
       rethrow;
-    } on Exception catch (_) {
-      /// If an error occurs, throw ApiException
+    } on Object catch (e) {
       throw ApiException(
-        message: 'Could not parse the list response',
+        message: 'Could not parse the response',
+        debugMessage:
+            'Could not parse the response: ${parsingModel.runtimeType}',
         statusCode: HttpStatuses.expectationFailed.code,
+        error: e,
       );
     }
   }
@@ -64,10 +66,14 @@ class Converter {
     try {
       /// Convert the data to a model
       return parsingModel.fromJson(data) as R;
-    } on Exception catch (_) {
-      /// If an error occurs, throw ApiException
+    } on ApiException {
+      rethrow;
+    } on Object catch (e) {
       throw ApiException(
-        message: 'Could not parse the response: ${R.runtimeType}',
+        message: 'Could not parse the response',
+        debugMessage:
+            'Could not parse the response: ${parsingModel.runtimeType}',
+        error: e,
         statusCode: HttpStatuses.expectationFailed.code,
       );
     }

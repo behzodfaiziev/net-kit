@@ -14,6 +14,8 @@ class ApiException implements Exception {
     required this.statusCode,
     required this.message,
     this.messages,
+    this.debugMessage,
+    this.error,
   });
 
   /// The factory method to parse the error response
@@ -114,4 +116,10 @@ class ApiException implements Exception {
   /// Sometimes, the server returns multiple error messages
   /// so it handles them as a list of strings
   final List<String>? messages;
+
+  /// The error message, used for debugging
+  final String? debugMessage;
+
+  /// The error object, used for debugging
+  final Object? error;
 }

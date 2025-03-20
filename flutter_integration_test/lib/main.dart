@@ -120,7 +120,7 @@ class CommentPageState extends State<CommentPage> {
       setState(() {
         _comments.insert(0, createdComment);
       });
-    } catch (e) {
+    } on ApiException catch (_) {
       /// Handle error
     }
   }

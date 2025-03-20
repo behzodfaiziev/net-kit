@@ -81,11 +81,12 @@ mixin RequestManagerMixin on DioMixin {
     } on ApiException {
       _logger.error('_sendRequest.ApiException: Request failed: $path');
       rethrow;
-    } catch (error) {
+    } on Object catch (error) {
       _logger.error('_sendRequest.Exception: Request failed: $path');
       throw ApiException(
         message: error.toString(),
         statusCode: HttpStatuses.expectationFailed.code,
+        error: error,
       );
     } finally {
       // Set the access token back to the headers if it was removed
