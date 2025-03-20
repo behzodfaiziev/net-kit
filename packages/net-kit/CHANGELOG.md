@@ -1,3 +1,8 @@
+## 4.1.2-dev
+
+- error handling improved: added `debugMessage` and `error` fields to `ApiException` to provide more
+  information about the error
+
 ## 4.1.1-dev
 
 - improved automatic refresh token on custom data key
