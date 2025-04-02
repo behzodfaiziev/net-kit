@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:net_kit/src/manager/error/api_exception.dart';
@@ -225,6 +226,17 @@ void main() {
       );
       expect(apiException.statusCode, HttpStatuses.badRequest.code);
       expect(apiException.message, 'Unsupported object');
+      expect(apiException.messages, null);
+    });
+
+    test('should handle SocketException', () {
+      const json = SocketException('Failed to connect');
+      final apiException = ApiException.fromJson(
+        json: json,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, HttpStatuses.serviceUnavailable.code);
+      expect(apiException.message, 'Socket exception occurred');
       expect(apiException.messages, null);
     });
   });

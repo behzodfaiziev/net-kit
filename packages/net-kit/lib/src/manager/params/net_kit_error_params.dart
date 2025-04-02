@@ -11,6 +11,7 @@ class NetKitErrorParams {
     this.jsonIsEmptyError = 'Empty error message',
     this.notMapTypeError = 'Could not parse the response: Not a Map type',
     this.jsonUnsupportedObjectError = 'Unsupported object',
+    this.socketExceptionError = 'Socket exception occurred',
   });
 
   /// The key to use for error messages
@@ -44,4 +45,10 @@ class NetKitErrorParams {
   /// The error message for the unsupported object error
   /// The default value is ['Unsupported object']
   final String jsonUnsupportedObjectError;
+
+  /// The error message for the socket exception error
+  /// The default value is ['Socket exception error']
+  /// This error occurs when there is a network issue
+  /// or when the server is unreachable
+  final String socketExceptionError;
 }

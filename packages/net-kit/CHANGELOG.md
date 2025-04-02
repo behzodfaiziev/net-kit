@@ -1,3 +1,6 @@
+## 4.1.3-dev
+- errorParsing: SocketException handling added to `ApiException.fromJson`
+
 ## 4.1.2-dev
 
 - error handling improved: added `debugMessage` and `error` fields to `ApiException` to provide more

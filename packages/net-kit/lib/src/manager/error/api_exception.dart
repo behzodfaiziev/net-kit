@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import '../../enum/http_status_codes.dart';
 import '../../utility/typedef/request_type_def.dart';
@@ -45,6 +46,13 @@ class ApiException implements Exception {
         throw ApiException(
           statusCode: statusCode ?? HttpStatuses.badRequest.code,
           message: params.jsonUnsupportedObjectError,
+        );
+      }
+
+      if (json is SocketException) {
+        throw ApiException(
+          statusCode: HttpStatuses.serviceUnavailable.code,
+          message: params.socketExceptionError,
         );
       }
 
