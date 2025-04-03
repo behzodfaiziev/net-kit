@@ -69,4 +69,13 @@ void main() {
       );
     });
   });
+
+  tearDownAll(() async {
+    try {
+      debugPrint('Test teardown started.');
+      // Add anything you'd like to clear or log
+    } on Exception catch (e, s) {
+      debugPrint('Teardown error: $e\n$s');
+    }
+  });
 }

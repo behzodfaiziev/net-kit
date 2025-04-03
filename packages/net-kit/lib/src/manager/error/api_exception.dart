@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import '../../enum/http_status_codes.dart';
 import '../../utility/typedef/request_type_def.dart';
@@ -49,13 +48,6 @@ class ApiException implements Exception {
         );
       }
 
-      if (json is SocketException) {
-        throw ApiException(
-          statusCode: HttpStatuses.serviceUnavailable.code,
-          message: params.socketExceptionError,
-        );
-      }
-
       /// Check if the message is a string
       /// If it is a string, return the error message
       if (json is String) {
@@ -89,12 +81,18 @@ class ApiException implements Exception {
 
         /// Return the error model
         throw ApiException(
-          statusCode:
-              status is int ? status : HttpStatuses.expectationFailed.code,
-          message: (singleMessage ?? '').isNotEmpty
-              ? singleMessage
-              : params.couldNotParseError,
+          statusCode: status is int ? status : HttpStatuses.expectationFailed.code,
+          message: (singleMessage ?? '').isNotEmpty ? singleMessage : params.couldNotParseError,
           messages: multipleMessages,
+        );
+      }
+
+      /// the runtime type of the json is a socket exception.
+      /// It is used in order not to import the dart:io package
+      if (json.runtimeType.toString().contains('SocketException')) {
+        throw ApiException(
+          statusCode: HttpStatuses.serviceUnavailable.code,
+          message: params.socketExceptionError,
         );
       }
 

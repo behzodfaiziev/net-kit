@@ -12,7 +12,6 @@ class NetKitParams {
     required this.testMode,
     required this.logInterceptorEnabled,
     required this.accessTokenHeaderKey,
-    required this.refreshTokenHeaderKey,
     required this.refreshTokenBodyKey,
     required this.accessTokenBodyKey,
     required this.refreshToken,
@@ -48,15 +47,9 @@ class NetKitParams {
 
   /// The access token key.
   /// The default value is ['Authorization']
-  /// The access token key is used to get the access token from the headers
+  /// The access token key can used to get the access token from the headers
   /// of the network responses
   final String accessTokenHeaderKey;
-
-  /// The refresh token key.
-  /// The default value is ['Refresh-Token']
-  /// The refresh token key is used to get the refresh token from the headers
-  /// of the network responses
-  final String refreshTokenHeaderKey;
 
   /// The refresh token body key.
   /// The default value is ['refreshToken']

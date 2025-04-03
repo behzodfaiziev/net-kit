@@ -1,10 +1,15 @@
-## 4.1.4-dev
+## 4.2.0-dev
 
 - feat: added `RefreshTokenParams` to customize the refresh token request
 - **breaking change**: `refreshTokenPath` is moved to `RefreshTokenParams`
 - **breaking change**: refresh token request is now sent via body.
   Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
--
+- **breaking change**: `setAccessToken` now does not include `Bearer` prefix in the token, since
+  there might be some cases where the token is not a Bearer token. You can add the `Bearer` prefix
+  in the `NetKitManager`.
+- **removal**: `refreshTokenHeaderKey` is removed since refreshToken should not be in the
+  header.
+  Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
 
 ## 4.1.3-dev
 
@@ -30,7 +35,8 @@
   to return the new access token and, if needed, the new refresh token via body for more security.
   If you want to handle the refresh token manually, you can use add custom interceptor to handle
   the refresh token.
-  **Reference**: [Issuing an Access Token: Successful Response](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
+  **Reference
+  **: [Issuing an Access Token: Successful Response](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
 - `Breaking change`: updated `accessTokenKey` as `accessTokenHeaderKey`
 - `Breaking change`: updated `refreshTokenKey` as `refreshTokenHeaderKey`
 - added `accessTokenBodyKey` to `NetKitManager` to parse the access token from the body
