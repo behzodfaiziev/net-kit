@@ -35,8 +35,7 @@
   to return the new access token and, if needed, the new refresh token via body for more security.
   If you want to handle the refresh token manually, you can use add custom interceptor to handle
   the refresh token.
-  **Reference
-  **: [Issuing an Access Token: Successful Response](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
+  **Reference**: [Issuing an Access Token: Successful Response](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
 - `Breaking change`: updated `accessTokenKey` as `accessTokenHeaderKey`
 - `Breaking change`: updated `refreshTokenKey` as `refreshTokenHeaderKey`
 - added `accessTokenBodyKey` to `NetKitManager` to parse the access token from the body
