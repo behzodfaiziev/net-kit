@@ -14,19 +14,21 @@ import '../utility/logger/i_net_kit_logger.dart';
 import '../utility/logger/void_logger.dart';
 import '../utility/typedef/request_type_def.dart';
 import 'adapter/io_http_adapter.dart'
-    if (dart.library.io) 'adapter/io_http_adapter.dart'
-    if (dart.library.html) 'adapter/web_http_adapter.dart';
+if (dart.library.io) 'adapter/io_http_adapter.dart'
+if (dart.library.html) 'adapter/web_http_adapter.dart';
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
+import 'params/refresh_token_params.dart';
 import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
 part 'interceptors/error_handling_interceptor.dart';
 part 'mixin/error_handling_mixin.dart';
 part 'mixin/request_manager_mixin.dart';
-part 'mixin/token_manager_mixin.dart';
+part 'mixin/token_manager_mixin.dart';.dart';
+
 part 'mixin/upload_manager_mixin.dart';
 
 /// The NetKitManager class is a network manager that extends DioMixin and
@@ -39,12 +41,7 @@ part 'mixin/upload_manager_mixin.dart';
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
 class NetKitManager extends INetKitManager
-    with
-        DioMixin,
-        RequestManagerMixin,
-        ErrorHandlingMixin,
-        TokenManagerMixin,
-        UploadManagerMixin {
+    with DioMixin, RequestManagerMixin, ErrorHandlingMixin, TokenManagerMixin, UploadManagerMixin {
   /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
@@ -65,6 +62,9 @@ class NetKitManager extends INetKitManager
     /// The interceptor for the network requests
     Interceptor? interceptor,
 
+    /// The parameters for the refresh token request
+    RefreshTokenParams? refreshTokenParams,
+
     /// Whether the network manager is in test mode
     /// If true, the devBaseUrl will be used,
     /// otherwise the baseUrl will be used
@@ -79,9 +79,6 @@ class NetKitManager extends INetKitManager
 
     /// The key for the refresh token in the headers
     String refreshTokenHeaderKey = 'Refresh-Token',
-
-    /// The path for the refresh token request
-    String? refreshTokenPath,
 
     /// The key for the access token in the body
     /// Used for automatic token refresh
@@ -114,6 +111,7 @@ class NetKitManager extends INetKitManager
       devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
+      refreshTokenParams: refreshTokenParams,
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
       logger: logger,
@@ -122,7 +120,6 @@ class NetKitManager extends INetKitManager
       refreshTokenHeaderKey: refreshTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
-      refreshTokenPath: refreshTokenPath,
       dataKey: dataKey,
     );
   }
@@ -214,8 +211,7 @@ class NetKitManager extends INetKitManager
   }
 
   @override
-  Future<ApiMetaResponse<R, M>>
-      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+  Future<ApiMetaResponse<R, M>> requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -243,8 +239,7 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.dataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.dataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.dataKey);
 
       // Parse both models
       final parsedData = _converter.toModel<R>(data as MapType, model);
@@ -325,12 +320,10 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.dataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.dataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.dataKey);
 
       // Parse both models
-      final parsedList =
-          _converter.toListModel(data: data, parsingModel: model);
+      final parsedList = _converter.toListModel(data: data, parsingModel: model);
 
       final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
 
@@ -461,7 +454,7 @@ class NetKitManager extends INetKitManager
     required String refreshTokenBodyKey,
     required INetKitLogger logger,
     NetKitErrorParams? errorParams,
-    String? refreshTokenPath,
+    RefreshTokenParams? refreshTokenParams,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -490,6 +483,11 @@ class NetKitManager extends INetKitManager
       refreshTokenHeaderKey: refreshTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
+      refreshToken: RefreshTokenParams(
+        body: refreshTokenParams?.body,
+        headers: refreshTokenParams?.headers,
+        refreshTokenPath: refreshTokenParams?.refreshTokenPath,
+      ),
       dataKey: dataKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
@@ -516,7 +514,7 @@ class NetKitManager extends INetKitManager
     }
 
     final errorInterceptor = ErrorHandlingInterceptor(
-      refreshTokenPath: refreshTokenPath,
+      refreshTokenPath: parameters.refreshToken.refreshTokenPath,
       requestQueue: RequestQueue(),
       tokenManager: TokenManager(
         addBearerToken: setAccessToken,
@@ -583,10 +581,12 @@ class NetKitManager extends INetKitManager
       refreshTokenPath,
       options: Options(
         method: RequestMethod.post.name.toUpperCase(),
-        headers: {
-          parameters.refreshTokenHeaderKey: getRefreshToken(),
-        },
+        headers: parameters.refreshToken.headers,
       ),
+      data: parameters.refreshToken.body ??
+          {
+            parameters.refreshTokenBodyKey: getRefreshToken(),
+          },
     );
     return extractTokens(response: refreshResponse);
   }

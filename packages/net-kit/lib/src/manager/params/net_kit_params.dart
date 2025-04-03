@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
+import 'refresh_token_params.dart';
+
 /// Network kit params for the network manager
 class NetKitParams {
   /// The constructor for the NetKitParams class
@@ -13,6 +15,7 @@ class NetKitParams {
     required this.refreshTokenHeaderKey,
     required this.refreshTokenBodyKey,
     required this.accessTokenBodyKey,
+    required this.refreshToken,
     this.interceptor,
     this.internetStatusSubscription,
     this.dataKey,
@@ -33,6 +36,9 @@ class NetKitParams {
   /// The base options for the network manager
   /// It is from the Dio package
   final BaseOptions baseOptions;
+
+  /// The refresh token parameters
+  final RefreshTokenParams refreshToken;
 
   /// Whether the network manager is in test mode
   final bool testMode;
