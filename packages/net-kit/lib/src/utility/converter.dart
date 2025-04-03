@@ -49,8 +49,7 @@ class Converter {
     } on Object catch (e) {
       throw ApiException(
         message: 'Could not parse the response',
-        debugMessage:
-            'Could not parse the response: ${parsingModel.runtimeType}',
+        debugMessage: 'Could not parse the response: ${parsingModel.runtimeType}',
         statusCode: HttpStatuses.expectationFailed.code,
         error: e,
       );
@@ -71,8 +70,7 @@ class Converter {
     } on Object catch (e) {
       throw ApiException(
         message: 'Could not parse the response',
-        debugMessage:
-            'Could not parse the response: ${parsingModel.runtimeType}',
+        debugMessage: 'Could not parse the response: ${parsingModel.runtimeType}',
         error: e,
         statusCode: HttpStatuses.expectationFailed.code,
       );

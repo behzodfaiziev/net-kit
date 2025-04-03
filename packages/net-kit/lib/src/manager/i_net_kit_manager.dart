@@ -72,8 +72,7 @@ abstract class INetKitManager {
   /// with the metadata.
   ///
   /// The metadata is of type `MapType`, not a model.
-  Future<ApiMetaResponse<R, M>>
-      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+  Future<ApiMetaResponse<R, M>> requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -269,8 +268,10 @@ abstract class INetKitManager {
   /// The access token is added to the network manager
   /// Example:
   /// ```dart
-  /// netKitManager.setAccessToken('YOUR_ACCESS_TOKEN');
+  /// netKitManager.setAccessToken('Bearer YOUR_ACCESS_TOKEN');
   /// ```
+  /// Follows the RFC6750 standard for setting the access token
+  /// https://datatracker.ietf.org/doc/html/rfc6750#section-2.1
   void setAccessToken(String? token);
 
   /// Set a refresh token to the network manager

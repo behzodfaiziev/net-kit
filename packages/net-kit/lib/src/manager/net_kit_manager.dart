@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 
 import '../enum/http_status_codes.dart';
@@ -13,13 +11,12 @@ import '../utility/converter.dart';
 import '../utility/logger/i_net_kit_logger.dart';
 import '../utility/logger/void_logger.dart';
 import '../utility/typedef/request_type_def.dart';
-import 'adapter/io_http_adapter.dart'
-    if (dart.library.io) 'adapter/io_http_adapter.dart'
-    if (dart.library.html) 'adapter/web_http_adapter.dart';
+import 'adapter/platform_http_adapter.dart';
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
+import 'params/refresh_token_params.dart';
 import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
@@ -39,12 +36,7 @@ part 'mixin/upload_manager_mixin.dart';
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
 class NetKitManager extends INetKitManager
-    with
-        DioMixin,
-        RequestManagerMixin,
-        ErrorHandlingMixin,
-        TokenManagerMixin,
-        UploadManagerMixin {
+    with DioMixin, RequestManagerMixin, ErrorHandlingMixin, TokenManagerMixin, UploadManagerMixin {
   /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
@@ -65,6 +57,9 @@ class NetKitManager extends INetKitManager
     /// The interceptor for the network requests
     Interceptor? interceptor,
 
+    /// The parameters for the refresh token request
+    RefreshTokenParams? refreshTokenParams,
+
     /// Whether the network manager is in test mode
     /// If true, the devBaseUrl will be used,
     /// otherwise the baseUrl will be used
@@ -76,12 +71,6 @@ class NetKitManager extends INetKitManager
 
     /// The key for the access token in the headers
     String accessTokenHeaderKey = 'Authorization',
-
-    /// The key for the refresh token in the headers
-    String refreshTokenHeaderKey = 'Refresh-Token',
-
-    /// The path for the refresh token request
-    String? refreshTokenPath,
 
     /// The key for the access token in the body
     /// Used for automatic token refresh
@@ -114,15 +103,14 @@ class NetKitManager extends INetKitManager
       devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
+      refreshTokenParams: refreshTokenParams,
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
       logger: logger,
       internetStatusStream: internetStatusStream,
       accessTokenHeaderKey: accessTokenHeaderKey,
-      refreshTokenHeaderKey: refreshTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
-      refreshTokenPath: refreshTokenPath,
       dataKey: dataKey,
     );
   }
@@ -214,8 +202,7 @@ class NetKitManager extends INetKitManager
   }
 
   @override
-  Future<ApiMetaResponse<R, M>>
-      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+  Future<ApiMetaResponse<R, M>> requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -243,8 +230,7 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.dataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.dataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.dataKey);
 
       // Parse both models
       final parsedData = _converter.toModel<R>(data as MapType, model);
@@ -325,12 +311,10 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.dataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.dataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.dataKey);
 
       // Parse both models
-      final parsedList =
-          _converter.toListModel(data: data, parsingModel: model);
+      final parsedList = _converter.toListModel(data: data, parsingModel: model);
 
       final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
 
@@ -456,12 +440,11 @@ class NetKitManager extends INetKitManager
     required bool logInterceptorEnabled,
     required bool testMode,
     required String accessTokenHeaderKey,
-    required String refreshTokenHeaderKey,
     required String accessTokenBodyKey,
     required String refreshTokenBodyKey,
     required INetKitLogger logger,
     NetKitErrorParams? errorParams,
-    String? refreshTokenPath,
+    RefreshTokenParams? refreshTokenParams,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -487,9 +470,13 @@ class NetKitManager extends INetKitManager
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
       accessTokenHeaderKey: accessTokenHeaderKey,
-      refreshTokenHeaderKey: refreshTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
+      refreshToken: RefreshTokenParams(
+        body: refreshTokenParams?.body,
+        headers: refreshTokenParams?.headers,
+        refreshTokenPath: refreshTokenParams?.refreshTokenPath,
+      ),
       dataKey: dataKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
@@ -500,7 +487,7 @@ class NetKitManager extends INetKitManager
     );
 
     /// Set up the http client adapter
-    httpClientAdapter = clientAdapter ?? HttpAdapter().getAdapter();
+    httpClientAdapter = clientAdapter ?? createPlatformAdapter().getAdapter();
 
     /// If test mode is enabled, use devBaseUrl
     parameters.testMode
@@ -516,12 +503,12 @@ class NetKitManager extends INetKitManager
     }
 
     final errorInterceptor = ErrorHandlingInterceptor(
-      refreshTokenPath: refreshTokenPath,
+      refreshTokenPath: parameters.refreshToken.refreshTokenPath,
       requestQueue: RequestQueue(),
       tokenManager: TokenManager(
-        addBearerToken: setAccessToken,
-        addRefreshToken: setRefreshToken,
-        refreshTokenRequest: _refreshTokenRequest,
+        addBearerToken: _setAccessToken,
+        addRefreshToken: _setRefreshToken,
+        refreshTokenRequest: _requestNewTokens,
         retryRequest: _retryRequest,
         onTokensUpdated: _onTokensUpdated,
         logger: _logger,
@@ -557,11 +544,24 @@ class NetKitManager extends INetKitManager
     parameters.internetStatusSubscription?.cancel();
   }
 
-  /// Method to get the access token from the headers.
-  String getRefreshToken() {
-    final token = baseOptions.headers[parameters.refreshTokenHeaderKey];
-    if (token == null) return '';
-    return token is String ? token : '';
+  @override
+  void setAccessToken(String? token) {
+    _setAccessToken(token);
+  }
+
+  @override
+  void setRefreshToken(String? token) {
+    _setRefreshToken(token);
+  }
+
+  @override
+  void removeRefreshToken() {
+    _removeRefreshToken();
+  }
+
+  @override
+  void removeAccessToken() {
+    _removeAccessToken();
   }
 
   /// Method to be called when the tokens are updated.
@@ -573,20 +573,25 @@ class NetKitManager extends INetKitManager
     if (onTokenRefreshed != null) {
       onTokenRefreshed!.call(authToken);
     }
+    _setAccessToken(authToken.accessToken);
+    _setRefreshToken(authToken.refreshToken);
   }
 
-  Future<AuthTokenModel> _refreshTokenRequest(String refreshTokenPath) async {
+  /// Method to send a request to the server to refresh the access token.
+  Future<AuthTokenModel> _requestNewTokens(String refreshTokenPath) async {
     // Remove the access token before refreshing
-    removeAccessToken();
+    _removeAccessToken();
 
     final refreshResponse = await request<dynamic>(
       refreshTokenPath,
       options: Options(
         method: RequestMethod.post.name.toUpperCase(),
-        headers: {
-          parameters.refreshTokenHeaderKey: getRefreshToken(),
-        },
+        headers: parameters.refreshToken.headers,
       ),
+      data: parameters.refreshToken.body ??
+          {
+            parameters.refreshTokenBodyKey: _refreshToken,
+          },
     );
     return extractTokens(response: refreshResponse);
   }

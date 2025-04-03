@@ -26,8 +26,7 @@ void main() {
       }
     });
 
-    test('Request List of TestProductModel - Failure Case: Wrong API',
-        () async {
+    test('Request List of TestProductModel - Failure Case: Wrong API', () async {
       try {
         final response = await netKitManager.requestList<TestProductModel>(
           path: '/wrong-api',
@@ -43,11 +42,9 @@ void main() {
         expect(error.message, isNotEmpty);
       }
     });
-    test('Request List of TestProductModel - Failure Case: Wrong Model',
-        () async {
+    test('Request List of TestProductModel - Failure Case: Wrong Model', () async {
       try {
-        final response =
-            await netKitManager.requestList<WrongTypeTestProductModel>(
+        final response = await netKitManager.requestList<WrongTypeTestProductModel>(
           path: '/products',
           method: RequestMethod.get,
           model: const WrongTypeTestProductModel(),
