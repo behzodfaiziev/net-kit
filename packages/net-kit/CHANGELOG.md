@@ -1,4 +1,41 @@
+# 5.0.0
+
+### Features:
+
+- **Exported `RefreshTokenParams`** for full customization of refresh logic
+- Added support for parsing metadata with:
+    - `requestModelMeta<T, M>()`
+    - `requestListMeta<T, M>()`
+- Added `debugMessage` and raw `error` fields to `ApiException` for easier debugging
+
+### ⚠️ Breaking Changes
+
+- `refreshTokenPath` moved to `RefreshTokenParams`
+    - You now pass `refreshTokenPath` via `refreshTokenParams` instead of as a top-level argument
+- Refresh token is now **sent via body** instead of headers (RFC 6749 §6)
+    - `refreshTokenHeaderKey` has been **removed**
+- `setAccessToken()` no longer prepends `Bearer` automatically
+    - If your API uses Bearer tokens, you now need to explicitly add the prefix:
+      ```dart
+      netKitManager.setAccessToken('Bearer $token');
+      ```
+
+### 🛠 Improvements
+
+- Better handling of `SocketException` in `ApiException.fromJson`
+- Improved error parsing flow and token extraction
+
+### 📜 Standards
+
+NetKit is now aligned with the following IETF standards and key sections:
+
+| RFC                                 | Description                           | Relevant Sections |
+|-------------------------------------|---------------------------------------|-------------------|
+| **RFC 6749** – OAuth 2.0            | Token exchange, refresh flows         | §4.3, §5, §6      |
+| **RFC 6750** – Bearer Token Usage   | Bearer token headers & error handling | §2.1, §3          |
+
 ## 4.2.1-dev
+
 - exported RefreshTokenParams
 
 ## 4.2.0-dev
@@ -38,7 +75,8 @@
   to return the new access token and, if needed, the new refresh token via body for more security.
   If you want to handle the refresh token manually, you can use add custom interceptor to handle
   the refresh token.
-  **Reference**: [Issuing an Access Token: Successful Response](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
+  **Reference
+  **: [Issuing an Access Token: Successful Response](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
 - `Breaking change`: updated `accessTokenKey` as `accessTokenHeaderKey`
 - `Breaking change`: updated `refreshTokenKey` as `refreshTokenHeaderKey`
 - added `accessTokenBodyKey` to `NetKitManager` to parse the access token from the body
