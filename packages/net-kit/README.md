@@ -275,7 +275,7 @@ specifications for modern API authentication:
 | **[RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)** | Bearer Token Usage                | Specifies how to transmit access tokens in HTTP requests            |
 | **[RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)** | JSON Web Token (JWT)              | Structure and use of signed tokens (used if JWTs are supported)     |
 
-#### 📣 Help Us Stay Compliant
+### 📣 Help Us Stay Compliant
 
 If you find any behavior in NetKit that appears to be non-compliant with any of the above RFCs,
 please open an issue with a clear reference to the relevant RFC and section.
