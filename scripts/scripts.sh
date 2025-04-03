@@ -8,3 +8,6 @@ cd flutter_integration_test && flutter test integration_test
 
 # Test the package
 cd packages/net-kit && dart format --set-exit-if-changed . && dart analyze --fatal-infos --fatal-warnings && dart test && cd .. && cd ..
+
+# Publish the package
+cd packages/net-kit && dart pub publish && cd .. && cd ..
