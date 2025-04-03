@@ -8,8 +8,7 @@ void main() {
   late INetKitManager netKitManager;
 
   setUp(() {
-    netKitManager =
-        NetKitManager(baseUrl: 'https://jsonplaceholder.typicode.com');
+    netKitManager = NetKitManager(baseUrl: 'https://jsonplaceholder.typicode.com');
   });
 
   group('Comment Test Correct Methods', () {
@@ -52,8 +51,7 @@ void main() {
           email: 'Email test',
         );
 
-        final createdComment =
-            await netKitManager.requestModel<TypicodeCommentModel>(
+        final createdComment = await netKitManager.requestModel<TypicodeCommentModel>(
           path: '/comments',
           method: RequestMethod.post,
           model: const TypicodeCommentModel(),
@@ -92,8 +90,7 @@ void main() {
           email: 'test',
         );
 
-        final updatedComment =
-            await netKitManager.requestModel<TypicodeCommentModel>(
+        final updatedComment = await netKitManager.requestModel<TypicodeCommentModel>(
           path: '/comments/1',
           method: RequestMethod.put,
           model: const TypicodeCommentModel(),
@@ -141,11 +138,9 @@ void main() {
 
     test('Create a Comment', () async {
       try {
-        const comment =
-            TypicodeCommentModel(postId: 1, id: 1, name: 'Test', email: 'test');
+        const comment = TypicodeCommentModel(postId: 1, id: 1, name: 'Test', email: 'test');
 
-        final createdComment =
-            await netKitManager.requestList<TypicodeCommentModel>(
+        final createdComment = await netKitManager.requestList<TypicodeCommentModel>(
           path: '/comments',
           method: RequestMethod.post,
           model: const TypicodeCommentModel(),
@@ -183,8 +178,7 @@ void main() {
           email: 'test',
         );
 
-        final updatedComment =
-            await netKitManager.requestList<TypicodeCommentModel>(
+        final updatedComment = await netKitManager.requestList<TypicodeCommentModel>(
           path: '/comments/1',
           method: RequestMethod.put,
           model: const TypicodeCommentModel(),

@@ -33,8 +33,7 @@ class WrongTypeUserModel extends INetKitModel {
   final String? nat;
 
   @override
-  WrongTypeUserModel fromJson(Map<String, dynamic> json) =>
-      WrongTypeUserModel.fromJson(json);
+  WrongTypeUserModel fromJson(Map<String, dynamic> json) => WrongTypeUserModel.fromJson(json);
 
   @override
   Map<String, dynamic>? toJson() => {
