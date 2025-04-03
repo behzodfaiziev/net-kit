@@ -1,3 +1,6 @@
+## 4.2.1-dev
+- exported RefreshTokenParams
+
 ## 4.2.0-dev
 
 - feat: added `RefreshTokenParams` to customize the refresh token request
