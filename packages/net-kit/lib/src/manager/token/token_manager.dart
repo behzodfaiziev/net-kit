@@ -42,7 +42,7 @@ class TokenManager {
   ///
   /// This function is expected to return an instance of
   /// `AuthTokenModel`, which contains the new access and refresh tokens.
-  final Future<AuthTokenModel> Function(String refreshTokenPath) refreshTokenRequest;
+  final Future<AuthTokenModel> Function() refreshTokenRequest;
 
   /// A function that retries the original request after
   /// the token has been refreshed.
@@ -59,18 +59,15 @@ class TokenManager {
   /// tokens accordingly. If the tokens are successfully updated,
   /// the optional [onTokensUpdated] callback is invoked.
   ///
-  /// Parameters:
-  /// - [refreshTokenPath]: The API endpoint for refreshing the token.
-  ///
   /// Throws:
   /// - Throws any error encountered during the token refresh
   ///   request, allowing for handling in the calling context.
-  Future<void> refreshTokens(String refreshTokenPath) async {
+  Future<void> refreshTokens() async {
     try {
       logger?.info('Refreshing token...');
 
       // Make the request to refresh the token
-      final authToken = await refreshTokenRequest(refreshTokenPath);
+      final authToken = await refreshTokenRequest();
 
       logger?.info('Token refreshed successfully.');
 

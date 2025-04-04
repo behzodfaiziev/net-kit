@@ -83,7 +83,7 @@ class ErrorHandlingInterceptor {
         _isRefreshing = true;
         try {
           // Refresh the tokens using the token manager.
-          await tokenManager.refreshTokens(refreshTokenPath!);
+          await tokenManager.refreshTokens();
           // Retry the original request after the tokens are refreshed.
           await _retryRequest(error, handler);
           // Process any queued requests after a successful refresh.

@@ -70,7 +70,7 @@ void main() {
       tokenManager: TokenManager(
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
-        refreshTokenRequest: (_) async {
+        refreshTokenRequest: () async {
           return authTokenModel;
         },
         retryRequest: (requestOptions) async {
@@ -160,7 +160,7 @@ void main() {
       tokenManager: TokenManager(
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
-        refreshTokenRequest: (_) async {
+        refreshTokenRequest: () async {
           throw invalidRefreshTokenException;
         },
         retryRequest: (requestOptions) async {
@@ -246,7 +246,7 @@ void main() {
       tokenManager: TokenManager(
         addBearerToken: (_) {},
         addRefreshToken: (_) {},
-        refreshTokenRequest: (_) async {
+        refreshTokenRequest: () async {
           throw invalidRefreshTokenException;
         },
         retryRequest: (requestOptions) async {
@@ -288,7 +288,7 @@ void main() {
         tokenManager: TokenManager(
           addBearerToken: (_) {},
           addRefreshToken: (_) {},
-          refreshTokenRequest: (_) async {
+          refreshTokenRequest: () async {
             return authTokenModel;
           },
           retryRequest: (requestOptions) async {

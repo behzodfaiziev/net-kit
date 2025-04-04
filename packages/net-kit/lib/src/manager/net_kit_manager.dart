@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../core/net_kit_request_options.dart';
 import '../enum/http_status_codes.dart';
 import '../enum/request_method.dart';
 import '../model/api_meta_response.dart';
@@ -16,7 +17,6 @@ import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
-import 'params/refresh_token_params.dart';
 import 'queue/request_queue.dart';
 import 'token/token_manager.dart';
 
@@ -57,8 +57,8 @@ class NetKitManager extends INetKitManager
     /// The interceptor for the network requests
     Interceptor? interceptor,
 
-    /// The parameters for the refresh token request
-    RefreshTokenParams? refreshTokenParams,
+    /// The callback function that is called before the refresh token request
+    void Function(NetKitRequestOptions options)? onBeforeRefreshRequest,
 
     /// Whether the network manager is in test mode
     /// If true, the devBaseUrl will be used,
@@ -103,7 +103,7 @@ class NetKitManager extends INetKitManager
       devBaseUrl: devBaseUrl,
       baseOptions: baseOptions,
       interceptor: interceptor,
-      refreshTokenParams: refreshTokenParams,
+      onBeforeRefreshRequest: onBeforeRefreshRequest,
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
       logger: logger,
@@ -444,7 +444,7 @@ class NetKitManager extends INetKitManager
     required String refreshTokenBodyKey,
     required INetKitLogger logger,
     NetKitErrorParams? errorParams,
-    RefreshTokenParams? refreshTokenParams,
+    void Function(NetKitRequestOptions options)? onBeforeRefreshRequest,
     String? devBaseUrl,
     BaseOptions? baseOptions,
     Interceptor? interceptor,
@@ -472,11 +472,7 @@ class NetKitManager extends INetKitManager
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
-      refreshToken: RefreshTokenParams(
-        body: refreshTokenParams?.body,
-        headers: refreshTokenParams?.headers,
-        refreshTokenPath: refreshTokenParams?.refreshTokenPath,
-      ),
+      onBeforeRefreshRequest: onBeforeRefreshRequest,
       dataKey: dataKey,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
@@ -503,7 +499,7 @@ class NetKitManager extends INetKitManager
     }
 
     final errorInterceptor = ErrorHandlingInterceptor(
-      refreshTokenPath: parameters.refreshToken.refreshTokenPath,
+      refreshTokenPath: parameters.refreshTokenPath,
       requestQueue: RequestQueue(),
       tokenManager: TokenManager(
         addBearerToken: _setAccessToken,
@@ -578,21 +574,39 @@ class NetKitManager extends INetKitManager
   }
 
   /// Method to send a request to the server to refresh the access token.
-  Future<AuthTokenModel> _requestNewTokens(String refreshTokenPath) async {
-    // Remove the access token before refreshing
-    _removeAccessToken();
+  Future<AuthTokenModel> _requestNewTokens() async {
+    if (parameters.refreshTokenPath == null) {
+      throw ApiException(
+        message: 'Refresh token path is not set.',
+        statusCode: HttpStatuses.internalServerError.code,
+      );
+    }
+
+    /// Removes the access token from the headers, if specified in the parameters
+    if (parameters.removeAccessTokenBeforeRefresh) {
+      _removeAccessToken();
+    }
+
+    final options = NetKitRequestOptions(
+      method: RequestMethod.post.name.toUpperCase(),
+      path: parameters.refreshTokenPath!,
+      headers: parameters.baseOptions.headers,
+      contentType: parameters.baseOptions.contentType,
+      data: {parameters.refreshTokenBodyKey: _refreshToken},
+    );
+
+    parameters.onBeforeRefreshRequest?.call(options);
 
     final refreshResponse = await request<dynamic>(
-      refreshTokenPath,
+      options.path,
       options: Options(
-        method: RequestMethod.post.name.toUpperCase(),
-        headers: parameters.refreshToken.headers,
+        method: options.method,
+        headers: options.headers,
+        responseType: ResponseType.json,
       ),
-      data: parameters.refreshToken.body ??
-          {
-            parameters.refreshTokenBodyKey: _refreshToken,
-          },
+      data: options.data,
     );
+
     return extractTokens(response: refreshResponse);
   }
 }

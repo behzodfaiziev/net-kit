@@ -4,6 +4,9 @@ export 'package:dio/src/dio_exception.dart';
 export 'package:dio/src/multipart_file.dart';
 export 'package:dio/src/options.dart';
 
+/// Request Options
+export 'src/core/net_kit_request_options.dart';
+
 /// Http Request Type
 export 'src/enum/request_method.dart';
 
@@ -16,7 +19,6 @@ export 'src/manager/net_kit_manager.dart';
 
 /// Params
 export 'src/manager/params/net_kit_error_params.dart';
-export 'src/manager/params/refresh_token_params.dart';
 
 /// AuthTokenModel
 export 'src/model/auth_token_model.dart';
