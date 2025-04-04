@@ -16,7 +16,8 @@ class TypicodeCommentModel extends INetKitModel {
   final String? body;
 
   @override
-  TypicodeCommentModel fromJson(Map<String, dynamic> json) => TypicodeCommentModel(
+  TypicodeCommentModel fromJson(Map<String, dynamic> json) =>
+      TypicodeCommentModel(
         postId: json['postId'] as int?,
         id: json['id'] as int?,
         name: json['name'] as String?,

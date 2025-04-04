@@ -17,7 +17,8 @@ void main() {
 
     test('Request a Single Model - Success Case', () async {
       try {
-        final response = await netKitManager.requestModel<RandomUsersResponseModel>(
+        final response =
+            await netKitManager.requestModel<RandomUsersResponseModel>(
           path: '/api',
           method: RequestMethod.get,
           model: const RandomUsersResponseModel(),
@@ -29,7 +30,8 @@ void main() {
     });
     test('Request a Single Model - Failure Case: Wrong API', () async {
       try {
-        final response = await netKitManager.requestModel<RandomUsersResponseModel>(
+        final response =
+            await netKitManager.requestModel<RandomUsersResponseModel>(
           path: '/wrong-api',
           method: RequestMethod.get,
           model: const RandomUsersResponseModel(),
@@ -46,7 +48,8 @@ void main() {
 
     test('Request a Single Model - Failure Case: Wrong Method', () async {
       try {
-        final response = await netKitManager.requestList<RandomUsersResponseModel>(
+        final response =
+            await netKitManager.requestList<RandomUsersResponseModel>(
           path: '/api',
           method: RequestMethod.get,
           model: const RandomUsersResponseModel(),
@@ -61,9 +64,11 @@ void main() {
       }
     });
 
-    test('Request a Single Model - Failure Case: Wrong UserModel type', () async {
+    test('Request a Single Model - Failure Case: Wrong UserModel type',
+        () async {
       try {
-        final response = await netKitManager.requestModel<WrongRandomUsersResponseModel>(
+        final response =
+            await netKitManager.requestModel<WrongRandomUsersResponseModel>(
           path: '/api',
           method: RequestMethod.get,
           model: const WrongRandomUsersResponseModel(),

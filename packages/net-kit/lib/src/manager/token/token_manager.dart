@@ -46,7 +46,8 @@ class TokenManager {
 
   /// A function that retries the original request after
   /// the token has been refreshed.
-  final Future<Response<dynamic>> Function(RequestOptions requestOptions) retryRequest;
+  final Future<Response<dynamic>> Function(RequestOptions requestOptions)
+      retryRequest;
 
   /// An optional callback function that is invoked when tokens
   /// are updated.

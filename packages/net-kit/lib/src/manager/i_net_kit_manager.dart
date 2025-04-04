@@ -72,7 +72,8 @@ abstract class INetKitManager {
   /// with the metadata.
   ///
   /// The metadata is of type `MapType`, not a model.
-  Future<ApiMetaResponse<R, M>> requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+  Future<ApiMetaResponse<R, M>>
+      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,

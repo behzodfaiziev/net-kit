@@ -50,7 +50,8 @@ mixin RequestManagerMixin on DioMixin {
       if (containsAccessToken == false &&
           baseOptions.headers[parameters.accessTokenHeaderKey] != null) {
         // Preserve the access token to set it back after the request
-        accessToken = baseOptions.headers[parameters.accessTokenHeaderKey] as String;
+        accessToken =
+            baseOptions.headers[parameters.accessTokenHeaderKey] as String;
         // Remove the access token from the headers
         baseOptions.headers.remove(parameters.accessTokenHeaderKey);
       }
@@ -104,7 +105,8 @@ mixin RequestManagerMixin on DioMixin {
 
     // If the status code is not in the range of 200-299,
     // return true (request failed)
-    return statusCode < HttpStatuses.ok.code || statusCode >= HttpStatuses.multipleChoices.code;
+    return statusCode < HttpStatuses.ok.code ||
+        statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {

@@ -11,7 +11,8 @@ class WebHttpAdapter implements IHttpAdapter {
   HttpClientAdapter getAdapter() {
     /// Workaround for the issue with the browser adapter
     /// https://github.com/cfug/dio/issues/2282#issuecomment-2293342475
-    final adapter = HttpClientAdapter() as BrowserHttpClientAdapter..withCredentials = true;
+    final adapter = HttpClientAdapter() as BrowserHttpClientAdapter
+      ..withCredentials = true;
     return adapter;
   }
 }

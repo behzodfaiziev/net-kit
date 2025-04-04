@@ -8,7 +8,8 @@ import 'package:test/test.dart';
 
 class MockRequestQueue extends Mock implements RequestQueue {}
 
-class MockErrorInterceptorHandler extends Mock implements ErrorInterceptorHandler {}
+class MockErrorInterceptorHandler extends Mock
+    implements ErrorInterceptorHandler {}
 
 /// Create a Fake class for DioException
 class FakeDioException extends Fake implements DioException {}
@@ -90,9 +91,12 @@ void main() {
   test('should refresh token and retry request (single request)', () async {
     final completer = Completer<void>();
 
-    when(() => requestQueue.processQueue()).thenAnswer((_) async => completer.complete());
+    when(() => requestQueue.processQueue())
+        .thenAnswer((_) async => completer.complete());
 
-    interceptor.getErrorInterceptor().onError(unauthorizedException, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
     await completer.future;
 
@@ -107,7 +111,8 @@ void main() {
   ///      is called once after the token refresh completes and confirms that
   ///      both queued requests are retried successfully.
   ///
-  test('should refresh token and handle multiple requests waiting (queued)', () async {
+  test('should refresh token and handle multiple requests waiting (queued)',
+      () async {
     final mockHandler2 = MockErrorInterceptorHandler();
 
     final completer = Completer<void>();
@@ -119,17 +124,22 @@ void main() {
     });
 
     when(() => requestQueue.add(any())).thenAnswer((invocation) async {
-      final queuedRequest = invocation.positionalArguments[0] as Future<void> Function();
+      final queuedRequest =
+          invocation.positionalArguments[0] as Future<void> Function();
       await queuedRequest(); // Process queued request
       completer2.complete();
     });
 
 // Trigger the first error
-    interceptor.getErrorInterceptor().onError(unauthorizedException, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
 // Trigger the second error, which should
 // queue since the first one is still refreshing
-    interceptor.getErrorInterceptor().onError(unauthorizedException2, mockHandler2);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException2, mockHandler2);
 
 // Wait until the first refresh process is completed
     await completer.future;
@@ -175,7 +185,9 @@ void main() {
     });
     when(() => requestQueue.processQueue()).thenAnswer((_) async {});
 
-    interceptor.getErrorInterceptor().onError(unauthorizedException, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
     await completer.future;
 
@@ -194,7 +206,9 @@ void main() {
   ///      is not invoked, confirming correct bypassing of token refresh logic.
   ///
   test('should pass non-401 errors directly to the next handler', () async {
-    interceptor.getErrorInterceptor().onError(internalServerException, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(internalServerException, mockHandler);
 
 // Ensure that the error is passed directly to the handler without retry
     verify(() => mockHandler.next(internalServerException)).called(1);
@@ -219,14 +233,17 @@ void main() {
     });
 
     // Invoke the interceptor with the 401 error from the refresh token request
-    interceptor.getErrorInterceptor().onError(invalidRefreshTokenException, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(invalidRefreshTokenException, mockHandler);
 
     // Wait until the completer is completed
     await completer.future;
 
     // Capture the argument passed to the reject method
-    final capturedException =
-        verify(() => mockHandler.reject(captureAny())).captured.single as DioException;
+    final capturedException = verify(() => mockHandler.reject(captureAny()))
+        .captured
+        .single as DioException;
 
 // Verify that the captured exception has the expected properties
     expect(capturedException.requestOptions.path, '/refresh-token');
@@ -261,13 +278,16 @@ void main() {
     });
     when(() => requestQueue.rejectQueuedRequests()).thenAnswer((_) async {});
 
-    interceptor.getErrorInterceptor().onError(unauthorizedException, mockHandler);
+    interceptor
+        .getErrorInterceptor()
+        .onError(unauthorizedException, mockHandler);
 
     await completer.future;
 
 // Verify that the error was rejected after refresh token failure
-    final capturedException =
-        verify(() => mockHandler.reject(captureAny())).captured.single as DioException;
+    final capturedException = verify(() => mockHandler.reject(captureAny()))
+        .captured
+        .single as DioException;
 
     expect(capturedException.requestOptions.path, '/refresh-token');
     expect(capturedException.response?.statusCode, 401);
@@ -303,13 +323,16 @@ void main() {
       });
       when(() => requestQueue.rejectQueuedRequests()).thenAnswer((_) async {});
 
-      interceptor.getErrorInterceptor().onError(unauthorizedException, mockHandler);
+      interceptor
+          .getErrorInterceptor()
+          .onError(unauthorizedException, mockHandler);
 
       await completer.future;
 
       // Verify that the error was rejected after refresh token failure
-      final capturedException =
-          verify(() => mockHandler.reject(captureAny())).captured.single as DioException;
+      final capturedException = verify(() => mockHandler.reject(captureAny()))
+          .captured
+          .single as DioException;
 
       expect(
         capturedException.requestOptions.path,

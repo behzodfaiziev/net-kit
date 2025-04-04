@@ -20,7 +20,8 @@ class UserNameModel extends INetKitModel {
   final String? last;
 
   @override
-  UserNameModel fromJson(Map<String, dynamic> json) => UserNameModel.fromJson(json);
+  UserNameModel fromJson(Map<String, dynamic> json) =>
+      UserNameModel.fromJson(json);
 
   @override
   Map<String, dynamic>? toJson() => {

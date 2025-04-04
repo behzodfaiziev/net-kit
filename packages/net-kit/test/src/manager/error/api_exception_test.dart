@@ -183,7 +183,8 @@ void main() {
       expect(apiException.messages, isNull);
     });
 
-    test('should create ApiException from JSON when json is a list of strings', () {
+    test('should create ApiException from JSON when json is a list of strings',
+        () {
       final json = ['Error 1', 'Error 2'];
       final apiException = ApiException.fromJson(
         json: json,

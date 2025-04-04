@@ -81,8 +81,11 @@ class ApiException implements Exception {
 
         /// Return the error model
         throw ApiException(
-          statusCode: status is int ? status : HttpStatuses.expectationFailed.code,
-          message: (singleMessage ?? '').isNotEmpty ? singleMessage : params.couldNotParseError,
+          statusCode:
+              status is int ? status : HttpStatuses.expectationFailed.code,
+          message: (singleMessage ?? '').isNotEmpty
+              ? singleMessage
+              : params.couldNotParseError,
           messages: multipleMessages,
         );
       }

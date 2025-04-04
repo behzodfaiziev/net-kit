@@ -36,7 +36,8 @@ class TestProductModel extends INetKitModel {
   final RatingModel? rating;
 
   @override
-  TestProductModel fromJson(Map<String, dynamic> json) => TestProductModel.fromJson(json);
+  TestProductModel fromJson(Map<String, dynamic> json) =>
+      TestProductModel.fromJson(json);
 
   @override
   Map<String, dynamic>? toJson() => {

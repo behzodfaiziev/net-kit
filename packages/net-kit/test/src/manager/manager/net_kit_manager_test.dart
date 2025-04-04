@@ -98,7 +98,8 @@ void main() {
       });
 
       test('should return null tokens when tokens are missing', () {
-        final response = Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
+        final response =
+            Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
 
         final tokens = netKitManager.extractTokens(response: response);
 
@@ -106,7 +107,8 @@ void main() {
         expect(tokens.refreshToken, isNull);
       });
 
-      test('should return null access token when only refresh token is present', () {
+      test('should return null access token when only refresh token is present',
+          () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
           data: <String, dynamic>{'refreshToken': 'refresh-token-value'},
@@ -118,7 +120,8 @@ void main() {
         expect(tokens.refreshToken, 'refresh-token-value');
       });
 
-      test('should return null refresh token when only access token is present', () {
+      test('should return null refresh token when only access token is present',
+          () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
           data: <String, dynamic>{'accessToken': 'access-token-value'},
@@ -141,7 +144,8 @@ void main() {
           },
         );
 
-        final tokens = netKitManagerWithCustomKeys.extractTokens(response: response);
+        final tokens =
+            netKitManagerWithCustomKeys.extractTokens(response: response);
 
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, 'refresh-token-value');
@@ -204,7 +208,8 @@ void main() {
         expect(tokens.refreshToken, isNull);
       });
 
-      test('should return null tokens when response has an error status code', () {
+      test('should return null tokens when response has an error status code',
+          () {
         final response = Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
           statusCode: 500, // Internal server error
@@ -258,16 +263,19 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, 'access-token-value');
           expect(tokens.refreshToken, 'refresh-token-value');
         });
 
         test('should return null tokens when tokens are missing', () {
-          final response = Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
+          final response =
+              Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, isNull);
           expect(tokens.refreshToken, isNull);
@@ -285,7 +293,8 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, isNull);
           expect(tokens.refreshToken, 'refresh-token-value');
@@ -303,7 +312,8 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, 'access-token-value');
           expect(tokens.refreshToken, isNull);
@@ -363,7 +373,8 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, isNull);
           expect(tokens.refreshToken, isNull);
@@ -380,7 +391,8 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, '');
           expect(tokens.refreshToken, '');
@@ -395,13 +407,15 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, isNull);
           expect(tokens.refreshToken, isNull);
         });
 
-        test('should return null tokens when response has an error status code', () {
+        test('should return null tokens when response has an error status code',
+            () {
           final response = Response<dynamic>(
             requestOptions: RequestOptions(path: '/test'),
             statusCode: 500, // Internal server error
@@ -413,13 +427,15 @@ void main() {
             },
           );
 
-          final tokens = netKitManagerWithCustomDataKey.extractTokens(response: response);
+          final tokens =
+              netKitManagerWithCustomDataKey.extractTokens(response: response);
 
           expect(tokens.accessToken, isNull);
           expect(tokens.refreshToken, isNull);
         });
 
-        test('should extract tokens correctly in concurrent requests', () async {
+        test('should extract tokens correctly in concurrent requests',
+            () async {
           final response = Response<dynamic>(
             requestOptions: RequestOptions(path: '/test'),
             data: {
