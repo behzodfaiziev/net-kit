@@ -80,6 +80,13 @@ class NetKitManager extends INetKitManager
     /// Used for automatic token refresh
     String refreshTokenBodyKey = 'refreshToken',
 
+    /// Whether to remove the access token header before refreshing the token
+    /// Default is true
+    bool removeAccessTokenBeforeRefresh = true,
+
+    /// The path for the refresh token request
+    String? refreshTokenPath,
+
     /// The key to extract data from the response.
     /// If null, the response data will be used as is.
     String? dataKey,
@@ -111,6 +118,8 @@ class NetKitManager extends INetKitManager
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
+      refreshTokenPath: refreshTokenPath,
+      removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
       dataKey: dataKey,
     );
   }
@@ -442,6 +451,8 @@ class NetKitManager extends INetKitManager
     required String accessTokenHeaderKey,
     required String accessTokenBodyKey,
     required String refreshTokenBodyKey,
+    required String? refreshTokenPath,
+    required bool removeAccessTokenBeforeRefresh,
     required INetKitLogger logger,
     NetKitErrorParams? errorParams,
     void Function(NetKitRequestOptions options)? onBeforeRefreshRequest,
@@ -474,6 +485,8 @@ class NetKitManager extends INetKitManager
       refreshTokenBodyKey: refreshTokenBodyKey,
       onBeforeRefreshRequest: onBeforeRefreshRequest,
       dataKey: dataKey,
+      refreshTokenPath: refreshTokenPath,
+      removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value

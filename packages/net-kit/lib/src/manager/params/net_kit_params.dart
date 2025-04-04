@@ -14,7 +14,7 @@ class NetKitParams {
     required this.accessTokenHeaderKey,
     required this.refreshTokenBodyKey,
     required this.accessTokenBodyKey,
-    this.removeAccessTokenBeforeRefresh = true,
+    required this.removeAccessTokenBeforeRefresh,
     this.onBeforeRefreshRequest,
     this.interceptor,
     this.refreshTokenPath,
@@ -69,7 +69,6 @@ class NetKitParams {
   final String? refreshTokenPath;
 
   /// Whether to remove the access token header before refreshing the token
-  /// The default value is ['true']
   final bool removeAccessTokenBeforeRefresh;
 
   /// The key to extract data from the response.
