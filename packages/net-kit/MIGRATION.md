@@ -55,52 +55,19 @@ related to token handling and RefreshTokenParams, to align
 with [RFC 6749 §6](https://datatracker.ietf.org/doc/html/rfc6749#section-6). Below is a detailed
 migration guide to help you upgrade smoothly.
 
-### 🧩 1. refreshTokenPath has been moved
-
-- **Before**:
-
-```dart
-
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.example.com',
-  refreshTokenPath: '/auth/refresh-token',
-);
-```
-
-- **After**:
-
-```dart
-
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.example.com',
-  refreshTokenParams: RefreshTokenParams(
-    refreshTokenPath: '/auth/refresh-token',
-    body: {
-      // Add your body parameters here. 
-      // It will override the default body which contains the refresh token
-    },
-    headers: {
-      // Add custom headers here if needed
-    },
-  ),
-);
-```
-
-✅ This enables customization of the body, headers, and method used for refreshing.
-
-### 🔁 2. **Breaking Change**: Refresh token is now sent in the body (not headers)
+### 🔁 1. **Breaking Change**: Refresh token is now sent in the body (not headers)
 
 To comply with [RFC 6749 §6](https://datatracker.ietf.org/doc/html/rfc6749#section-6), the refresh
 token is now included only in the request body, not headers. There is no need an action, as this is
 handled under the hood.
 
-### 🛡️ 3. Removed refreshTokenHeaderKey
+### 🛡️ 2. Removed refreshTokenHeaderKey
 
 The `refreshTokenHeaderKey` parameter has been removed entirely.
 
 You no longer need to set the refresh token in headers manually.
 
-### 🔑 4. **Breaking Change**: setAccessToken now does not include Bearer prefix
+### 🔑 3. **Breaking Change**: setAccessToken now does not include Bearer prefix
 
 The `setAccessToken` method no longer includes the `Bearer` prefix in the token. This change allows
 for more flexibility, as some APIs may not use the Bearer scheme.
