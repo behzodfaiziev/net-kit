@@ -15,11 +15,12 @@ class NetKitParams {
     required this.refreshTokenBodyKey,
     required this.accessTokenBodyKey,
     required this.removeAccessTokenBeforeRefresh,
+    required this.metadataDataKey,
+    this.dataKey,
     this.onBeforeRefreshRequest,
     this.interceptor,
     this.refreshTokenPath,
     this.internetStatusSubscription,
-    this.dataKey,
   });
 
   /// The subscription for the internet status
@@ -74,4 +75,7 @@ class NetKitParams {
   /// The key to extract data from the response.
   /// If null, the response data will be used as is.
   final String? dataKey;
+
+  /// The key to extract data from the metadata response.
+  final String metadataDataKey;
 }

@@ -96,6 +96,10 @@ class NetKitManager extends INetKitManager
     /// If null, the response data will be used as is.
     String? dataKey,
 
+    /// The key to extract data from the metadata response.
+    /// Default value is ['data']
+    String metadataDataKey = 'data',
+
     /// Logger for the network manager. The default logger is VoidLogger
     /// which does not log anything. To enable logging, a custom logger
     /// must be created and injected into the NetKitManager class.
@@ -126,6 +130,7 @@ class NetKitManager extends INetKitManager
       refreshTokenPath: refreshTokenPath,
       removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
       dataKey: dataKey,
+      metadataDataKey: metadataDataKey,
     );
   }
 
@@ -244,9 +249,9 @@ class NetKitManager extends INetKitManager
       );
 
       // Extract data and metadata
-      final data = (response.data as MapType)[parameters.dataKey];
+      final data = (response.data as MapType)[parameters.metadataDataKey];
       final metadataMap = (response.data as MapType)
-        ..remove(parameters.dataKey);
+        ..remove(parameters.metadataDataKey);
 
       // Parse both models
       final parsedData = _converter.toModel<R>(data as MapType, model);
@@ -326,9 +331,9 @@ class NetKitManager extends INetKitManager
       );
 
       // Extract data and metadata
-      final data = (response.data as MapType)[parameters.dataKey];
+      final data = (response.data as MapType)[parameters.metadataDataKey];
       final metadataMap = (response.data as MapType)
-        ..remove(parameters.dataKey);
+        ..remove(parameters.metadataDataKey);
 
       // Parse both models
       final parsedList =
@@ -463,6 +468,8 @@ class NetKitManager extends INetKitManager
     required String? refreshTokenPath,
     required bool removeAccessTokenBeforeRefresh,
     required INetKitLogger logger,
+    required String metadataDataKey,
+    String? dataKey,
     NetKitErrorParams? errorParams,
     void Function(NetKitRequestOptions options)? onBeforeRefreshRequest,
     String? devBaseUrl,
@@ -470,7 +477,6 @@ class NetKitManager extends INetKitManager
     Interceptor? interceptor,
     HttpClientAdapter? clientAdapter,
     Stream<bool>? internetStatusStream,
-    String? dataKey,
   }) {
     /// Initialize the logger
     _logger = logger;
@@ -493,6 +499,7 @@ class NetKitManager extends INetKitManager
       accessTokenBodyKey: accessTokenBodyKey,
       refreshTokenBodyKey: refreshTokenBodyKey,
       onBeforeRefreshRequest: onBeforeRefreshRequest,
+      metadataDataKey: metadataDataKey,
       dataKey: dataKey,
       refreshTokenPath: refreshTokenPath,
       removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,

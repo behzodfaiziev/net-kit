@@ -12,6 +12,7 @@
 - Added `onBeforeRefreshRequest` callback to mutate the refresh token request before it's sent (
   e.g., inject headers, modify body, etc.).
 - Introduced `NetKitRequestOptions`, a clean abstraction for refresh requests.
+- added `metadataDataKey' to `NetKitManager` to parse the body from the metadata body
 
 ## 4.1.3-dev
 
