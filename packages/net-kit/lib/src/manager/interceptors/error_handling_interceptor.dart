@@ -76,7 +76,8 @@ class ErrorHandlingInterceptor {
         // If a refresh is already in progress, queue the request.
         if (_isRefreshing) {
           logger?.info('Token refresh in progress, queuing request');
-          requestQueue.add(() => _retryRequest(error, handler));
+          requestQueue
+              .enqueueDuringRefresh(() => _retryRequest(error, handler));
           return;
         }
 

@@ -123,7 +123,8 @@ void main() {
       completer.complete();
     });
 
-    when(() => requestQueue.add(any())).thenAnswer((invocation) async {
+    when(() => requestQueue.enqueueDuringRefresh(any()))
+        .thenAnswer((invocation) async {
       final queuedRequest =
           invocation.positionalArguments[0] as Future<void> Function();
       await queuedRequest(); // Process queued request
@@ -150,7 +151,7 @@ void main() {
 // Verify that the queue was processed once
     verify(() => requestQueue.processQueue()).called(1);
 // Verify both requests were retried after token refresh
-    verify(() => requestQueue.add(any())).called(1);
+    verify(() => requestQueue.enqueueDuringRefresh(any())).called(1);
   });
 
   /// 3. **should handle refresh token failure**:

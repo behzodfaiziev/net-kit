@@ -34,7 +34,7 @@ class RequestQueue {
   ///   // Your async code here
   /// });
   /// ```
-  void add(Future<void> Function() request) {
+  void enqueueDuringRefresh(Future<void> Function() request) {
     _queue.add(request);
   }
 
@@ -47,16 +47,20 @@ class RequestQueue {
   ///
   /// This method should not be called directly.
   Future<void> processQueue() async {
-    if (_isProcessing) {
-      _logger?.info('Queue is already being processed');
-      return;
-    }
+    if (_isProcessing) return;
     _isProcessing = true;
 
     while (_queue.isNotEmpty) {
       _logger?.info('Processing request queue: ${_queue.length} requests');
       final request = _queue.removeAt(0);
-      await request();
+
+      try {
+        await request();
+      } on Exception catch (e, s) {
+        _logger?.error('Error processing queued request: $e\n$s');
+
+        /// Does not rethrow, keeps going to next request
+      }
     }
 
     _isProcessing = false;
@@ -76,10 +80,6 @@ class RequestQueue {
   /// Rejects all queued requests.
   void rejectQueuedRequests() {
     _logger?.info('Rejecting all queued requests');
-    while (_queue.isNotEmpty) {
-      final queuedRequest = _queue.removeAt(0);
-
-      queuedRequest.call();
-    }
+    _queue.clear();
   }
 }
