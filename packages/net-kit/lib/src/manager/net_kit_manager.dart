@@ -81,13 +81,16 @@ class NetKitManager extends INetKitManager
     /// Used for automatic token refresh
     String accessTokenBodyKey = 'accessToken',
 
-    /// The key for the refresh token in the body
-    /// Used for automatic token refresh
-    String refreshTokenBodyKey = 'refreshToken',
+    /// The prefix for the access token in the headers
+    String accessTokenPrefix = 'Bearer ',
 
     /// Whether to remove the access token header before refreshing the token
     /// Default is true
     bool removeAccessTokenBeforeRefresh = true,
+
+    /// The key for the refresh token in the body
+    /// Used for automatic token refresh
+    String refreshTokenBodyKey = 'refreshToken',
 
     /// The path for the refresh token request
     String? refreshTokenPath,
@@ -126,6 +129,7 @@ class NetKitManager extends INetKitManager
       internetStatusStream: internetStatusStream,
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
+      accessTokenPrefix: accessTokenPrefix,
       refreshTokenBodyKey: refreshTokenBodyKey,
       refreshTokenPath: refreshTokenPath,
       removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
@@ -464,6 +468,7 @@ class NetKitManager extends INetKitManager
     required bool testMode,
     required String accessTokenHeaderKey,
     required String accessTokenBodyKey,
+    required String accessTokenPrefix,
     required String refreshTokenBodyKey,
     required String? refreshTokenPath,
     required bool removeAccessTokenBeforeRefresh,
@@ -497,6 +502,7 @@ class NetKitManager extends INetKitManager
       logInterceptorEnabled: logInterceptorEnabled,
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
+      accessTokenPrefix: accessTokenPrefix,
       refreshTokenBodyKey: refreshTokenBodyKey,
       onBeforeRefreshRequest: onBeforeRefreshRequest,
       metadataDataKey: metadataDataKey,
@@ -529,10 +535,9 @@ class NetKitManager extends INetKitManager
 
     final errorInterceptor = ErrorHandlingInterceptor(
       refreshTokenPath: parameters.refreshTokenPath,
+      logger: _logger,
       requestQueue: RequestQueue(),
       tokenManager: TokenManager(
-        addBearerToken: _setAccessToken,
-        addRefreshToken: _setRefreshToken,
         refreshTokenRequest: _requestNewTokens,
         retryRequest: _retryRequest,
         onTokensUpdated: _onTokensUpdated,

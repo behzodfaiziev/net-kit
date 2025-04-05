@@ -66,11 +66,11 @@ void main() {
   setUp(() {
     requestQueue = MockRequestQueue();
     interceptor = ErrorHandlingInterceptor(
+      logger: null,
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
       tokenManager: TokenManager(
-        addBearerToken: (_) {},
-        addRefreshToken: (_) {},
+        logger: null,
         refreshTokenRequest: () async {
           return authTokenModel;
         },
@@ -165,14 +165,14 @@ void main() {
 
 // Simulate an error during the token refresh process
     interceptor = ErrorHandlingInterceptor(
+      logger: null,
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
       tokenManager: TokenManager(
-        addBearerToken: (_) {},
-        addRefreshToken: (_) {},
         refreshTokenRequest: () async {
           throw invalidRefreshTokenException;
         },
+        logger: null,
         retryRequest: (requestOptions) async {
           return successfulRetryResponse(requestOptions);
         },
@@ -258,11 +258,11 @@ void main() {
 
 // Simulate an error during the token refresh process
     interceptor = ErrorHandlingInterceptor(
+      logger: null,
       refreshTokenPath: '/refresh-token',
       requestQueue: requestQueue,
       tokenManager: TokenManager(
-        addBearerToken: (_) {},
-        addRefreshToken: (_) {},
+        logger: null,
         refreshTokenRequest: () async {
           throw invalidRefreshTokenException;
         },
@@ -303,11 +303,11 @@ void main() {
 
 // Simulate an error during the token refresh process
       interceptor = ErrorHandlingInterceptor(
+        logger: null,
         refreshTokenPath: '/refresh-token',
         requestQueue: requestQueue,
         tokenManager: TokenManager(
-          addBearerToken: (_) {},
-          addRefreshToken: (_) {},
+          logger: null,
           refreshTokenRequest: () async {
             return authTokenModel;
           },

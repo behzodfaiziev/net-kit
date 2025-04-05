@@ -9,7 +9,8 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
     if (token == null) return;
     baseOptions.headers.addAll(
       {
-        parameters.accessTokenHeaderKey: token,
+        parameters.accessTokenHeaderKey:
+            '${parameters.accessTokenPrefix} $token',
       },
     );
   }

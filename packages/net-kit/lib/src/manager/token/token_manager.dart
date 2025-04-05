@@ -12,8 +12,6 @@ class TokenManager {
   ///
   /// The constructor requires the following parameters:
   ///
-  /// - [addBearerToken]: A function to store the new access token.
-  /// - [addRefreshToken]: A function to store the new refresh token.
   /// - [refreshTokenRequest]: A function to make the request for
   ///   refreshing the access token.
   /// - [retryRequest]: A function to retry the original request
@@ -21,71 +19,62 @@ class TokenManager {
   /// - [onTokensUpdated]: An optional callback function that
   ///   is invoked when tokens are updated.
   TokenManager({
-    required this.addBearerToken,
-    required this.addRefreshToken,
-    required this.refreshTokenRequest,
-    required this.retryRequest, // Added this
-    this.onTokensUpdated,
-    this.logger,
-  });
-
-  /// A function that stores the new access token.
-  final void Function(String accessToken) addBearerToken;
-
-  /// A function that stores the new refresh token.
-  final void Function(String refreshToken) addRefreshToken;
+    required Future<AuthTokenModel> Function() refreshTokenRequest,
+    required Future<Response<dynamic>> Function(RequestOptions requestOptions)
+        retryRequest,
+    required INetKitLogger? logger,
+    required void Function(AuthTokenModel authToken) onTokensUpdated,
+  }) {
+    _refreshTokenRequest = refreshTokenRequest;
+    _retryRequest = retryRequest;
+    _onTokensUpdated = onTokensUpdated;
+    _logger = logger;
+  }
 
   /// An optional logger for logging token refresh operations.
-  final INetKitLogger? logger;
+  late final INetKitLogger? _logger;
 
   /// A function that makes the request to refresh the access token.
   ///
   /// This function is expected to return an instance of
   /// `AuthTokenModel`, which contains the new access and refresh tokens.
-  final Future<AuthTokenModel> Function() refreshTokenRequest;
+  late final Future<AuthTokenModel> Function() _refreshTokenRequest;
 
   /// A function that retries the original request after
   /// the token has been refreshed.
-  final Future<Response<dynamic>> Function(RequestOptions requestOptions)
-      retryRequest;
+  late final Future<Response<dynamic>> Function(RequestOptions requestOptions)
+      _retryRequest;
 
   /// An optional callback function that is invoked when tokens
   /// are updated.
-  final void Function(AuthTokenModel authToken)? onTokensUpdated;
+  late final void Function(AuthTokenModel authToken)? _onTokensUpdated;
 
   /// Refreshes the authentication tokens.
   ///
   /// This method retrieves the current refresh token, makes a
   /// request to refresh the access token, and updates the stored
   /// tokens accordingly. If the tokens are successfully updated,
-  /// the optional [onTokensUpdated] callback is invoked.
+  /// the optional [_onTokensUpdated] callback is invoked.
   ///
   /// Throws:
   /// - Throws any error encountered during the token refresh
   ///   request, allowing for handling in the calling context.
   Future<void> refreshTokens() async {
     try {
-      logger?.info('Refreshing token...');
+      _logger?.info('Refreshing token...');
 
       // Make the request to refresh the token
-      final authToken = await refreshTokenRequest();
+      final authToken = await _refreshTokenRequest();
 
-      logger?.info('Token refreshed successfully.');
-
-      // Update the tokens using the provided functions
-      addBearerToken(authToken.accessToken ?? '');
-      addRefreshToken(authToken.refreshToken ?? '');
-
-      logger?.info('Tokens updated successfully.');
+      _logger?.info('Tokens updated successfully.');
 
       // Notify that the tokens were updated
-
-      if (onTokensUpdated != null) {
-        logger?.info('Notifying tokens updated...');
-        onTokensUpdated!.call(authToken);
+      if (_onTokensUpdated != null) {
+        _logger?.info('Notifying tokens updated...');
+        _onTokensUpdated!.call(authToken);
       }
     } catch (e) {
-      logger?.warning('Token refresh failed: $e');
+      _logger?.warning('Token refresh failed: $e');
       // Propagate the error for handling in the interceptor
       rethrow;
     }
@@ -110,7 +99,7 @@ class TokenManager {
   ) async {
     try {
       // Retry the original request using the injected retry function
-      final response = await retryRequest(requestOptions);
+      final response = await _retryRequest(requestOptions);
       return response;
     } catch (e) {
       rethrow; // Propagate the error for handling in the interceptor

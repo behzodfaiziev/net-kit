@@ -23,7 +23,7 @@ class ErrorHandlingInterceptor {
     required this.refreshTokenPath,
     required this.requestQueue,
     required this.tokenManager,
-    this.logger,
+    required this.logger,
   });
 
   /// The path to the token refresh endpoint.
@@ -123,9 +123,9 @@ class ErrorHandlingInterceptor {
     ErrorInterceptorHandler handler,
   ) async {
     try {
-      logger?.info('Retrying original request after token refresh');
       // Attempt to retry the original request.
-      final response = await tokenManager.retryRequest(error.requestOptions);
+      final response =
+          await tokenManager.retryOriginalRequest(error.requestOptions);
       logger?.info('Original request retried successfully');
       handler.resolve(response);
     } on DioException catch (e) {

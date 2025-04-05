@@ -1,4 +1,5 @@
-## 4.4.4-dev
+## 4.5.0-dev
+
 - **breaking change**: refresh token request is now sent via body.
   Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
 - **breaking change**: `setAccessToken` now does not include `Bearer` prefix in the token, since
@@ -8,27 +9,16 @@
   header.
   Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
 - Added `removeAccessTokenBeforeRefresh` as top-level parameters in `NetKitManager`.
+- Added `accessTokenPrefix` as top-level parameters in `NetKitManager`.
 - Added `onBeforeRefreshRequest` callback to mutate the refresh token request before it's sent (
   e.g., inject headers, modify body, etc.).
 - Introduced `NetKitRequestOptions`, a clean abstraction for refresh requests.
 - added `metadataDataKey' to `NetKitManager` to parse the body from the metadata body
-
-## 4.1.3-dev
-
 - errorParsing: SocketException handling added to `ApiException.fromJson`
-
-## 4.1.2-dev
-
 - error handling improved: added `debugMessage` and `error` fields to `ApiException` to provide more
   information about the error
-
-## 4.1.1-dev
-
-- improved automatic refresh token on custom data key
-
-## 4.1.0-dev
-
-- added `requestListMeta` and `requestModelMeta`
+- Added `requestListMeta` and `requestModelMeta` methods to `NetKitManager` to handle
+  metadata in the response. This is useful when the API returns metadata along with the data.
 
 # 4.0.0
 
