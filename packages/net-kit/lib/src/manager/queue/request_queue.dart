@@ -36,7 +36,6 @@ class RequestQueue {
   /// ```
   void add(Future<void> Function() request) {
     _queue.add(request);
-    processQueue();
   }
 
   /// Processes the queue of requests.
@@ -48,7 +47,10 @@ class RequestQueue {
   ///
   /// This method should not be called directly.
   Future<void> processQueue() async {
-    if (_isProcessing) return;
+    if (_isProcessing) {
+      _logger?.info('Queue is already being processed');
+      return;
+    }
     _isProcessing = true;
 
     while (_queue.isNotEmpty) {
