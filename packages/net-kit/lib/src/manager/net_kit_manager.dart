@@ -536,7 +536,7 @@ class NetKitManager extends INetKitManager
     final errorInterceptor = ErrorHandlingInterceptor(
       refreshTokenPath: parameters.refreshTokenPath,
       logger: _logger,
-      requestQueue: RequestQueue(),
+      requestQueue: RequestQueue(logger: _logger),
       tokenManager: TokenManager(
         refreshTokenRequest: _requestNewTokens,
         retryRequest: _retryRequest,

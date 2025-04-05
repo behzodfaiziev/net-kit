@@ -1,3 +1,5 @@
+import '../../../net_kit.dart';
+
 /// A class that manages a queue of asynchronous requests.
 ///
 /// The `RequestQueue` class allows to add asynchronous requests to a queue
@@ -8,9 +10,14 @@
 /// while ensuring that only one refresh token request is processed at a time.
 class RequestQueue {
   /// Creates a new `RequestQueue` with an optional list of requests.
-  RequestQueue({List<Future<void> Function()>? queue}) : _queue = queue ?? [];
+  RequestQueue({
+    required INetKitLogger? logger,
+    List<Future<void> Function()>? queue,
+  })  : _queue = queue ?? [],
+        _logger = logger;
 
   final List<Future<void> Function()> _queue;
+  late final INetKitLogger? _logger;
 
   bool _isProcessing = false;
 
@@ -45,6 +52,7 @@ class RequestQueue {
     _isProcessing = true;
 
     while (_queue.isNotEmpty) {
+      _logger?.info('Processing request queue: ${_queue.length} requests');
       final request = _queue.removeAt(0);
       await request();
     }
@@ -65,6 +73,7 @@ class RequestQueue {
 
   /// Rejects all queued requests.
   void rejectQueuedRequests() {
+    _logger?.info('Rejecting all queued requests');
     while (_queue.isNotEmpty) {
       final queuedRequest = _queue.removeAt(0);
 

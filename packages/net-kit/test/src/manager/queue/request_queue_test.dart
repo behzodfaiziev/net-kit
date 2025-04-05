@@ -7,7 +7,7 @@ void main() {
   late RequestQueue requestQueue;
 
   setUp(() {
-    requestQueue = RequestQueue();
+    requestQueue = RequestQueue(logger: null);
   });
 
   group('RequestQueue', () {

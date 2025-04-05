@@ -84,13 +84,20 @@ class ErrorHandlingInterceptor {
         try {
           // Refresh the tokens using the token manager.
           await tokenManager.refreshTokens();
+          logger?.info('Retrying original request after token refresh');
           // Retry the original request after the tokens are refreshed.
           await _retryRequest(error, handler);
+
+          logger?.info('Token refreshed successfully, '
+              'retrying queued requests');
           // Process any queued requests after a successful refresh.
           await requestQueue.processQueue();
         } on DioException catch (e) {
           // Reject the original request if token refresh fails.
           handler.reject(e);
+          logger?.error(
+            'DioException: Error occurred: ${e.message}',
+          );
           // Reject all queued requests due to the failure.
           requestQueue.rejectQueuedRequests();
         } on Exception catch (e) {
@@ -102,6 +109,7 @@ class ErrorHandlingInterceptor {
           requestQueue.rejectQueuedRequests();
         } finally {
           // Reset the refresh flag.
+          logger?.info('Token refresh completed');
           _isRefreshing = false;
         }
       },
@@ -123,6 +131,7 @@ class ErrorHandlingInterceptor {
     ErrorInterceptorHandler handler,
   ) async {
     try {
+      logger?.info('Retrying original request after token refresh');
       // Attempt to retry the original request.
       final response =
           await tokenManager.retryOriginalRequest(error.requestOptions);
