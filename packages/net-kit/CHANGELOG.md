@@ -1,5 +1,4 @@
-## 4.3.0-dev
-
+## 4.4.4-dev
 - **breaking change**: refresh token request is now sent via body.
   Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
 - **breaking change**: `setAccessToken` now does not include `Bearer` prefix in the token, since

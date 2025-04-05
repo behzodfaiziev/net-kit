@@ -637,6 +637,11 @@ class NetKitManager extends INetKitManager
       data: options.data,
     );
 
-    return extractTokens(response: refreshResponse);
+    final tokens = extractTokens(response: refreshResponse);
+
+    _setAccessToken(tokens.accessToken);
+    _setRefreshToken(tokens.refreshToken);
+
+    return tokens;
   }
 }
