@@ -14,19 +14,14 @@ class TokenManager {
   ///
   /// - [refreshTokenRequest]: A function to make the request for
   ///   refreshing the access token.
-  /// - [retryRequest]: A function to retry the original request
-  ///   after the token refresh.
   /// - [onTokensUpdated]: An optional callback function that
   ///   is invoked when tokens are updated.
   TokenManager({
     required Future<AuthTokenModel> Function() refreshTokenRequest,
-    required Future<Response<dynamic>> Function(RequestOptions requestOptions)
-        retryRequest,
     required INetKitLogger? logger,
     required void Function(AuthTokenModel authToken) onTokensUpdated,
   }) {
     _refreshTokenRequest = refreshTokenRequest;
-    _retryRequest = retryRequest;
     _onTokensUpdated = onTokensUpdated;
     _logger = logger;
   }
@@ -39,11 +34,6 @@ class TokenManager {
   /// This function is expected to return an instance of
   /// `AuthTokenModel`, which contains the new access and refresh tokens.
   late final Future<AuthTokenModel> Function() _refreshTokenRequest;
-
-  /// A function that retries the original request after
-  /// the token has been refreshed.
-  late final Future<Response<dynamic>> Function(RequestOptions requestOptions)
-      _retryRequest;
 
   /// An optional callback function that is invoked when tokens
   /// are updated.
@@ -77,32 +67,6 @@ class TokenManager {
       _logger?.warning('Token refresh failed: $e');
       // Propagate the error for handling in the interceptor
       rethrow;
-    }
-  }
-
-  /// Retries the original HTTP request after the token has been refreshed.
-  ///
-  /// This method takes the original request options and attempts
-  /// to retry the request using the `retryRequest` function provided.
-  ///
-  /// Parameters:
-  /// - [requestOptions]: The original request options to be retried.
-  ///
-  /// Returns:
-  /// - Returns the response from the retried request.
-  ///
-  /// Throws:
-  /// - Throws any error encountered during the retry, allowing for
-  ///   handling in the calling context.
-  Future<Response<dynamic>> retryOriginalRequest(
-    RequestOptions requestOptions,
-  ) async {
-    try {
-      // Retry the original request using the injected retry function
-      final response = await _retryRequest(requestOptions);
-      return response;
-    } catch (e) {
-      rethrow; // Propagate the error for handling in the interceptor
     }
   }
 }

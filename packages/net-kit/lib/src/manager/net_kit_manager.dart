@@ -82,7 +82,7 @@ class NetKitManager extends INetKitManager
     String accessTokenBodyKey = 'accessToken',
 
     /// The prefix for the access token in the headers
-    String accessTokenPrefix = 'Bearer ',
+    String accessTokenPrefix = 'Bearer',
 
     /// Whether to remove the access token header before refreshing the token
     /// Default is true
@@ -536,10 +536,10 @@ class NetKitManager extends INetKitManager
     final errorInterceptor = ErrorHandlingInterceptor(
       refreshTokenPath: parameters.refreshTokenPath,
       logger: _logger,
+      retryRequest: _retryRequest,
       requestQueue: RequestQueue(logger: _logger),
       tokenManager: TokenManager(
         refreshTokenRequest: _requestNewTokens,
-        retryRequest: _retryRequest,
         onTokensUpdated: _onTokensUpdated,
         logger: _logger,
       ),

@@ -21,6 +21,7 @@ class ErrorHandlingInterceptor {
   ///   token refresh and retry operations.
   ErrorHandlingInterceptor({
     required this.refreshTokenPath,
+    required this.retryRequest,
     required this.requestQueue,
     required this.tokenManager,
     required this.logger,
@@ -41,6 +42,12 @@ class ErrorHandlingInterceptor {
   /// An optional logger for logging token refresh operations.
   final INetKitLogger? logger;
 
+  /// Retries the original HTTP request after the token has been refreshed.
+  final Future<Response<dynamic>> Function(RequestOptions requestOptions)
+      retryRequest;
+
+  String _latestErrorPath = '';
+
   /// Returns an `ErrorInterceptor` that defines the behavior
   /// when an error occurs during an HTTP request.
   ///
@@ -58,7 +65,9 @@ class ErrorHandlingInterceptor {
     return ErrorInterceptor(
       onError: (DioException error, ErrorInterceptorHandler handler) async {
         // Check if the error is a 401 Unauthorized response.
-        if (error.response?.statusCode != 401 || refreshTokenPath == null) {
+        if (error.response?.statusCode != 401 ||
+            refreshTokenPath == null ||
+            _latestErrorPath == error.requestOptions.path) {
           logger?.error('Error: ${error.message}');
           return handler.next(error);
         }
@@ -67,6 +76,7 @@ class ErrorHandlingInterceptor {
           // If it's from the refresh token path, reject with the error
           logger?.error('refresh token error: ${error.message}');
           handler.reject(error);
+          _latestErrorPath = error.requestOptions.path;
 
           // Reject all queued requests as the token is no longer valid
           requestQueue.rejectQueuedRequests();
@@ -75,9 +85,19 @@ class ErrorHandlingInterceptor {
 
         // If a refresh is already in progress, queue the request.
         if (_isRefreshing) {
-          logger?.info('Token refresh in progress, queuing request');
-          requestQueue
-              .enqueueDuringRefresh(() => _retryRequest(error, handler));
+          logger?.info('Token refresh in progress, queuing request, \n'
+              'Path: ${error.requestOptions.path},\n'
+              'Method: ${error.requestOptions.method}');
+
+          requestQueue.enqueueDuringRefresh(
+            request: () async {
+              final response = await retryRequest(error.requestOptions);
+              handler.resolve(response); // resolve the response here
+            },
+            onReject: (dioError) {
+              handler.reject(dioError); // reject this specific request
+            },
+          );
           return;
         }
 
@@ -85,72 +105,49 @@ class ErrorHandlingInterceptor {
         try {
           // Refresh the tokens using the token manager.
           await tokenManager.refreshTokens();
-          logger?.info('Retrying original request after token refresh');
+
+          logger?.info('Retrying original request after token refresh with. \n'
+              'Path: ${error.requestOptions.path},\n'
+              'Method: ${error.requestOptions.method}');
           // Retry the original request after the tokens are refreshed.
-          await _retryRequest(error, handler);
+          final response = await retryRequest(error.requestOptions);
 
           logger?.info('Token refreshed successfully, '
               'retrying queued requests');
           // Process any queued requests after a successful refresh.
           await requestQueue.processQueue();
+          handler.resolve(response);
         } on DioException catch (e) {
-          // Reject the original request if token refresh fails.
-          handler.reject(e);
-          logger?.error(
-            'DioException: Error occurred: ${e.message}',
-          );
-          // Reject all queued requests due to the failure.
+          logger?.error('Token refresh failed: ${e.message}');
+          _latestErrorPath = error.requestOptions.path;
+
+          // Reject all queued requests FIRST
           requestQueue.rejectQueuedRequests();
+
+          // Clear refresh flag
+          _isRefreshing = false;
+
+          // Only then reject the original request
+          handler.reject(e);
+          return;
         } on Exception catch (e) {
-          // Reject the original request if token refresh fails.
+          logger?.fatal('Unexpected error: $e');
+
+          _latestErrorPath = error.requestOptions.path;
+
+          requestQueue.rejectQueuedRequests();
+          _isRefreshing = false;
+
           handler.reject(
             DioException(requestOptions: error.requestOptions, error: e),
           );
-          // Reject all queued requests due to the failure.
-          requestQueue.rejectQueuedRequests();
+          return;
         } finally {
           // Reset the refresh flag.
-          logger?.info('Token refresh completed');
           _isRefreshing = false;
+          logger?.info('Token refresh completed');
         }
       },
     );
-  }
-
-  /// Retries the original HTTP request after a successful token refresh.
-  ///
-  /// This method attempts to resolve the request using the `retryRequest`
-  /// method of the `tokenManager`. If the retry is successful, the response
-  /// is resolved. If an error occurs during the retry, the error is
-  /// rejected through the handler.
-  ///
-  /// Parameters:
-  /// - [error]: The original `DioException` that triggered the retry.
-  /// - [handler]: The interceptor handler that manages the request flow.
-  Future<void> _retryRequest(
-    DioException error,
-    ErrorInterceptorHandler handler,
-  ) async {
-    try {
-      logger?.info('Retrying original request after token refresh');
-      // Attempt to retry the original request.
-      final response =
-          await tokenManager.retryOriginalRequest(error.requestOptions);
-      logger?.info('Original request retried successfully');
-      handler.resolve(response);
-    } on DioException catch (e) {
-      logger?.error(
-        'DioException: Error retrying original '
-        'request after token refreshed: $e',
-      );
-      // Reject the request if retry fails.
-      rethrow;
-    } catch (e) {
-      logger?.fatal(
-        'Error retrying original request after token refreshed: $e',
-      );
-      // Reject the request if retry fails.
-      rethrow;
-    }
   }
 }
