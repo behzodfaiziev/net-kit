@@ -1,24 +1,37 @@
-## 4.5.0-dev
+## 5.0.0-dev.1
 
-- **breaking change**: refresh token request is now sent via body.
+### **Breaking Changes**
+
+- refresh token request is now sent via body.
   Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
-- **breaking change**: `setAccessToken` now does not include `Bearer` prefix in the token, since
-  there might be some cases where the token is not a Bearer token. You can add the `Bearer` prefix
-  in the `NetKitManager`.
 - **removal**: `refreshTokenHeaderKey` is removed since refreshToken should not be in the
   header.
   Reference: [Refreshing an Access Token](https://datatracker.ietf.org/doc/html/rfc6749#section-6)
-- Added `removeAccessTokenBeforeRefresh` as top-level parameters in `NetKitManager`.
-- Added `accessTokenPrefix` as top-level parameters in `NetKitManager`.
-- Added `onBeforeRefreshRequest` callback to mutate the refresh token request before it's sent (
-  e.g., inject headers, modify body, etc.).
-- Introduced `NetKitRequestOptions`, a clean abstraction for refresh requests.
-- added `metadataDataKey' to `NetKitManager` to parse the body from the metadata body
+
+### **New Features**
+
+- Added `removeAccessTokenBeforeRefresh` : A new top-level option in NetKitManager to remove the
+  access token from headers during a token refresh.
+- Added `accessTokenPrefix`: Allows you to define a custom token prefix (e.g., Bearer, Token) when
+  setting the access token.
+- Introduced `onBeforeRefreshRequest` callback: Lets you modify the refresh token request before it
+  is sent — useful for injecting custom headers or modifying the request body.
+  Introduced `NetKitRequestOptions`: A new abstraction to simplify and standardize refresh token
+  request configuration.
+- Added `metadataDataKey`: Enables support for parsing the actual data nested inside metadata
+  wrappers from API responses.
 - errorParsing: SocketException handling added to `ApiException.fromJson`
 - error handling improved: added `debugMessage` and `error` fields to `ApiException` to provide more
   information about the error
-- Added `requestListMeta` and `requestModelMeta` methods to `NetKitManager` to handle
-  metadata in the response. This is useful when the API returns metadata along with the data.
+- Added `requestModelMeta` and `requestListMeta` methods:
+- New helpers in NetKitManager to easily extract data from metadata-based responses.
+
+### **Improvements**
+
+Improved error handling in **ApiException**
+
+- Added **debugMessage** and **error** fields to provide more detailed diagnostics.
+- Better support for **SocketException** and network-related errors via **ApiException.fromJson**.
 
 # 4.0.0
 

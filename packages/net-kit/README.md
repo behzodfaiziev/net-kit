@@ -13,38 +13,41 @@
 <summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
-  * [**Contents**](#contents)
-  * [**Features**](#features)
-  * [**Sponsors**](#sponsors)
-  * [**Getting started**](#getting-started)
+
+* [**Contents**](#contents)
+* [**Features**](#features)
+* [**Sponsors**](#sponsors)
+* [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
-    * [**Logger Integration**](#logger-integration)
-  * [**Sending requests**](#sending-requests)
-      * [**Request a Single Model**](#request-a-single-model)
-      * [**Request a List of Models**](#request-a-list-of-models)
-      * [**Send a void Request**](#send-a-void-request)
+* [**Sending requests**](#sending-requests)
+    * [**Request a Single Model**](#request-a-single-model)
+    * [**Request a List of Models**](#request-a-list-of-models)
+    * [**Send a void Request**](#send-a-void-request)
     * [**Setting Tokens**](#setting-tokens)
     * [**User Logout**](#user-logout)
-  * [**Refresh Token**](#refresh-token)
+* [**Refresh Token**](#refresh-token)
     * [**Refresh Token Initialization**](#refresh-token-initialization)
     * [**Refresh Token Example**](#refresh-token-example)
     * [**How refresh token works**](#how-refresh-token-works)
-  * [📜 **Standards Compliance**](#-standards-compliance)
+* [**Logger Integration**](#logger-integration)
+* [📜 **Standards Compliance**](#-standards-compliance)
     * [🔐 RFC Standards](#-rfc-standards)
-      * [📣 Help Us Stay Compliant](#-help-us-stay-compliant)
+    * [📣 Help Us Stay Compliant](#-help-us-stay-compliant)
 * [Migration Guidance](#migration-guidance)
-  * [**Planned Enhancements**](#planned-enhancements)
-  * [**Contributing**](#contributing)
-  * [**License**](#license)
+    * [**Planned Enhancements**](#planned-enhancements)
+    * [**Contributing**](#contributing)
+    * [**License**](#license)
+
 <!-- TOC -->
 
 </details>  
 
 ## **Features**
 
-- 🔄 Automatic token refresh
-- 🛠 Parsing responses into models or lists of models using `INetKitModel`
+- 🔄 Automatic token refresh with queue-safe retry
+- ⚙️ `onBeforeRefreshRequest` to mutate refresh payload
+- 🛠 Parsing responses into models or lists using `INetKitModel`
 - 🧪 Configurable base URLs for development and production
 - 🌐 Internationalization support for error messages
 
@@ -80,25 +83,6 @@ deserialized.
 
 ```dart
 class TodoModel extends INetKitModel {}
-```
-
-### **Logger Integration**
-
-The `NetKitManager` uses a logger internally, for example, during the refresh token stages. To add
-custom logging, you need to create a class that implements the `INetKitLogger` interface. Below is
-an example of how to create a `NetworkLogger` class:
-
-You can find the full example
-of
-`NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/flutter_integration_test/lib/core/network/logger/network_logger.dart).
-
-```dart
-
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
-  logger: NetworkLogger(),
-  // ... other parameters
-);
 ```
 
 ## **Sending requests**
@@ -173,8 +157,8 @@ authenticated API requests. Below are the methods provided to set, update, and r
 
 **Setting Access and Refresh Tokens**
 
-To set the access and refresh tokens, use the `setAccessToken` and `setRefreshToken` methods. These
-tokens will be added to the headers of every request made by the NetKitManager.
+To set the access and refresh tokens, use the `setAccessToken` and `setRefreshToken` methods. The
+`accessToken` token will be added to the headers of every request made by the NetKitManager.
 Note: these should be set on every app launch or when the user logs in.
 
 ```dart
@@ -200,22 +184,30 @@ void logoutUser() {
 }
 ```
 
-This method ensures that the tokens are removed from the headers, effectively logging out the user.
-
 ## **Refresh Token**
 
-The NetKitManager provides a built-in mechanism for handling token refresh. This feature ensures
-that your access tokens are automatically refreshed when they expire, allowing for seamless and
-uninterrupted API requests.
+NetKitManager provides a robust and RFC-compliant refresh token mechanism to ensure seamless and
+uninterrupted API communication, even when access tokens expire.
+
+1. When a request fails with a 401 Unauthorized, NetKit will automatically:
+2. Pause the failing request and any subsequent requests.
+3. Attempt to refresh the access token via the configured refreshTokenPath.
+4. Retry the failed requests using the new token upon successful refresh.
 
 ### **Refresh Token Initialization**
 
 To use the refresh token feature, you need to initialize the NetKitManager with the following
 parameters:
 
-- `refreshTokenPath`: The API endpoint used to refresh the tokens.
-- `onTokenRefreshed`: A callback function that is called when the tokens are successfully
-  refreshed.
+| Parameter                        | Required | Description                                                                |
+|----------------------------------|----------|----------------------------------------------------------------------------|
+| `refreshTokenPath`               | ✅        | Endpoint to request a new access token using the refresh token.            |
+| `onTokenRefreshed`               | ✅        | Callback triggered after tokens are successfully refreshed.                |
+| `refreshTokenBodyKey`            | ➖        | Key for the refresh token in the refresh body (default: "refreshToken").   |
+| `accessTokenBodyKey`             | ➖        | Key for the access token in the refresh body (default: "accessToken").     |
+| `removeAccessTokenBeforeRefresh` | ➖        | Whether to strip access token header during token refresh (default: true). |
+| `accessTokenPrefix`              | ➖        | Prefix added to accessToken in headers (default: "Bearer").                |
+| `onBeforeRefreshRequest`         | ➖        | Allows modifying headers/body before refresh is sent.                      |
 
 ### **Refresh Token Example**
 
@@ -224,13 +216,28 @@ parameters:
 final netKitManager = NetKitManager(
   baseUrl: 'https://api.<URL>.com',
   devBaseUrl: 'https://dev.<URL>.com',
-  loggerEnabled: true,
-  testMode: true,
   refreshTokenPath: '/auth/refresh-token',
+
+  /// Called after a successful refresh
   onTokenRefreshed: (authToken) async {
-    /// Save the new access token to the storage
+    await secureStorage.saveTokens(
+      accessToken: authToken.accessToken,
+      refreshToken: authToken.refreshToken,
+    );
   },
-  // ... other parameters
+
+  /// Optional: remove the Authorization header before making refresh request
+  removeAccessTokenBeforeRefresh: true,
+
+  /// Optional: override the default prefix "Bearer"
+  accessTokenPrefix: 'Token',
+
+  /// Optional: customize refresh request before it is sent
+  onBeforeRefreshRequest: (options) {
+    options.headers['Custom-Header'] = 'MyValue';
+    options.body['client_id'] = 'your_client_id';
+    options.body['client_secret'] = 'your_secret';
+  },
 );
 ```
 
@@ -240,27 +247,49 @@ The refresh token mechanism in `NetKitManager` ensures that your access tokens a
 refreshed when they expire, allowing for seamless and uninterrupted API requests. Here’s how it
 works:
 
-**Token Expiry Detection:**
+🔍 **Token Expiry Detection:**
 
-- When an API request fails due to an expired access token, the `NetKitManager` detects this
-  failure(401 status code) and automatically triggers the refresh token process.
+- When an API request fails with a 401 Unauthorized status code, NetKitManager automatically detects
+  that the access token has likely expired.
 
-**Token Refresh Request:**
+🔄 **Token Refresh Request:**
 
-- The NetKitManager automatically sends a request to the refreshTokenPath endpoint to obtain new
-  access and refresh tokens.
+- It then sends a request to the configured refreshTokenPath endpoint to obtain new access and
+  refresh tokens.
+- The request body includes the current refresh token, and optionally other custom fields.
 
-**Updating Tokens:**
+✅ **Updating Tokens:**
 
-- Upon receiving new tokens, NetKitManager updates headers with the new access token.
-- The onTokenRefreshed callback is called with new tokens, allowing you to store them securely.
+- Once new tokens are received:
+    - The Authorization header (or other configured header) is updated with the new access token.
+    - The onTokenRefreshed callback is triggered so you can store the new tokens securely.
 
-**Retrying the Original Request:**
+🔁 **Retrying the Original Request:**
 
-- The original API request that failed due to token expiry is retried with the new access token.
+- The original request that failed is automatically retried with the new access token.
+- Any other requests that were waiting during token refresh are also retried in order.
 
 This process ensures that your application can continue to make authenticated requests without
 requiring user intervention when tokens expire.
+
+## **Logger Integration**
+
+The `NetKitManager` uses a logger internally, for example, during the refresh token stages. To add
+custom logging, you need to create a class that implements the `INetKitLogger` interface. Below is
+an example of how to create a `NetworkLogger` class:
+
+You can find the full example
+of
+`NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/flutter_integration_test/lib/core/network/logger/network_logger.dart).
+
+```dart
+
+final netKitManager = NetKitManager(
+  baseUrl: 'https://api.<URL>.com',
+  logger: NetworkLogger(),
+  // ... other parameters
+);
+```
 
 ## 📜 **Standards Compliance**
 
@@ -283,13 +312,14 @@ please open an issue with a clear reference to the relevant RFC and section.
 We’re committed to improving and welcome community-driven compliance insights!
 
 # Migration Guidance
+
 ➡️ For detailed upgrade steps and breaking changes, see the full [Migration Guide](./MIGRATION.md).
 
 ## **Planned Enhancements**
 
 | *Feature*                                                   | *Status* |
 |:------------------------------------------------------------|:--------:|
-| Internationalization support for error messages             |    ✅     |
+| Internationalization support for error messages             |    ✅     |@
 | No internet connection handling                             |    ✅     |
 | Provide basic example                                       |    ✅     |
 | Provide more examples and use cases in the documentation    |    ✅     |

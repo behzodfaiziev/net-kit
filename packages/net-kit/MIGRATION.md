@@ -66,20 +66,3 @@ handled under the hood.
 The `refreshTokenHeaderKey` parameter has been removed entirely.
 
 You no longer need to set the refresh token in headers manually.
-
-### 🔑 3. **Breaking Change**: setAccessToken now does not include Bearer prefix
-
-The `setAccessToken` method no longer includes the `Bearer` prefix in the token. This change allows
-for more flexibility, as some APIs may not use the Bearer scheme.
-
-- **Before**:
-
-```dart
-// netKitManager.setAccessToken("your_access_token');
-```
-
-- **After**:
-
-```dart
-// netKitManager.setAccessToken("Bearer your_access_token"); 
-```
