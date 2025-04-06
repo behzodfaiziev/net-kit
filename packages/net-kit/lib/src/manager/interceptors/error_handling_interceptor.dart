@@ -46,7 +46,12 @@ class ErrorHandlingInterceptor {
   final Future<Response<dynamic>> Function(RequestOptions requestOptions)
       retryRequest;
 
-  String _latestErrorPath = '';
+  /// A key used to track the number of retry attempts for a request.
+  static const _retryCountKey = '__retryCount';
+
+  /// The maximum number of times to retry the request
+  /// ATTENTION: It must not be changed since it may lead to infinite loops
+  static const _maxRetryCount = 1;
 
   /// Returns an `ErrorInterceptor` that defines the behavior
   /// when an error occurs during an HTTP request.
@@ -65,23 +70,32 @@ class ErrorHandlingInterceptor {
     return ErrorInterceptor(
       onError: (DioException error, ErrorInterceptorHandler handler) async {
         // Check if the error is a 401 Unauthorized response.
-        if (error.response?.statusCode != 401 ||
-            refreshTokenPath == null ||
-            _latestErrorPath == error.requestOptions.path) {
+        if (error.response?.statusCode != 401 || refreshTokenPath == null) {
           logger?.error('Error: ${error.message}');
           return handler.next(error);
         }
+
         // Check if the error is from the refresh token request
         if (error.requestOptions.path == refreshTokenPath) {
           // If it's from the refresh token path, reject with the error
           logger?.error('refresh token error: ${error.message}');
           handler.reject(error);
-          _latestErrorPath = error.requestOptions.path;
 
           // Reject all queued requests as the token is no longer valid
           requestQueue.rejectQueuedRequests();
           return;
         }
+
+        final options = error.requestOptions;
+
+        // Handle retry count
+        final retryCount = options.extra[_retryCountKey] as int? ?? 0;
+        if (retryCount >= _maxRetryCount) {
+          logger?.warning('Retry limit exceeded for ${options.path}');
+          return handler.reject(error);
+        }
+
+        options.extra[_retryCountKey] = retryCount + 1;
 
         // If a refresh is already in progress, queue the request.
         if (_isRefreshing) {
@@ -91,11 +105,10 @@ class ErrorHandlingInterceptor {
 
           requestQueue.enqueueDuringRefresh(
             request: () async {
-              final response = await retryRequest(error.requestOptions);
-              handler.resolve(response); // resolve the response here
+              await _handleRetryRequest(error, handler);
             },
             onReject: (dioError) {
-              handler.reject(dioError); // reject this specific request
+              handler.reject(dioError);
             },
           );
           return;
@@ -109,17 +122,19 @@ class ErrorHandlingInterceptor {
           logger?.info('Retrying original request after token refresh with. \n'
               'Path: ${error.requestOptions.path},\n'
               'Method: ${error.requestOptions.method}');
-          // Retry the original request after the tokens are refreshed.
-          final response = await retryRequest(error.requestOptions);
 
-          logger?.info('Token refreshed successfully, '
-              'retrying queued requests');
-          // Process any queued requests after a successful refresh.
+          // Process queued requests first so they don't get skipped
           await requestQueue.processQueue();
-          handler.resolve(response);
+
+          // Retry the original request after the tokens are refreshed.
+          await _handleRetryRequest(error, handler);
+
+          logger?.info(
+            'Original request retried successfully after token refresh, '
+            'retrying queued requests',
+          );
         } on DioException catch (e) {
           logger?.error('Token refresh failed: ${e.message}');
-          _latestErrorPath = error.requestOptions.path;
 
           // Reject all queued requests FIRST
           requestQueue.rejectQueuedRequests();
@@ -132,8 +147,6 @@ class ErrorHandlingInterceptor {
           return;
         } on Exception catch (e) {
           logger?.fatal('Unexpected error: $e');
-
-          _latestErrorPath = error.requestOptions.path;
 
           requestQueue.rejectQueuedRequests();
           _isRefreshing = false;
@@ -149,5 +162,42 @@ class ErrorHandlingInterceptor {
         }
       },
     );
+  }
+
+  /// Handles a queued request that was waiting for token refresh.
+  Future<void> _handleRetryRequest(
+    DioException error,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final options = error.requestOptions;
+    final retryCount = options.extra[_retryCountKey] as int? ?? 0;
+
+    logger?.error(
+      'Retry after successful token refresh '
+      'failed for ${options.path}: ${error.message}',
+    );
+
+    if (retryCount >= _maxRetryCount) {
+      logger?.warning(
+        'Retry limit exceeded in queued request: ${options.path}',
+      );
+      return handler.reject(error);
+    }
+
+    options.extra[_retryCountKey] = retryCount + 1;
+
+    try {
+      final response = await retryRequest(options);
+      logger?.info('Queued request retried successfully: ${options.path}');
+      handler.resolve(response);
+    } on DioException catch (e) {
+      logger?.error('Error while processing queued request: ${e.message}');
+      handler.reject(e);
+    } on Exception catch (e) {
+      logger?.fatal('Unexpected error while processing queued request: $e');
+      handler.reject(
+        DioException(requestOptions: options, error: e),
+      );
+    }
   }
 }

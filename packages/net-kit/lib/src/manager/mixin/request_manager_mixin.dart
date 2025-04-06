@@ -122,6 +122,7 @@ mixin RequestManagerMixin on DioMixin {
         method: requestOptions.method,
         // Make sure to add the new access token to the headers
         headers: baseOptions.headers,
+        extra: requestOptions.extra,
       ),
       data: requestOptions.data,
       queryParameters: requestOptions.queryParameters,
