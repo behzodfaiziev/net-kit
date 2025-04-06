@@ -172,11 +172,6 @@ class ErrorHandlingInterceptor {
     final options = error.requestOptions;
     final retryCount = options.extra[_retryCountKey] as int? ?? 0;
 
-    logger?.error(
-      'Retry after successful token refresh '
-      'failed for ${options.path}: ${error.message}',
-    );
-
     if (retryCount > _maxRetryCount) {
       logger?.warning(
         'Retry limit exceeded in queued request: ${options.path}',
@@ -187,6 +182,8 @@ class ErrorHandlingInterceptor {
     options.extra[_retryCountKey] = retryCount + 1;
 
     try {
+      logger?.info('Retrying queued request: ${options.path}');
+
       final response = await retryRequest(options);
       logger?.info('Queued request retried successfully: ${options.path}');
       handler.resolve(response);
