@@ -90,7 +90,7 @@ class ErrorHandlingInterceptor {
 
         // Handle retry count
         final retryCount = options.extra[_retryCountKey] as int? ?? 0;
-        if (retryCount >= _maxRetryCount) {
+        if (retryCount > _maxRetryCount) {
           logger?.warning('Retry limit exceeded for ${options.path}');
           return handler.reject(error);
         }
@@ -177,7 +177,7 @@ class ErrorHandlingInterceptor {
       'failed for ${options.path}: ${error.message}',
     );
 
-    if (retryCount >= _maxRetryCount) {
+    if (retryCount > _maxRetryCount) {
       logger?.warning(
         'Retry limit exceeded in queued request: ${options.path}',
       );
