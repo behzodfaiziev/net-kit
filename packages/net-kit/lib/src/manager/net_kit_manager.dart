@@ -63,7 +63,11 @@ class NetKitManager extends INetKitManager
     Interceptor? interceptor,
 
     /// The callback function that is called before the refresh token request
-    void Function(NetKitRequestOptions options)? onBeforeRefreshRequest,
+    OnBeforeRefresh? onBeforeRefreshRequest,
+
+    /// The callback function that is called when
+    /// the refresh token request fails
+    OnRefreshFailed? onRefreshFailed,
 
     /// Whether the network manager is in test mode
     /// If true, the devBaseUrl will be used,
@@ -112,7 +116,7 @@ class NetKitManager extends INetKitManager
     bool logInterceptorEnabled = false,
 
     /// The callback function that is called when the tokens are updated
-    this.onTokenRefreshed,
+    OnTokenRefreshed? onTokenRefreshed,
   }) {
     // Initialize the network manager
     _initialize(
@@ -123,6 +127,8 @@ class NetKitManager extends INetKitManager
       baseOptions: baseOptions,
       interceptor: interceptor,
       onBeforeRefreshRequest: onBeforeRefreshRequest,
+      onRefreshFailed: onRefreshFailed,
+      onTokenRefreshed: onTokenRefreshed,
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
       logger: logger,
@@ -143,28 +149,6 @@ class NetKitManager extends INetKitManager
 
   @override
   late final NetKitErrorParams _errorParams;
-
-  /// The callback function that is called when the tokens are updated
-  /// This function can be used to update the tokens in the app
-  /// or perform any other actions that are required when the tokens are updated
-  /// The callback function is optional and can be
-  /// set when initializing the network manager
-  /// Example:
-  /// ```dart
-  /// final netKitManager = NetKitManager(
-  ///  baseUrl: 'https://api.example.com',
-  ///  onTokenRefreshed: (authToken) {
-  ///  // Update the tokens in the app
-  ///  },
-  ///  );
-  ///  ```
-  ///  The callback function takes an [AuthTokenModel] as a parameter
-  ///  which contains the access token and refresh token.
-  ///  The callback function is called when the tokens are updated
-  ///  after a successful refresh token request.
-  ///  The callback function is optional and can
-  ///  be set when initializing the network manager.
-  late final void Function(AuthTokenModel)? onTokenRefreshed;
 
   @override
   late final INetKitLogger _logger;
@@ -474,14 +458,16 @@ class NetKitManager extends INetKitManager
     required bool removeAccessTokenBeforeRefresh,
     required INetKitLogger logger,
     required String metadataDataKey,
-    String? dataKey,
-    NetKitErrorParams? errorParams,
-    void Function(NetKitRequestOptions options)? onBeforeRefreshRequest,
-    String? devBaseUrl,
-    BaseOptions? baseOptions,
-    Interceptor? interceptor,
-    HttpClientAdapter? clientAdapter,
-    Stream<bool>? internetStatusStream,
+    required String? dataKey,
+    required NetKitErrorParams? errorParams,
+    required OnBeforeRefresh? onBeforeRefreshRequest,
+    required OnRefreshFailed? onRefreshFailed,
+    required OnTokenRefreshed? onTokenRefreshed,
+    required String? devBaseUrl,
+    required BaseOptions? baseOptions,
+    required Interceptor? interceptor,
+    required HttpClientAdapter? clientAdapter,
+    required Stream<bool>? internetStatusStream,
   }) {
     /// Initialize the logger
     _logger = logger;
@@ -505,6 +491,8 @@ class NetKitManager extends INetKitManager
       accessTokenPrefix: accessTokenPrefix,
       refreshTokenBodyKey: refreshTokenBodyKey,
       onBeforeRefreshRequest: onBeforeRefreshRequest,
+      onRefreshFailed: onRefreshFailed,
+      onTokenRefreshed: onTokenRefreshed,
       metadataDataKey: metadataDataKey,
       dataKey: dataKey,
       refreshTokenPath: refreshTokenPath,
@@ -537,9 +525,10 @@ class NetKitManager extends INetKitManager
       refreshTokenPath: parameters.refreshTokenPath,
       logger: _logger,
       retryRequest: _retryRequest,
+      onRefreshFailed: parameters.onRefreshFailed,
       requestQueue: RequestQueue(logger: _logger),
       tokenManager: TokenManager(
-        refreshTokenRequest: _requestNewTokens,
+        requestNewTokens: _requestNewTokens,
         onTokensUpdated: _onTokensUpdated,
         logger: _logger,
       ),
@@ -600,11 +589,14 @@ class NetKitManager extends INetKitManager
   /// hen initializing the network manager.
   void _onTokensUpdated(AuthTokenModel authToken) {
     // Call the callback if provided
-    if (onTokenRefreshed != null) {
-      onTokenRefreshed!.call(authToken);
-    }
+    parameters.onTokenRefreshed?.call(authToken);
+
     _setAccessToken(authToken.accessToken);
-    _setRefreshToken(authToken.refreshToken);
+
+    // Sets the refresh token if it is not null
+    if (authToken.refreshToken != null) {
+      _setRefreshToken(authToken.refreshToken);
+    }
   }
 
   /// Method to send a request to the server to refresh the access token.

@@ -25,6 +25,7 @@ class ErrorHandlingInterceptor {
     required this.requestQueue,
     required this.tokenManager,
     required this.logger,
+    required this.onRefreshFailed,
   });
 
   /// The path to the token refresh endpoint.
@@ -52,6 +53,12 @@ class ErrorHandlingInterceptor {
   /// The maximum number of times to retry the request
   /// ATTENTION: It must not be changed since it may lead to infinite loops
   static const _maxRetryCount = 1;
+
+  /// A callback function that is called when the token refresh fails.
+  final void Function({
+    required int? statusCode,
+    required DioException exception,
+  })? onRefreshFailed;
 
   /// Returns an `ErrorInterceptor` that defines the behavior
   /// when an error occurs during an HTTP request.
@@ -142,6 +149,12 @@ class ErrorHandlingInterceptor {
           // Clear refresh flag
           _isRefreshing = false;
 
+          // Call the onRefreshFailed callback if provided
+          onRefreshFailed?.call(
+            statusCode: e.response?.statusCode,
+            exception: e,
+          );
+
           // Only then reject the original request
           handler.reject(e);
           return;
@@ -151,9 +164,14 @@ class ErrorHandlingInterceptor {
           requestQueue.rejectQueuedRequests();
           _isRefreshing = false;
 
-          handler.reject(
-            DioException(requestOptions: error.requestOptions, error: e),
+          final exception = DioException(
+            requestOptions: error.requestOptions,
+            error: e,
           );
+          // Call the onRefreshFailed callback if provided
+          onRefreshFailed?.call(statusCode: null, exception: exception);
+
+          handler.reject(exception);
           return;
         } finally {
           // Reset the refresh flag.

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import '../../core/net_kit_request_options.dart';
+import '../../utility/typedef/request_type_def.dart';
 
 /// Network kit params for the network manager
 class NetKitParams {
@@ -17,11 +17,13 @@ class NetKitParams {
     required this.removeAccessTokenBeforeRefresh,
     required this.metadataDataKey,
     required this.refreshTokenBodyKey,
-    this.dataKey,
-    this.onBeforeRefreshRequest,
-    this.interceptor,
-    this.refreshTokenPath,
-    this.internetStatusSubscription,
+    required this.onRefreshFailed,
+    required this.onBeforeRefreshRequest,
+    required this.onTokenRefreshed,
+    required this.dataKey,
+    required this.interceptor,
+    required this.refreshTokenPath,
+    required this.internetStatusSubscription,
   });
 
   /// The subscription for the internet status
@@ -41,7 +43,32 @@ class NetKitParams {
   final BaseOptions baseOptions;
 
   /// The function to be called before the refresh token request
-  final void Function(NetKitRequestOptions options)? onBeforeRefreshRequest;
+  final OnBeforeRefresh? onBeforeRefreshRequest;
+
+  /// The function to be called when the refresh token request fails
+  final OnRefreshFailed? onRefreshFailed;
+
+  /// The callback function that is called when the tokens are updated
+  /// This function can be used to update the tokens in the app
+  /// or perform any other actions that are required when the tokens are updated
+  /// The callback function is optional and can be
+  /// set when initializing the network manager
+  /// Example:
+  /// ```dart
+  /// final netKitManager = NetKitManager(
+  ///  baseUrl: 'https://api.example.com',
+  ///  onTokenRefreshed: (authToken) {
+  ///  // Update the tokens in the app
+  ///   },
+  ///  );
+  ///  ```
+  ///  The callback function takes an [`AuthTokenModel`] as a parameter
+  ///  which contains the access token and refresh token.
+  ///  The callback function is called when the tokens are updated
+  ///  after a successful refresh token request.
+  ///  The callback function is optional and can
+  ///  be set when initializing the network manager.
+  final OnTokenRefreshed? onTokenRefreshed;
 
   /// Whether the network manager is in test mode
   final bool testMode;

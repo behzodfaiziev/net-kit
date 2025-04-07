@@ -12,32 +12,30 @@ class TokenManager {
   ///
   /// The constructor requires the following parameters:
   ///
-  /// - [refreshTokenRequest]: A function to make the request for
+  /// - [requestNewTokens]: A function to make the request for
   ///   refreshing the access token.
   /// - [onTokensUpdated]: An optional callback function that
   ///   is invoked when tokens are updated.
   TokenManager({
-    required Future<AuthTokenModel> Function() refreshTokenRequest,
+    required Future<AuthTokenModel> Function() requestNewTokens,
     required INetKitLogger? logger,
     required void Function(AuthTokenModel authToken) onTokensUpdated,
-  }) {
-    _refreshTokenRequest = refreshTokenRequest;
-    _onTokensUpdated = onTokensUpdated;
-    _logger = logger;
-  }
+  })  : _requestNewTokens = requestNewTokens,
+        _onTokensUpdated = onTokensUpdated,
+        _logger = logger;
 
   /// An optional logger for logging token refresh operations.
-  late final INetKitLogger? _logger;
+  final INetKitLogger? _logger;
 
   /// A function that makes the request to refresh the access token.
   ///
   /// This function is expected to return an instance of
   /// `AuthTokenModel`, which contains the new access and refresh tokens.
-  late final Future<AuthTokenModel> Function() _refreshTokenRequest;
+  final Future<AuthTokenModel> Function() _requestNewTokens;
 
   /// An optional callback function that is invoked when tokens
   /// are updated.
-  late final void Function(AuthTokenModel authToken)? _onTokensUpdated;
+  final void Function(AuthTokenModel authToken) _onTokensUpdated;
 
   /// Refreshes the authentication tokens.
   ///
@@ -54,15 +52,13 @@ class TokenManager {
       _logger?.info('Refreshing token...');
 
       // Make the request to refresh the token
-      final authToken = await _refreshTokenRequest();
+      final authToken = await _requestNewTokens();
 
       _logger?.info('Tokens updated successfully.');
 
       // Notify that the tokens were updated
-      if (_onTokensUpdated != null) {
-        _logger?.info('Notifying tokens updated...');
-        _onTokensUpdated!.call(authToken);
-      }
+      _logger?.info('Notifying tokens updated...');
+      _onTokensUpdated.call(authToken);
     } catch (e) {
       _logger?.warning('Token refresh failed: $e');
       // Propagate the error for handling in the interceptor

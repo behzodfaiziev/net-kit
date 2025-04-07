@@ -18,20 +18,20 @@
   is sent — useful for injecting custom headers or modifying the request body.
   Introduced `NetKitRequestOptions`: A new abstraction to simplify and standardize refresh token
   request configuration.
+- Introduced `onRefreshFailed` callback: This callback is triggered when the refresh token request
+  fails.
+  It provides a way to handle errors or perform specific actions when the refresh token process
+  encounters issues.
 - Added `metadataDataKey`: Enables support for parsing the actual data nested inside metadata
   wrappers from API responses.
-- errorParsing: SocketException handling added to `ApiException.fromJson`
-- error handling improved: added `debugMessage` and `error` fields to `ApiException` to provide more
-  information about the error
 - Added `requestModelMeta` and `requestListMeta` methods:
-- New helpers in NetKitManager to easily extract data from metadata-based responses.
 
 ### **Improvements**
 
 Improved error handling in **ApiException**
 
-- Added **debugMessage** and **error** fields to provide more detailed diagnostics.
-- Better support for **SocketException** and network-related errors via **ApiException.fromJson**.
+- Added `debugMessage` and `error` fields to provide more detailed diagnostics.
+- Better support for **SocketException** and network-related errors via `ApiException.fromJson`
 
 # 4.0.0
 
