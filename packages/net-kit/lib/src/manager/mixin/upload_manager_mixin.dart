@@ -41,8 +41,9 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
     if (R == VoidModel) {
       return VoidModel() as R;
     }
-    final data =
-        parameters.dataKey != null ? (response.data as MapType)[parameters.dataKey] : response.data;
+    final data = parameters.dataKey != null
+        ? (response.data as MapType)[parameters.dataKey]
+        : response.data;
 
     if (data is MapType) {
       return _converter.toModel<R>(data, model);
@@ -91,8 +92,9 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
     if (R == VoidModel) {
       return VoidModel() as R;
     }
-    final data =
-        parameters.dataKey != null ? (response.data as MapType)[parameters.dataKey] : response.data;
+    final data = parameters.dataKey != null
+        ? (response.data as MapType)[parameters.dataKey]
+        : response.data;
 
     if (data is MapType) {
       return _converter.toModel<R>(data, model);
