@@ -41,8 +41,11 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
     if (R == VoidModel) {
       return VoidModel() as R;
     }
-    if (response.data is MapType) {
-      return _converter.toModel<R>(response.data as MapType, model);
+    final data =
+        parameters.dataKey != null ? (response.data as MapType)[parameters.dataKey] : response.data;
+
+    if (data is MapType) {
+      return _converter.toModel<R>(data, model);
     }
 
     throw ApiException(
@@ -88,8 +91,11 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
     if (R == VoidModel) {
       return VoidModel() as R;
     }
-    if (response.data is MapType) {
-      return _converter.toModel<R>(response.data as MapType, model);
+    final data =
+        parameters.dataKey != null ? (response.data as MapType)[parameters.dataKey] : response.data;
+
+    if (data is MapType) {
+      return _converter.toModel<R>(data, model);
     }
 
     throw ApiException(
