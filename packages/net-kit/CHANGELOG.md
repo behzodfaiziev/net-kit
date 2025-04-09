@@ -1,4 +1,4 @@
-# 5.0.0-dev.4
+# 5.0.0
 
 ### **Breaking Changes**
 

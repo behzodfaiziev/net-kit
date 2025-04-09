@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
-![RFC Compliant](https://img.shields.io/badge/standards-RFC%206749%2C%206750-blue.svg)
+
 
 ## **Contents**
 
@@ -13,32 +13,27 @@
 <summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
-
-* [**Contents**](#contents)
-* [**Features**](#features)
-* [**Sponsors**](#sponsors)
-* [**Getting started**](#getting-started)
+  * [**Contents**](#contents)
+  * [**Features**](#features)
+  * [**Sponsors**](#sponsors)
+  * [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
-* [**Sending requests**](#sending-requests)
-    * [**Request a Single Model**](#request-a-single-model)
-    * [**Request a List of Models**](#request-a-list-of-models)
-    * [**Send a void Request**](#send-a-void-request)
+  * [**Sending requests**](#sending-requests)
+      * [**Request a Single Model**](#request-a-single-model)
+      * [**Request a List of Models**](#request-a-list-of-models)
+      * [**Send a void Request**](#send-a-void-request)
     * [**Setting Tokens**](#setting-tokens)
     * [**User Logout**](#user-logout)
-* [**Refresh Token**](#refresh-token)
+  * [**Refresh Token**](#refresh-token)
     * [**Refresh Token Initialization**](#refresh-token-initialization)
     * [**Refresh Token Example**](#refresh-token-example)
     * [**How refresh token works**](#how-refresh-token-works)
-* [**Logger Integration**](#logger-integration)
-* [📜 **Standards Compliance**](#-standards-compliance)
-    * [🔐 RFC Standards](#-rfc-standards)
-    * [📣 Help Us Stay Compliant](#-help-us-stay-compliant)
+  * [**Logger Integration**](#logger-integration)
 * [Migration Guidance](#migration-guidance)
-    * [**Planned Enhancements**](#planned-enhancements)
-    * [**Contributing**](#contributing)
-    * [**License**](#license)
-
+  * [**Planned Enhancements**](#planned-enhancements)
+  * [**Contributing**](#contributing)
+  * [**License**](#license)
 <!-- TOC -->
 
 </details>  
@@ -290,26 +285,6 @@ final netKitManager = NetKitManager(
   // ... other parameters
 );
 ```
-
-## 📜 **Standards Compliance**
-
-`NetKit` is built with security and interoperability in mind, and follows the official
-specifications for modern API authentication:
-
-### 🔐 RFC Standards
-
-| RFC                                                           | Description                       | Link                                                                |
-|---------------------------------------------------------------|-----------------------------------|---------------------------------------------------------------------|
-| **[RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749)** | OAuth 2.0 Authorization Framework | Defines how clients securely obtain and use access & refresh tokens |
-| **[RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750)** | Bearer Token Usage                | Specifies how to transmit access tokens in HTTP requests            |
-| **[RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)** | JSON Web Token (JWT)              | Structure and use of signed tokens (used if JWTs are supported)     |
-
-### 📣 Help Us Stay Compliant
-
-If you find any behavior in NetKit that appears to be non-compliant with any of the above RFCs,
-please open an issue with a clear reference to the relevant RFC and section.
-
-We’re committed to improving and welcome community-driven compliance insights!
 
 # Migration Guidance
 
