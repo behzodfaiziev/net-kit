@@ -5,7 +5,6 @@
 ![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
 ![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
 
-
 ## **Contents**
 
 <details>
@@ -19,6 +18,7 @@
   * [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
+    * [**Custom Void Models in Uploading**](#custom-void-models-in-uploading)
   * [**Sending requests**](#sending-requests)
       * [**Request a Single Model**](#request-a-single-model)
       * [**Request a List of Models**](#request-a-list-of-models)
@@ -45,6 +45,8 @@
 - 🛠 Parsing responses into models or lists using `INetKitModel`
 - 🧪 Configurable base URLs for development and production
 - 🌐 Internationalization support for error messages
+- 📦 Multipart upload support
+- 📋 Extensible logger integration
 
 ## **Sponsors**
 
@@ -79,6 +81,27 @@ deserialized.
 ```dart
 class TodoModel extends INetKitModel {}
 ```
+
+### **Custom Void Models in Uploading**
+
+**⚠️ Custom Void Models:**
+If you want to handle endpoints that return no data (i.e., void/empty responses) using your own
+model, your model must implement VoidModel from this package.
+
+Example:
+
+```dart
+class AppVoidModel implements INetKitModel, VoidModel {
+  @override
+  Map<String, dynamic> toJson() => {};
+
+  @override
+  AppVoidModel fromJson(Map<String, dynamic> json) => AppVoidModel();
+}
+```
+
+Without implementing VoidModel, void requests will not be recognized correctly and may throw
+exceptions.
 
 ## **Sending requests**
 
