@@ -38,9 +38,10 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       onReceiveProgress: onReceiveProgress,
     );
 
-    if (R == VoidModel) {
+    if (R is VoidModel) {
       return VoidModel() as R;
     }
+
     final data = parameters.dataKey != null
         ? (response.data as MapType)[parameters.dataKey]
         : response.data;
@@ -89,7 +90,7 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       onReceiveProgress: onReceiveProgress,
     );
 
-    if (R == VoidModel) {
+    if (R is VoidModel) {
       return VoidModel() as R;
     }
     final data = parameters.dataKey != null
