@@ -1,4 +1,4 @@
-# 5.1.0-dev
+# 5.1.0
 - update type check for VoidModel in UploadManagerMixin
 
 # 5.0.0
