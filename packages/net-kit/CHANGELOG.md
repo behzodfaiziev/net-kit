@@ -1,3 +1,6 @@
+# 5.1.1
+- updated README regarding `VoidModel` usage in `Upload`
+
 # 5.1.0
 - update type check for VoidModel in UploadManagerMixin
 
