@@ -102,7 +102,7 @@ void main() {
   group('Refresh Token Integration Test', () {
     test('Single request triggers refresh and succeeds', () async {
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
       try {
         final result = await netKitManager.requestModel<DummyModel>(
@@ -121,7 +121,7 @@ void main() {
 
     test('Multiple parallel requests trigger only one refresh', () async {
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       // Prepare four parallel API requests (all require valid access token)
@@ -167,7 +167,7 @@ void main() {
         () async {
       // 1. Set expired access, current refresh.
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       // 2. Do a call that causes refresh (should succeed).
@@ -186,7 +186,7 @@ void main() {
         ..setRefreshToken('REFRESH_1')
 
         // 4. Expire access token again, attempt another request.
-        ..setAccessToken('EXPIRED_TOKEN');
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN');
       try {
         await netKitManager.requestModel<DummyModel>(
           path: '/api/posts/all',
@@ -206,7 +206,7 @@ void main() {
       backendState.usedRefreshTokens.add(backendState.refreshToken);
 
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       try {
@@ -227,7 +227,7 @@ void main() {
       await authStorage.setRefreshToken(null);
 
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(null);
 
       try {
@@ -249,7 +249,7 @@ void main() {
       backendState.refreshDelayMs = 800;
 
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       final start = DateTime.now();
@@ -270,12 +270,17 @@ void main() {
           model: const DummyModel(),
           method: RequestMethod.get,
         ),
+        netKitManager.requestModel<DummyModel>(
+          path: '/api/messages/all',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        ),
       ];
 
       final results = await Future.wait(requests);
       final elapsed = DateTime.now().difference(start).inMilliseconds;
 
-      expect(results.length, 3);
+      expect(results.length, 4);
       for (final r in results) {
         expect(r, isA<DummyModel>());
       }
@@ -292,7 +297,7 @@ void main() {
         'First expired triggers refresh, '
         'second uses new token (no extra refresh)', () async {
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       // First call triggers refresh
@@ -369,7 +374,7 @@ void main() {
       backendState.refreshDelayMs = Random().nextInt(500);
 
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       final calls = [
@@ -411,7 +416,7 @@ void main() {
       // 2. Create a new NetKitManager (simulate app restart)
       netKitManager = createNetKitManagerWithStorage(authStorage)
         // 3. Invalidate access token (simulate expired)
-        ..setAccessToken('EXPIRED_TOKEN');
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN');
       try {
         // 4. Request triggers refresh
         final user = await netKitManager.requestModel<DummyModel>(
@@ -430,7 +435,7 @@ void main() {
     test('Network flakiness during refresh: should handle failure gracefully',
         () async {
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       backendState.simulateRefreshFailure = true;
@@ -444,6 +449,7 @@ void main() {
         fail('Should have thrown due to refresh network failure');
       } on ApiException catch (e) {
         expect(e.message, contains('Simulated network error'));
+        expect(e.statusCode, 500);
       } finally {
         backendState.simulateRefreshFailure = false;
       }
@@ -453,7 +459,7 @@ void main() {
       for (var i = 0; i < 10; i++) {
         backendState.reset();
         netKitManager
-          ..setAccessToken('EXPIRED_TOKEN')
+          ..setAccessToken('EXPIRED_ACCESS_TOKEN')
           ..setRefreshToken(backendState.refreshToken);
 
         // Simulate random delay for backend refresh
@@ -486,7 +492,7 @@ void main() {
     test('Network flakiness during refresh: should handle failure gracefully',
         () async {
       netKitManager
-        ..setAccessToken('EXPIRED_TOKEN')
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
       backendState.simulateRefreshFailure = true;
