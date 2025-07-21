@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 
 import 'logger.dart';
 import 'mock_backend.dart';
-// import your dummy model here!
 
 class DummyModel extends INetKitModel {
   const DummyModel();
