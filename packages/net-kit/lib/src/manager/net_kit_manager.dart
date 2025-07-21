@@ -180,6 +180,9 @@ class NetKitManager extends INetKitManager
     bool? containsAccessToken,
   }) async {
     try {
+      _logger.debug(
+        'Requesting model: $R at path: $path with method: $method',
+      );
       final response = await _sendRequest(
         path: path,
         method: method,
@@ -191,6 +194,8 @@ class NetKitManager extends INetKitManager
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
       );
+
+      _logger.debug('Response received: ${response.data}');
 
       if ((response.data is MapType) == false) {
         throw _notMapTypeError(response);
@@ -265,6 +270,9 @@ class NetKitManager extends INetKitManager
     bool? containsAccessToken,
   }) async {
     try {
+      _logger.debug(
+        'Requesting list of model: $R at path: $path with method: $method',
+      );
       final response = await _sendRequest(
         path: path,
         method: method,
@@ -276,6 +284,8 @@ class NetKitManager extends INetKitManager
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
       );
+
+      _logger.debug('Response received: ${response.data}');
 
       final data = parameters.dataKey != null
           ? (response.data as MapType)[parameters.dataKey]

@@ -76,6 +76,13 @@ class ErrorHandlingInterceptor {
   ErrorInterceptor getErrorInterceptor() {
     return ErrorInterceptor(
       onError: (DioException error, ErrorInterceptorHandler handler) async {
+        logger?.debug(
+          'ErrorHandlingInterceptor.onError: '
+          'message ${error.message}',
+        );
+        logger?.debug('ErrorHandlingInterceptor.onError: path '
+            '${error.requestOptions.path}');
+
         // Check if the error is a 401 Unauthorized response.
         if (error.response?.statusCode != 401 || refreshTokenPath == null) {
           logger?.error('Error: ${error.message}');
@@ -123,6 +130,7 @@ class ErrorHandlingInterceptor {
 
         _isRefreshing = true;
         try {
+          logger?.debug('Starting token refresh process');
           // Refresh the tokens using the token manager.
           await tokenManager.refreshTokens();
 
