@@ -124,7 +124,8 @@ void main() {
     //     expect(error.message, isA<String>());
     //     expect(error.statusCode, isA<int>());
     //     expect(error.statusCode, HttpStatuses.expectationFailed.code);
-    //     expect(error.message, 'Could not parse the response: Not a Map type');
+    //     expect(error.message,
+    //     'Could not parse the response: Not a Map type');
     //   }
     // });
     //
