@@ -1,3 +1,6 @@
+# 5.2.0
+- Added `loggerEnabled` option to `NetKitManager` to enable or disable logging.
+
 # 5.1.2
 - Added more tests to make sure Refresh Token works as intended.
 
