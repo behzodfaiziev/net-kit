@@ -36,12 +36,7 @@ part 'mixin/upload_manager_mixin.dart';
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
 class NetKitManager extends INetKitManager
-    with
-        DioMixin,
-        RequestManagerMixin,
-        ErrorHandlingMixin,
-        TokenManagerMixin,
-        UploadManagerMixin {
+    with DioMixin, RequestManagerMixin, ErrorHandlingMixin, TokenManagerMixin, UploadManagerMixin {
   /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
@@ -115,6 +110,10 @@ class NetKitManager extends INetKitManager
     /// Whether the logger is enabled for Dio requests
     bool logInterceptorEnabled = false,
 
+    /// Whether the network manager logs the network requests
+    /// Used within NetKitManager to determine if logging is enabled
+    bool loggerEnabled = false,
+
     /// The callback function that is called when the tokens are updated
     OnTokenRefreshed? onTokenRefreshed,
   }) {
@@ -131,6 +130,7 @@ class NetKitManager extends INetKitManager
       onTokenRefreshed: onTokenRefreshed,
       testMode: testMode,
       logInterceptorEnabled: logInterceptorEnabled,
+      loggerEnabled: loggerEnabled,
       logger: logger,
       internetStatusStream: internetStatusStream,
       accessTokenHeaderKey: accessTokenHeaderKey,
@@ -214,8 +214,7 @@ class NetKitManager extends INetKitManager
   }
 
   @override
-  Future<ApiMetaResponse<R, M>>
-      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+  Future<ApiMetaResponse<R, M>> requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -243,8 +242,7 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.metadataDataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.metadataDataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.metadataDataKey);
 
       // Parse both models
       final parsedData = _converter.toModel<R>(data as MapType, model);
@@ -330,12 +328,10 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.metadataDataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.metadataDataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.metadataDataKey);
 
       // Parse both models
-      final parsedList =
-          _converter.toListModel(data: data, parsingModel: model);
+      final parsedList = _converter.toListModel(data: data, parsingModel: model);
 
       final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
 
@@ -458,7 +454,6 @@ class NetKitManager extends INetKitManager
 
   void _initialize({
     required String baseUrl,
-    required bool logInterceptorEnabled,
     required bool testMode,
     required String accessTokenHeaderKey,
     required String accessTokenBodyKey,
@@ -467,6 +462,8 @@ class NetKitManager extends INetKitManager
     required String? refreshTokenPath,
     required bool removeAccessTokenBeforeRefresh,
     required INetKitLogger logger,
+    required bool loggerEnabled,
+    required bool logInterceptorEnabled,
     required String metadataDataKey,
     required String? dataKey,
     required NetKitErrorParams? errorParams,
@@ -479,12 +476,6 @@ class NetKitManager extends INetKitManager
     required HttpClientAdapter? clientAdapter,
     required Stream<bool>? internetStatusStream,
   }) {
-    /// Initialize the logger
-    _logger = logger;
-
-    /// Initialize the converter
-    _converter = const Converter();
-
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
     baseOptions ??= BaseOptions();
@@ -495,7 +486,6 @@ class NetKitManager extends INetKitManager
       baseOptions: baseOptions,
       interceptor: interceptor,
       testMode: testMode,
-      logInterceptorEnabled: logInterceptorEnabled,
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       accessTokenPrefix: accessTokenPrefix,
@@ -515,6 +505,17 @@ class NetKitManager extends INetKitManager
       ),
     );
 
+    /// Initialize the logger
+    _logger = loggerEnabled && testMode == false ? logger : const VoidLogger();
+
+    /// Add log interceptor if logger is enabled and test mode is false
+    if (logInterceptorEnabled && testMode == false) {
+      interceptors.add(LogInterceptor());
+    }
+
+    /// Initialize the converter
+    _converter = const Converter();
+
     /// Set up the http client adapter
     httpClientAdapter = clientAdapter ?? createPlatformAdapter().getAdapter();
 
@@ -525,11 +526,6 @@ class NetKitManager extends INetKitManager
 
     /// Set up the network manager
     options = parameters.baseOptions;
-
-    /// Add log interceptor if logger is enabled and test mode is false
-    if (parameters.logInterceptorEnabled && testMode == false) {
-      interceptors.add(LogInterceptor());
-    }
 
     final errorInterceptor = ErrorHandlingInterceptor(
       refreshTokenPath: parameters.refreshTokenPath,

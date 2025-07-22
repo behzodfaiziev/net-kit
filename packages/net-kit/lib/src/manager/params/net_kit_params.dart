@@ -10,7 +10,6 @@ class NetKitParams {
   const NetKitParams({
     required this.baseOptions,
     required this.testMode,
-    required this.logInterceptorEnabled,
     required this.accessTokenHeaderKey,
     required this.accessTokenPrefix,
     required this.accessTokenBodyKey,
@@ -72,9 +71,6 @@ class NetKitParams {
 
   /// Whether the network manager is in test mode
   final bool testMode;
-
-  /// Whether the network manager logs the network requests
-  final bool logInterceptorEnabled;
 
   /// The access token key.
   /// The default value is ['Authorization']

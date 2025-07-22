@@ -44,8 +44,7 @@ class ErrorHandlingInterceptor {
   final INetKitLogger? logger;
 
   /// Retries the original HTTP request after the token has been refreshed.
-  final Future<Response<dynamic>> Function(RequestOptions requestOptions)
-      retryRequest;
+  final Future<Response<dynamic>> Function(RequestOptions requestOptions) retryRequest;
 
   /// A key used to track the number of retry attempts for a request.
   static const _retryCountKey = '__retryCount';
@@ -130,7 +129,7 @@ class ErrorHandlingInterceptor {
 
         _isRefreshing = true;
         try {
-          logger?.debug('Starting token refresh process');
+          logger?.info('Starting token refresh process');
           // Refresh the tokens using the token manager.
           await tokenManager.refreshTokens();
 
