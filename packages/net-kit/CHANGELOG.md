@@ -1,3 +1,6 @@
+# 5.1.2
+- Added more tests to make sure Refresh Token works as intended.
+
 # 5.1.1
 - updated README regarding `VoidModel` usage in `Upload`
 
