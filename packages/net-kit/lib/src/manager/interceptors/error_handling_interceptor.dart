@@ -44,7 +44,8 @@ class ErrorHandlingInterceptor {
   final INetKitLogger? logger;
 
   /// Retries the original HTTP request after the token has been refreshed.
-  final Future<Response<dynamic>> Function(RequestOptions requestOptions) retryRequest;
+  final Future<Response<dynamic>> Function(RequestOptions requestOptions)
+      retryRequest;
 
   /// A key used to track the number of retry attempts for a request.
   static const _retryCountKey = '__retryCount';
