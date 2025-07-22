@@ -1,13 +1,21 @@
+# 5.2.1
+
+- Fixed issue with `NetKitManager` not properly handling the `loggerEnabled` option.
+
 # 5.2.0
+
 - Added `loggerEnabled` option to `NetKitManager` to enable or disable logging.
 
 # 5.1.2
+
 - Added more tests to make sure Refresh Token works as intended.
 
 # 5.1.1
+
 - updated README regarding `VoidModel` usage in `Upload`
 
 # 5.1.0
+
 - update type check for VoidModel in UploadManagerMixin
 
 # 5.0.0
