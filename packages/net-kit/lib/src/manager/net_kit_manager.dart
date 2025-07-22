@@ -36,12 +36,7 @@ part 'mixin/upload_manager_mixin.dart';
 /// parameters that define its behavior and can be used to perform network
 /// operations in a structured and consistent manner.
 class NetKitManager extends INetKitManager
-    with
-        DioMixin,
-        RequestManagerMixin,
-        ErrorHandlingMixin,
-        TokenManagerMixin,
-        UploadManagerMixin {
+    with DioMixin, RequestManagerMixin, ErrorHandlingMixin, TokenManagerMixin, UploadManagerMixin {
   /// The constructor for the NetKitManager class
   NetKitManager({
     /// The base URL for the network requests
@@ -220,8 +215,7 @@ class NetKitManager extends INetKitManager
   }
 
   @override
-  Future<ApiMetaResponse<R, M>>
-      requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
+  Future<ApiMetaResponse<R, M>> requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
@@ -249,8 +243,7 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.metadataDataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.metadataDataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.metadataDataKey);
 
       // Parse both models
       final parsedData = _converter.toModel<R>(data as MapType, model);
@@ -336,12 +329,10 @@ class NetKitManager extends INetKitManager
 
       // Extract data and metadata
       final data = (response.data as MapType)[parameters.metadataDataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.metadataDataKey);
+      final metadataMap = (response.data as MapType)..remove(parameters.metadataDataKey);
 
       // Parse both models
-      final parsedList =
-          _converter.toListModel(data: data, parsingModel: model);
+      final parsedList = _converter.toListModel(data: data, parsingModel: model);
 
       final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
 
@@ -516,10 +507,10 @@ class NetKitManager extends INetKitManager
     );
 
     /// Initialize the logger
-    _logger = loggerEnabled && testMode == false ? logger : const VoidLogger();
+    _logger = loggerEnabled && testMode ? logger : const VoidLogger();
 
     /// Add log interceptor if logger is enabled and test mode is false
-    if (logInterceptorEnabled && testMode == false) {
+    if (logInterceptorEnabled && testMode) {
       interceptors.add(LogInterceptor());
     }
 
