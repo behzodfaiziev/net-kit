@@ -52,10 +52,10 @@
 
 A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
 becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
-
-<img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" width="150px">
-
-<img src="https://github.com/user-attachments/assets/a7ce889d-340f-4c84-8cb1-6a94c31bacc5" alt="Westudio" width="150px">
+<div style="display: flex; gap: 12px; align-items: center;">
+  <img src="https://github.com/user-attachments/assets/a7ce889d-340f-4c84-8cb1-6a94c31bacc5" alt="Westudio" style="height: 40px; width: auto;">
+  <img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" alt="Jurnalle" style="height: 36px; width: auto;">
+</div>
 
 ## **Getting started**
 
