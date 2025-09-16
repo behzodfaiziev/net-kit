@@ -52,6 +52,7 @@
 
 A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
 becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
+
 <table style="background-color: white; border: 1px solid black">
     <tbody>
         <tr>
@@ -65,8 +66,6 @@ becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
                 <a href="https://vremica.com"><img src="https://github.com/user-attachments/assets/25942faf-45dc-44cf-8422-2d2eb2711ac0" width="225"/></a>
             </td>
 
-        </tr>
-    </tbody>
 </table>
 
 ## **Getting started**
