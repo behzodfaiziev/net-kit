@@ -1,4 +1,4 @@
-# 5.2.4
+# 5.2.5
 - updated sponsors
 
 # 5.2.1

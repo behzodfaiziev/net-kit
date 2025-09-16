@@ -56,16 +56,15 @@ becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
 <table style="background-color: white; border: 1px solid black">
     <tbody>
         <tr>
-            <td align="center" style="border: 1px solid black">
-                <a href="https://westudio.dev"><img src="https://github.com/user-attachments/assets/a7ce889d-340f-4c84-8cb1-6a94c31bacc5" width="225"/></a>
+            <td style="border: 1px solid black">
+                <a href="https://westudio.dev"><img src="https://github.com/user-attachments/assets/a7ce889d-340f-4c84-8cb1-6a94c31bacc5" width="225" alt="WESTUDIO"/></a>
             </td>
-            <td align="center" style="border: 1px solid black">
-                <a href="https://jurnalle.com"><img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" width="225"/></a>
+            <td style="border: 1px solid black">
+                <a href="https://vremica.com"><img src="https://github.com/user-attachments/assets/25942faf-45dc-44cf-8422-2d2eb2711ac0" width="225" alt="VREMICA"/></a>
             </td>
-            <td align="center" style="border: 1px solid black">
-                <a href="https://vremica.com"><img src="https://github.com/user-attachments/assets/25942faf-45dc-44cf-8422-2d2eb2711ac0" width="225"/></a>
+            <td style="border: 1px solid black">
+                <a href="https://jurnalle.com"><img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" width="225" alt="JURNALLE"/></a>
             </td>
-
 </table>
 
 ## **Getting started**
