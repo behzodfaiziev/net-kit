@@ -1,3 +1,6 @@
+# 5.2.2
+- updated sponsors
+
 # 5.2.1
 
 - Fixed issue with `NetKitManager` not properly handling the `loggerEnabled` option.
