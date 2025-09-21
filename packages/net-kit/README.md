@@ -12,28 +12,30 @@
 <summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
-  * [**Contents**](#contents)
-  * [**Features**](#features)
-  * [**Sponsors**](#sponsors)
-  * [**Getting started**](#getting-started)
+
+* [**Contents**](#contents)
+* [**Features**](#features)
+* [**Sponsors**](#sponsors)
+* [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
     * [**Custom Void Models in Uploading**](#custom-void-models-in-uploading)
-  * [**Sending requests**](#sending-requests)
-      * [**Request a Single Model**](#request-a-single-model)
-      * [**Request a List of Models**](#request-a-list-of-models)
-      * [**Send a void Request**](#send-a-void-request)
+* [**Sending requests**](#sending-requests)
+    * [**Request a Single Model**](#request-a-single-model)
+    * [**Request a List of Models**](#request-a-list-of-models)
+    * [**Send a void Request**](#send-a-void-request)
     * [**Setting Tokens**](#setting-tokens)
     * [**User Logout**](#user-logout)
-  * [**Refresh Token**](#refresh-token)
+* [**Refresh Token**](#refresh-token)
     * [**Refresh Token Initialization**](#refresh-token-initialization)
     * [**Refresh Token Example**](#refresh-token-example)
     * [**How refresh token works**](#how-refresh-token-works)
-  * [**Logger Integration**](#logger-integration)
+* [**Logger Integration**](#logger-integration)
 * [Migration Guidance](#migration-guidance)
-  * [**Planned Enhancements**](#planned-enhancements)
-  * [**Contributing**](#contributing)
-  * [**License**](#license)
+    * [**Planned Enhancements**](#planned-enhancements)
+    * [**Contributing**](#contributing)
+    * [**License**](#license)
+
 <!-- TOC -->
 
 </details>  
@@ -137,6 +139,19 @@ Future<RandomUserModel> getRandomUser() async {
   }
 }
 ```
+
+#### **DataKey Configuration**
+
+The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured
+`dataKey` wrapper for individual requests. This is useful when you have different API endpoints that
+return data in different formats.
+
+- When `useDataKey: true` (default): Uses the configured `dataKey` to extract data from the response
+- When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
+- **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
+
+Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`,
+`requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
 
 #### **Request a List of Models**
 
