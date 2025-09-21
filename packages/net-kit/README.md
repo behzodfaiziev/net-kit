@@ -140,18 +140,6 @@ Future<RandomUserModel> getRandomUser() async {
 }
 ```
 
-#### **DataKey Configuration**
-
-The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured
-`dataKey` wrapper for individual requests. This is useful when you have different API endpoints that
-return data in different formats.
-
-- When `useDataKey: true` (default): Uses the configured `dataKey` to extract data from the response
-- When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
-- **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
-
-Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`,
-`requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
 
 #### **Request a List of Models**
 
@@ -193,6 +181,20 @@ Future<void> deleteProduct() async {
   }
 }
 ```
+
+#### **DataKey Configuration**
+
+The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured
+`dataKey` wrapper for individual requests. This is useful when you have different API endpoints that
+return data in different formats.
+
+- When `useDataKey: true` (default): Uses the configured `dataKey` to extract data from the response
+- When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
+- **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
+
+Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`,
+`requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
+
 
 ### **Setting Tokens**
 
