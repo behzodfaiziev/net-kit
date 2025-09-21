@@ -12,30 +12,29 @@
 <summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
-
-* [**Contents**](#contents)
-* [**Features**](#features)
-* [**Sponsors**](#sponsors)
-* [**Getting started**](#getting-started)
+  * [**Contents**](#contents)
+  * [**Features**](#features)
+  * [**Sponsors**](#sponsors)
+  * [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
     * [**Custom Void Models in Uploading**](#custom-void-models-in-uploading)
-* [**Sending requests**](#sending-requests)
-    * [**Request a Single Model**](#request-a-single-model)
-    * [**Request a List of Models**](#request-a-list-of-models)
-    * [**Send a void Request**](#send-a-void-request)
+  * [**Sending requests**](#sending-requests)
+    * [**Available Request Methods**](#available-request-methods)
+    * [**Request Examples**](#request-examples)
+    * [**Why DataKey is Used**](#why-datakey-is-used)
+    * [**DataKey Configuration**](#datakey-configuration)
+    * [**Advanced Examples**](#advanced-examples)
     * [**Setting Tokens**](#setting-tokens)
     * [**User Logout**](#user-logout)
-* [**Refresh Token**](#refresh-token)
-    * [**Refresh Token Initialization**](#refresh-token-initialization)
-    * [**Refresh Token Example**](#refresh-token-example)
-    * [**How refresh token works**](#how-refresh-token-works)
-* [**Logger Integration**](#logger-integration)
+  * [**Token Management**](#token-management)
+    * [**Quick Token Setup**](#quick-token-setup)
+    * [**Comprehensive Token Management**](#comprehensive-token-management)
+  * [**Logger Integration**](#logger-integration)
 * [Migration Guidance](#migration-guidance)
-    * [**Planned Enhancements**](#planned-enhancements)
-    * [**Contributing**](#contributing)
-    * [**License**](#license)
-
+  * [**Feature Status**](#feature-status)
+  * [**Contributing**](#contributing)
+  * [**License**](#license)
 <!-- TOC -->
 
 </details>  
@@ -143,6 +142,24 @@ NetKitManager provides several methods for making HTTP requests. Each method is 
 - **📋 [Upload Multipart Data (Single File) →](./EXAMPLES.md#file-uploads)**
 - **📋 [Upload Form Data →](./EXAMPLES.md#file-uploads)**
 
+### **Why DataKey is Used**
+
+Many APIs return responses in a wrapped format where the actual data is nested under a specific key. For example:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com"
+  },
+  "message": "User retrieved successfully"
+}
+```
+
+Without DataKey configuration, you would need to manually extract the data from the `data` field in every response. NetKit's DataKey feature automatically handles this extraction, making your code cleaner and more maintainable.
+
 ### **DataKey Configuration**
 
 The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured `dataKey` wrapper for individual requests. This is useful when you have different API endpoints that return data in different formats.
@@ -193,93 +210,35 @@ void logoutUser() {
 }
 ```
 
-## **Refresh Token**
+## **Token Management**
 
-NetKitManager provides a robust and RFC-compliant refresh token mechanism to ensure seamless and
-uninterrupted API communication, even when access tokens expire.
+NetKitManager provides comprehensive token management including automatic refresh, secure storage, and RFC-compliant authentication flows.
 
-1. When a request fails with a 401 Unauthorized, NetKit will automatically:
-2. Pause the failing request and any subsequent requests.
-3. Attempt to refresh the access token via the configured refreshTokenPath.
-4. Retry the failed requests using the new token upon successful refresh.
-
-### **Refresh Token Initialization**
-
-To use the refresh token feature, you need to initialize the NetKitManager with the following
-parameters:
-
-| Parameter                        | Required | Description                                                                |
-|----------------------------------|----------|----------------------------------------------------------------------------|
-| `refreshTokenPath`               | ✅        | Endpoint to request a new access token using the refresh token.            |
-| `onTokenRefreshed`               | ✅        | Callback triggered after tokens are successfully refreshed.                |
-| `refreshTokenBodyKey`            | ➖        | Key for the refresh token in the refresh body (default: "refreshToken").   |
-| `accessTokenBodyKey`             | ➖        | Key for the access token in the refresh body (default: "accessToken").     |
-| `removeAccessTokenBeforeRefresh` | ➖        | Whether to strip access token header during token refresh (default: true). |
-| `accessTokenPrefix`              | ➖        | Prefix added to accessToken in headers (default: "Bearer").                |
-| `onBeforeRefreshRequest`         | ➖        | Allows modifying headers/body before refresh is sent.                      |
-
-### **Refresh Token Example**
+### **Quick Token Setup**
 
 ```dart
-
 final netKitManager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
-  devBaseUrl: 'https://dev.<URL>.com',
+  baseUrl: 'https://api.example.com',
   refreshTokenPath: '/auth/refresh-token',
-
-  /// Called after a successful refresh
   onTokenRefreshed: (authToken) async {
     await secureStorage.saveTokens(
       accessToken: authToken.accessToken,
       refreshToken: authToken.refreshToken,
     );
   },
-
-  /// Optional: remove the Authorization header before making refresh request
-  removeAccessTokenBeforeRefresh: true,
-
-  /// Optional: override the default prefix "Bearer"
-  accessTokenPrefix: 'Token',
-
-  /// Optional: customize refresh request before it is sent
-  onBeforeRefreshRequest: (options) {
-    options.headers['Custom-Header'] = 'MyValue';
-    options.body['client_id'] = 'your_client_id';
-    options.body['client_secret'] = 'your_secret';
-  },
 );
 ```
 
-### **How refresh token works**
+### **Comprehensive Token Management**
 
-The refresh token mechanism in `NetKitManager` ensures that your access tokens are automatically
-refreshed when they expire, allowing for seamless and uninterrupted API requests. Here’s how it
-works:
+For detailed token management documentation including:
+- **RFC Compliance** (OAuth 2.0, Bearer Token, HTTP Authentication)
+- **Token Refresh Configuration** with advanced options
+- **Secure Token Storage** best practices
+- **Error Handling** for token operations
+- **Security Considerations** and best practices
 
-🔍 **Token Expiry Detection:**
-
-- When an API request fails with a 401 Unauthorized status code, NetKitManager automatically detects
-  that the access token has likely expired.
-
-🔄 **Token Refresh Request:**
-
-- It then sends a request to the configured refreshTokenPath endpoint to obtain new access and
-  refresh tokens.
-- The request body includes the current refresh token, and optionally other custom fields.
-
-✅ **Updating Tokens:**
-
-- Once new tokens are received:
-    - The Authorization header (or other configured header) is updated with the new access token.
-    - The onTokenRefreshed callback is triggered so you can store the new tokens securely.
-
-🔁 **Retrying the Original Request:**
-
-- The original request that failed is automatically retried with the new access token.
-- Any other requests that were waiting during token refresh are also retried in order.
-
-This process ensures that your application can continue to make authenticated requests without
-requiring user intervention when tokens expire.
+📋 **[View Complete Token Management Guide →](./TOKEN_MANAGEMENT.md)**
 
 ## **Logger Integration**
 
@@ -304,21 +263,28 @@ final netKitManager = NetKitManager(
 
 ➡️ For detailed upgrade steps and breaking changes, see the full [Migration Guide](./MIGRATION.md).
 
-## **Planned Enhancements**
+## **Feature Status**
 
 | *Feature*                                                   | *Status* |
 |:------------------------------------------------------------|:--------:|
-| Internationalization support for error messages             |    ✅     |@
+| Internationalization support for error messages             |    ✅     |
 | No internet connection handling                             |    ✅     |
-| Provide basic example                                       |    ✅     |
-| Provide more examples and use cases in the documentation    |    ✅     |
+| Basic examples and documentation                            |    ✅     |
+| Comprehensive examples and use cases                        |    ✅     |
 | MultiPartFile upload support                                |    ✅     |
-| Refresh Token implementation                                |    ✅     |
-| Enhance logging capabilities with customizable log levels   |    ✅     |
-| Implement retry logic for failed requests                   |    🟡    |
-| Add more tests to ensure the package is robust and reliable |    ✅     |
-| Authentication Feature                                      |    ✅     |
-| Add Clean Architecture example                              |    🟡    |
+| FormData upload support                                     |    ✅     |
+| Refresh Token implementation (RFC 6749/6750 compliant)     |    ✅     |
+| Customizable logging with log levels                        |    ✅     |
+| Request retry logic for failed requests                     |    ✅     |
+| Comprehensive test coverage                                 |    ✅     |
+| Authentication and token management                         |    ✅     |
+| DataKey configuration with per-request override            |    ✅     |
+| Pagination support with metadata                            |    ✅     |
+| Service layer pattern examples                              |    ✅     |
+| Repository pattern examples                                 |    ✅     |
+| Error handling strategies                                   |    ✅     |
+| File upload with wrapper patterns                           |    ✅     |
+| Token management documentation                              |    ✅     |
 
 ## **Contributing**
 

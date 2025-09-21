@@ -8,11 +8,9 @@ This file contains detailed examples and real-world use cases for NetKitManager.
 - [Pagination with Metadata](#pagination)
 - [Error Handling Strategies](#error-handling)
 - [File Upload Examples](#file-uploads)
-- [Token Management](#token-management)
-- [Repository Pattern](#repository-pattern)
-- [Use Cases](#use-cases)
-- [Dependency Injection](#dependency-injection)
 - [Advanced Configuration](#advanced-configuration)
+- [DataKey Configuration Examples](#datakey-configuration-examples)
+- **[Token Management Guide →](./TOKEN_MANAGEMENT.md)** - Comprehensive token refresh, storage, and lifecycle management
 
 ## Service Layer Pattern
 
@@ -932,36 +930,6 @@ custom error handlers as the library provides comprehensive error management out
 - **Token Refresh**: Automatically handles token refresh when access tokens expire
 - **Network Status**: Monitors internet connectivity and handles offline scenarios
 
-<details>
-<summary>🔐 <strong>Token Management</strong></summary>
-
-```dart
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.example.com',
-  refreshTokenPath: '/auth/refresh',
-
-  onTokenRefreshed: (authToken) async {
-    // Save new tokens securely
-    await tokenManager.saveTokens(
-      accessToken: authToken.accessToken!,
-      refreshToken: authToken.refreshToken!,
-    );
-  },
-
-  onRefreshFailed: (error) async {
-    // Handle refresh failure - redirect to login
-    await tokenManager.clearTokens();
-    // Navigate to login screen
-  },
-
-  onBeforeRefreshRequest: (options) {
-    // Add custom headers or modify request body
-    options.headers['X-Client-Version'] = '1.0.0';
-  },
-);
-```
-
-</details>
 
 ## Advanced Configuration
 
