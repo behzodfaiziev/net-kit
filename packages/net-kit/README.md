@@ -119,81 +119,43 @@ exceptions.
 
 ## **Sending requests**
 
-#### **Request a Single Model**
+NetKitManager provides several methods for making HTTP requests. Each method is designed for specific use cases and response types.
 
-```dart
-Future<RandomUserModel> getRandomUser() async {
-  try {
-    final result = await netKitManager.requestModel<RandomUserModel>(
-      path: '/api',
-      method: RequestMethod.get,
-      model: const RandomUserModel(),
-    );
-    return result;
-  }
+### **Available Request Methods**
 
-  /// Catch the ApiException and handle it
-  on ApiException catch (e) {
-    /// Handle the error: example is to throw the error
-    throw Exception(e.message);
-  }
-}
-```
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| `requestModel` | Request a single model | Get a single resource |
+| `requestList` | Request a list of models | Get multiple resources |
+| `requestVoid` | Send a request without expecting data | Delete, update operations |
+| `requestModelMeta` | Request a model with metadata | Get a resource with additional info |
+| `requestListMeta` | Request a list with metadata | Get paginated data with metadata |
+| `uploadMultipartData` | Upload a single file | File uploads |
+| `uploadFormData` | Upload form data | Form submissions with files |
 
+### **Request Examples**
 
-#### **Request a List of Models**
+- **📋 [Request a Single Model →](./EXAMPLES.md#service-layer-pattern)**
+- **📋 [Request a List of Models →](./EXAMPLES.md#service-layer-pattern)**
+- **📋 [Send a Void Request →](./EXAMPLES.md#service-layer-pattern)**
+- **📋 [Request Model with Metadata →](./EXAMPLES.md#service-layer-pattern)**
+- **📋 [Request List with Metadata (Pagination) →](./EXAMPLES.md#pagination)**
+- **📋 [Upload Multipart Data (Single File) →](./EXAMPLES.md#file-uploads)**
+- **📋 [Upload Form Data →](./EXAMPLES.md#file-uploads)**
 
-```dart
-Future<List<ProductModel>> getProducts() async {
-  try {
-    final result = await netKitManager.requestList<ProductModel>(
-      path: '/products',
-      method: RequestMethod.get,
-      model: const ProductModel(),
-    );
-    return result;
-  }
+### **DataKey Configuration**
 
-  /// Catch the ApiException and handle it
-  on ApiException catch (e) {
-    /// Handle the error: example is to throw the error
-    throw Exception(e.message);
-  }
-}
-```
-
-#### **Send a void Request**
-
-```dart
-Future<void> deleteProduct() async {
-  try {
-    await netKitManager.requestVoid(
-      path: '/products',
-      method: RequestMethod.delete,
-    );
-    return;
-  }
-
-  /// Catch the ApiException and handle it
-  on ApiException catch (e) {
-    /// Handle the error: example is to throw the error
-    throw Exception(e.message);
-  }
-}
-```
-
-#### **DataKey Configuration**
-
-The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured
-`dataKey` wrapper for individual requests. This is useful when you have different API endpoints that
-return data in different formats.
+The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured `dataKey` wrapper for individual requests. This is useful when you have different API endpoints that return data in different formats.
 
 - When `useDataKey: true` (default): Uses the configured `dataKey` to extract data from the response
 - When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
 - **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
 
-Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`,
-`requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
+Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`, `requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
+
+### **Advanced Examples**
+
+For more detailed examples including pagination, error handling, and real-world use cases, see [EXAMPLES.md](./EXAMPLES.md).
 
 
 ### **Setting Tokens**
