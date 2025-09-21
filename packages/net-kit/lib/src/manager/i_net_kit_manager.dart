@@ -59,6 +59,13 @@ abstract class INetKitManager {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     bool? containsAccessToken,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
   });
 
   /// The `requestModelMeta()` method is similar to the `requestModel` method,
@@ -85,6 +92,13 @@ abstract class INetKitManager {
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
   });
 
   /// The `requestList()` method is responsible for making a network request
@@ -125,6 +139,13 @@ abstract class INetKitManager {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     bool? containsAccessToken,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
   });
 
   /// The `requestListMeta()` method is similar to the `requestList` method,
@@ -151,6 +172,13 @@ abstract class INetKitManager {
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
   });
 
   /// The `requestVoid()` method is responsible for making a network request
@@ -213,6 +241,13 @@ abstract class INetKitManager {
 
     /// The content type of the file. Defaults to `application/form-data`.
     String? contentType,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
   });
 
   /// This method is responsible for uploading form data to
@@ -249,6 +284,13 @@ abstract class INetKitManager {
 
     /// The content type of the file. Defaults to `application/form-data`.
     String? contentType,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
   });
 
   /// Get all headers

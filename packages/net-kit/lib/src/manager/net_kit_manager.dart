@@ -184,6 +184,7 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool useDataKey = true,
   }) async {
     try {
       _logger.debug(
@@ -207,7 +208,7 @@ class NetKitManager extends INetKitManager
         throw _notMapTypeError(response);
       }
 
-      final data = parameters.dataKey != null
+      final data = useDataKey && parameters.dataKey != null
           ? (response.data as MapType)[parameters.dataKey]
           : response.data;
 
@@ -233,6 +234,7 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool useDataKey = true,
   }) async {
     try {
       final response = await _sendRequest(
@@ -248,7 +250,9 @@ class NetKitManager extends INetKitManager
       );
 
       // Extract data and metadata
-      final data = (response.data as MapType)[parameters.metadataDataKey];
+      final data = useDataKey && parameters.dataKey != null
+          ? (response.data as MapType)[parameters.dataKey]
+          : (response.data as MapType)[parameters.metadataDataKey];
       final metadataMap = (response.data as MapType)
         ..remove(parameters.metadataDataKey);
 
@@ -274,6 +278,7 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool useDataKey = true,
   }) async {
     try {
       _logger.debug(
@@ -293,7 +298,7 @@ class NetKitManager extends INetKitManager
 
       _logger.debug('Response received: ${response.data}');
 
-      final data = parameters.dataKey != null
+      final data = useDataKey && parameters.dataKey != null
           ? (response.data as MapType)[parameters.dataKey]
           : response.data;
 
@@ -320,6 +325,7 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool useDataKey = true,
   }) async {
     try {
       final response = await _sendRequest(
@@ -335,7 +341,9 @@ class NetKitManager extends INetKitManager
       );
 
       // Extract data and metadata
-      final data = (response.data as MapType)[parameters.metadataDataKey];
+      final data = useDataKey && parameters.dataKey != null
+          ? (response.data as MapType)[parameters.dataKey]
+          : (response.data as MapType)[parameters.metadataDataKey];
       final metadataMap = (response.data as MapType)
         ..remove(parameters.metadataDataKey);
 
@@ -397,6 +405,7 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
     String? contentType,
+    bool useDataKey = true,
   }) async {
     try {
       return await _uploadMultipartData(
@@ -410,6 +419,7 @@ class NetKitManager extends INetKitManager
         contentType: contentType,
         onReceiveProgress: onReceiveProgress,
         queryParameters: queryParameters,
+        useDataKey: useDataKey,
       );
     } on DioException catch (error) {
       throw _parseToApiException(error);
@@ -436,6 +446,7 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
     String? contentType,
+    bool useDataKey = true,
   }) async {
     try {
       return await _uploadFormData(
@@ -449,6 +460,7 @@ class NetKitManager extends INetKitManager
         contentType: contentType,
         onReceiveProgress: onReceiveProgress,
         queryParameters: queryParameters,
+        useDataKey: useDataKey,
       );
     } on DioException catch (error) {
       throw _parseToApiException(error);

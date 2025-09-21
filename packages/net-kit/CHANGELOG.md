@@ -1,4 +1,22 @@
+# 5.3.0-dev
+
+### **New Features**
+
+- Added `useDataKey` parameter to all request methods (`requestModel`, `requestModelMeta`,
+  `requestList`, `requestListMeta`, `uploadMultipartData`, `uploadFormData`)
+- The `useDataKey` parameter allows you to control whether to use the configured `dataKey` wrapper
+  for individual requests
+- Default value is `true` to maintain backward compatibility
+- When set to `false`, the response data will be used directly without dataKey extraction
+- This is useful when you have different API endpoints that return data in different formats
+
+### **Improvements**
+
+- Enhanced flexibility for handling APIs with different response structures
+- Better control over data extraction on a per-request basis
+
 # 5.2.5
+
 - updated sponsors
 
 # 5.2.1

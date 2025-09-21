@@ -15,6 +15,7 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
     String? contentType,
+    bool useDataKey = true,
   }) async {
     if (!_internetEnabled) {
       throw ApiException(
@@ -42,7 +43,7 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       return model as R;
     }
 
-    final data = parameters.dataKey != null
+    final data = useDataKey && parameters.dataKey != null
         ? (response.data as MapType)[parameters.dataKey]
         : response.data;
 
@@ -67,6 +68,7 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
     String? contentType,
+    bool useDataKey = true,
   }) async {
     if (!_internetEnabled) {
       throw ApiException(
@@ -94,7 +96,7 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       return model as R;
     }
 
-    final data = parameters.dataKey != null
+    final data = useDataKey && parameters.dataKey != null
         ? (response.data as MapType)[parameters.dataKey]
         : response.data;
 
