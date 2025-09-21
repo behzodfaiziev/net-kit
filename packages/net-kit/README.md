@@ -64,7 +64,7 @@ becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
                 <a href="https://vremica.com"><img src="https://github.com/user-attachments/assets/25942faf-45dc-44cf-8422-2d2eb2711ac0" width="225" alt="VREMICA"/></a>
             </td>
             <td style="border: 1px solid black">
-                <a href="https://jurnalle.com"><img src="https://github.com/user-attachments/assets/d3463ab8-f7fa-4d75-8595-9335e59a9cad" width="225" alt="JURNALLE"/></a>
+                <a href="https://jurnalle.com"><img src="https://github.com/user-attachments/assets/2de36aa9-2c4e-4669-b3db-b6565846e4c8" width="225" alt="JURNALLE"/></a>
             </td>
 </table>
 
