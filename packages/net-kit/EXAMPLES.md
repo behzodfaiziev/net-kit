@@ -10,7 +10,7 @@ This file contains detailed examples and real-world use cases for NetKitManager.
 - [File Upload Examples](#file-uploads)
 - [Advanced Configuration](#advanced-configuration)
 - [DataKey Configuration Examples](#datakey-configuration-examples)
-- **[Token Management Guide →](./TOKEN_MANAGEMENT.md)** - Comprehensive token refresh, storage, and lifecycle management
+- **[Token Management Guide →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/TOKEN_MANAGEMENT.md)** - Comprehensive token refresh, storage, and lifecycle management
 
 ## Service Layer Pattern
 

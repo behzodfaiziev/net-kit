@@ -134,13 +134,13 @@ NetKitManager provides several methods for making HTTP requests. Each method is 
 
 ### **Request Examples**
 
-- **📋 [Request a Single Model →](./EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request a List of Models →](./EXAMPLES.md#service-layer-pattern)**
-- **📋 [Send a Void Request →](./EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request Model with Metadata →](./EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request List with Metadata (Pagination) →](./EXAMPLES.md#pagination)**
-- **📋 [Upload Multipart Data (Single File) →](./EXAMPLES.md#file-uploads)**
-- **📋 [Upload Form Data →](./EXAMPLES.md#file-uploads)**
+- **📋 [Request a Single Model →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
+- **📋 [Request a List of Models →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
+- **📋 [Send a Void Request →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
+- **📋 [Request Model with Metadata →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
+- **📋 [Request List with Metadata (Pagination) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#pagination)**
+- **📋 [Upload Multipart Data (Single File) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
+- **📋 [Upload Form Data →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
 
 ### **Why DataKey is Used**
 
@@ -172,7 +172,7 @@ Available on all request methods: `requestModel`, `requestModelMeta`, `requestLi
 
 ### **Advanced Examples**
 
-For more detailed examples including pagination, error handling, and real-world use cases, see [EXAMPLES.md](./EXAMPLES.md).
+For more detailed examples including pagination, error handling, and real-world use cases, see [EXAMPLES.md](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md).
 
 
 ### **Setting Tokens**
@@ -238,7 +238,7 @@ For detailed token management documentation including:
 - **Error Handling** for token operations
 - **Security Considerations** and best practices
 
-📋 **[View Complete Token Management Guide →](./TOKEN_MANAGEMENT.md)**
+📋 **[View Complete Token Management Guide →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/TOKEN_MANAGEMENT.md)**
 
 ## **Logger Integration**
 
@@ -261,7 +261,7 @@ final netKitManager = NetKitManager(
 
 # Migration Guidance
 
-➡️ For detailed upgrade steps and breaking changes, see the full [Migration Guide](./MIGRATION.md).
+➡️ For detailed upgrade steps and breaking changes, see the full [Migration Guide](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/MIGRATION.md).
 
 ## **Feature Status**
 
