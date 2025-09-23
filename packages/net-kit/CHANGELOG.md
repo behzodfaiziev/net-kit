@@ -1,10 +1,16 @@
-# 5.3.2-dev
+# 5.3.3-dev
 
 ### **Bug Fixes**
 
 - **Improved error message handling in Flutter Web**: Added fallback to `exception.message` when both `response.data` and `error` are null
 - This provides better error messages for cases where DioException doesn't have response data or error object
 - Helps with debugging network issues, including CORS-related problems
+
+### **Improvements**
+
+- **Enhanced Flutter Web CORS support**: Made `withCredentials` configurable in `WebHttpAdapter`
+- Default `withCredentials` is now `true`
+- Added comprehensive CORS documentation and troubleshooting guide
 
 # 5.3.0
 

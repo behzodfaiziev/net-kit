@@ -12,14 +12,15 @@
 <summary>🔽 Click to expand</summary>
 
 <!-- TOC -->
-  * [**Contents**](#contents)
-  * [**Features**](#features)
-  * [**Sponsors**](#sponsors)
-  * [**Getting started**](#getting-started)
+
+* [**Contents**](#contents)
+* [**Features**](#features)
+* [**Sponsors**](#sponsors)
+* [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
     * [**Custom Void Models in Uploading**](#custom-void-models-in-uploading)
-  * [**Sending requests**](#sending-requests)
+* [**Sending requests**](#sending-requests)
     * [**Available Request Methods**](#available-request-methods)
     * [**Request Examples**](#request-examples)
     * [**Why DataKey is Used**](#why-datakey-is-used)
@@ -27,14 +28,16 @@
     * [**Advanced Examples**](#advanced-examples)
     * [**Setting Tokens**](#setting-tokens)
     * [**User Logout**](#user-logout)
-  * [**Token Management**](#token-management)
+* [**Token Management**](#token-management)
     * [**Quick Token Setup**](#quick-token-setup)
     * [**Comprehensive Token Management**](#comprehensive-token-management)
-  * [**Logger Integration**](#logger-integration)
+* [**Logger Integration**](#logger-integration)
+* [**Flutter Web Support**](#flutter-web-support)
 * [Migration Guidance](#migration-guidance)
-  * [**Feature Status**](#feature-status)
-  * [**Contributing**](#contributing)
-  * [**License**](#license)
+    * [**Feature Status**](#feature-status)
+    * [**Contributing**](#contributing)
+    * [**License**](#license)
+
 <!-- TOC -->
 
 </details>  
@@ -48,6 +51,7 @@
 - 🌐 Internationalization support for error messages
 - 📦 Multipart upload support
 - 📋 Extensible logger integration
+- 🌐 Flutter Web support with CORS configuration
 
 ## **Sponsors**
 
@@ -118,33 +122,49 @@ exceptions.
 
 ## **Sending requests**
 
-NetKitManager provides several methods for making HTTP requests. Each method is designed for specific use cases and response types.
+NetKitManager provides several methods for making HTTP requests. Each method is designed for
+specific use cases and response types.
 
 ### **Available Request Methods**
 
-| Method | Description | Use Case |
-|--------|-------------|----------|
-| `requestModel` | Request a single model | Get a single resource |
-| `requestList` | Request a list of models | Get multiple resources |
-| `requestVoid` | Send a request without expecting data | Delete, update operations |
-| `requestModelMeta` | Request a model with metadata | Get a resource with additional info |
-| `requestListMeta` | Request a list with metadata | Get paginated data with metadata |
-| `uploadMultipartData` | Upload a single file | File uploads |
-| `uploadFormData` | Upload form data | Form submissions with files |
+| Method                | Description                           | Use Case                            |
+|-----------------------|---------------------------------------|-------------------------------------|
+| `requestModel`        | Request a single model                | Get a single resource               |
+| `requestList`         | Request a list of models              | Get multiple resources              |
+| `requestVoid`         | Send a request without expecting data | Delete, update operations           |
+| `requestModelMeta`    | Request a model with metadata         | Get a resource with additional info |
+| `requestListMeta`     | Request a list with metadata          | Get paginated data with metadata    |
+| `uploadMultipartData` | Upload a single file                  | File uploads                        |
+| `uploadFormData`      | Upload form data                      | Form submissions with files         |
 
 ### **Request Examples**
 
-- **📋 [Request a Single Model →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request a List of Models →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Send a Void Request →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request Model with Metadata →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request List with Metadata (Pagination) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#pagination)**
-- **📋 [Upload Multipart Data (Single File) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
-- **📋 [Upload Form Data →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
+- *
+  *📋 [Request a Single Model →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)
+  **
+- *
+  *📋 [Request a List of Models →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)
+  **
+- *
+  *📋 [Send a Void Request →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)
+  **
+- *
+  *📋 [Request Model with Metadata →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)
+  **
+- *
+  *📋 [Request List with Metadata (Pagination) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#pagination)
+  **
+- *
+  *📋 [Upload Multipart Data (Single File) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)
+  **
+- *
+  *📋 [Upload Form Data →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)
+  **
 
 ### **Why DataKey is Used**
 
-Many APIs return responses in a wrapped format where the actual data is nested under a specific key. For example:
+Many APIs return responses in a wrapped format where the actual data is nested under a specific key.
+For example:
 
 ```json
 {
@@ -158,22 +178,27 @@ Many APIs return responses in a wrapped format where the actual data is nested u
 }
 ```
 
-Without DataKey configuration, you would need to manually extract the data from the `data` field in every response. NetKit's DataKey feature automatically handles this extraction, making your code cleaner and more maintainable.
+Without DataKey configuration, you would need to manually extract the data from the `data` field in
+every response. NetKit's DataKey feature automatically handles this extraction, making your code
+cleaner and more maintainable.
 
 ### **DataKey Configuration**
 
-The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured `dataKey` wrapper for individual requests. This is useful when you have different API endpoints that return data in different formats.
+The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured
+`dataKey` wrapper for individual requests. This is useful when you have different API endpoints that
+return data in different formats.
 
 - When `useDataKey: true` (default): Uses the configured `dataKey` to extract data from the response
 - When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
 - **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
 
-Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`, `requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
+Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`,
+`requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
 
 ### **Advanced Examples**
 
-For more detailed examples including pagination, error handling, and real-world use cases, see [EXAMPLES.md](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md).
-
+For more detailed examples including pagination, error handling, and real-world use cases,
+see [EXAMPLES.md](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md).
 
 ### **Setting Tokens**
 
@@ -212,11 +237,13 @@ void logoutUser() {
 
 ## **Token Management**
 
-NetKitManager provides comprehensive token management including automatic refresh, secure storage, and RFC-compliant authentication flows.
+NetKitManager provides comprehensive token management including automatic refresh, secure storage,
+and RFC-compliant authentication flows.
 
 ### **Quick Token Setup**
 
 ```dart
+
 final netKitManager = NetKitManager(
   baseUrl: 'https://api.example.com',
   refreshTokenPath: '/auth/refresh-token',
@@ -232,13 +259,16 @@ final netKitManager = NetKitManager(
 ### **Comprehensive Token Management**
 
 For detailed token management documentation including:
+
 - **RFC Compliance** (OAuth 2.0, Bearer Token, HTTP Authentication)
 - **Token Refresh Configuration** with advanced options
 - **Secure Token Storage** best practices
 - **Error Handling** for token operations
 - **Security Considerations** and best practices
 
-📋 **[View Complete Token Management Guide →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/TOKEN_MANAGEMENT.md)**
+📋 *
+*[View Complete Token Management Guide →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/TOKEN_MANAGEMENT.md)
+**
 
 ## **Logger Integration**
 
@@ -259,32 +289,104 @@ final netKitManager = NetKitManager(
 );
 ```
 
+## **Flutter Web Support**
+
+<details>
+<summary>🌐 Click to expand Flutter Web CORS Support</summary>
+
+NetKit provides built-in support for Flutter Web with proper CORS configuration. When using NetKit
+with Flutter Web, you may encounter CORS (Cross-Origin Resource Sharing) issues when calling
+third-party APIs.
+
+### Quick Setup for Flutter Web
+
+```dart
+import 'package:net_kit/net_kit.dart';
+import 'package:net_kit/src/manager/adapter/web_http_adapter.dart';
+
+// For third-party APIs (recommended)
+final netKitManager = NetKitManager(
+  baseUrl: 'https://api.example.com',
+  httpAdapter: const WebHttpAdapter(withCredentials: false),
+);
+
+// For your own API with authentication
+final netKitManager = NetKitManager(
+  baseUrl: 'https://your-api.com',
+  httpAdapter: const WebHttpAdapter(withCredentials: true),
+);
+```
+
+### Common CORS Issues
+
+`DioException [connection error]: The connection errored: The XMLHttpRequest onError callback was called`
+### Solutions
+
+1. **Use appropriate credentials setting**:
+     - `withCredentials: false` for public APIs (most third-party APIs)
+     - `withCredentials: true` for your own authenticated APIs
+
+2. **Configure server CORS headers** (if you control the API):
+   ```javascript
+   // Node.js/Express example
+   app.use(cors({
+     origin: ['http://localhost:3000', 'https://yourdomain.com'],
+     credentials: false,
+     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+     allowedHeaders: ['Content-Type', 'Authorization']
+   }));
+   ```
+
+3. **Handle CORS errors gracefully**:
+   ```dart
+   try {
+     final response = await netKitManager.requestModel<MyModel>(
+       path: '/data',
+       method: RequestMethod.get,
+       model: const MyModel(),
+     );
+   } on ApiException catch (e) {
+     if (e.statusCode == 417) {
+       // Likely a CORS error
+       print('CORS Error: ${e.message}');
+     }
+   }
+   ```
+
+### 📖 Complete CORS Guide
+
+For detailed information about CORS issues, solutions, and best practices, see our
+comprehensive [Flutter Web CORS Guide](WEB_CORS_GUIDE.md).
+
+</details>
+
 # Migration Guidance
 
-➡️ For detailed upgrade steps and breaking changes, see the full [Migration Guide](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/MIGRATION.md).
+➡️ For detailed upgrade steps and breaking changes, see the
+full [Migration Guide](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/MIGRATION.md).
 
 ## **Feature Status**
 
-| *Feature*                                                   | *Status* |
-|:------------------------------------------------------------|:--------:|
-| Internationalization support for error messages             |    ✅     |
-| No internet connection handling                             |    ✅     |
-| Basic examples and documentation                            |    ✅     |
-| Comprehensive examples and use cases                        |    ✅     |
-| MultiPartFile upload support                                |    ✅     |
-| FormData upload support                                     |    ✅     |
-| Refresh Token implementation (RFC 6749/6750 compliant)     |    ✅     |
-| Customizable logging with log levels                        |    ✅     |
-| Request retry logic for failed requests                     |    ✅     |
-| Comprehensive test coverage                                 |    ✅     |
-| Authentication and token management                         |    ✅     |
-| DataKey configuration with per-request override            |    ✅     |
-| Pagination support with metadata                            |    ✅     |
-| Service layer pattern examples                              |    ✅     |
-| Repository pattern examples                                 |    ✅     |
-| Error handling strategies                                   |    ✅     |
-| File upload with wrapper patterns                           |    ✅     |
-| Token management documentation                              |    ✅     |
+| *Feature*                                              | *Status* |
+|:-------------------------------------------------------|:--------:|
+| Internationalization support for error messages        |    ✅     |
+| No internet connection handling                        |    ✅     |
+| Basic examples and documentation                       |    ✅     |
+| Comprehensive examples and use cases                   |    ✅     |
+| MultiPartFile upload support                           |    ✅     |
+| FormData upload support                                |    ✅     |
+| Refresh Token implementation (RFC 6749/6750 compliant) |    ✅     |
+| Customizable logging with log levels                   |    ✅     |
+| Request retry logic for failed requests                |    ✅     |
+| Comprehensive test coverage                            |    ✅     |
+| Authentication and token management                    |    ✅     |
+| DataKey configuration with per-request override        |    ✅     |
+| Pagination support with metadata                       |    ✅     |
+| Service layer pattern examples                         |    ✅     |
+| Repository pattern examples                            |    ✅     |
+| Error handling strategies                              |    ✅     |
+| File upload with wrapper patterns                      |    ✅     |
+| Token management documentation                         |    ✅     |
 
 ## **Contributing**
 
