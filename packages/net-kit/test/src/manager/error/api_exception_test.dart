@@ -172,6 +172,24 @@ void main() {
       expect(apiException.messages, isNull);
     });
 
+    test(
+        'should handle DioException message as '
+        'fallback when response.data and error are null', () {
+      const json = 'The connection errored: The XMLHttpRequest '
+          'onError callback was called. This typically indicates '
+          'an error on the network layer.';
+      final apiException = ApiException.fromJson(
+        json: json,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, 400);
+      expect(
+        apiException.message,
+        contains('XMLHttpRequest onError '
+            'callback was called'),
+      );
+    });
+
     test('should handle JSON when json is a string but empty', () {
       const json = '';
       final apiException = ApiException.fromJson(
@@ -183,8 +201,9 @@ void main() {
       expect(apiException.messages, isNull);
     });
 
-    test('should create ApiException from JSON when json is a list of strings',
-        () {
+    test(
+        'should create ApiException from JSON '
+        'when json is a list of strings', () {
       final json = ['Error 1', 'Error 2'];
       final apiException = ApiException.fromJson(
         json: json,
