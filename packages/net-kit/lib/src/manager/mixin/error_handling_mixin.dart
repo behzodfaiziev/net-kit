@@ -7,7 +7,7 @@ mixin ErrorHandlingMixin on RequestManagerMixin {
   /// Returns an [ApiException] object from a DioException
   ApiException _parseToApiException(DioException exception) {
     return ApiException.fromJson(
-      json: exception.response?.data ?? exception.error,
+      json: exception.response?.data ?? exception.error ?? exception.message,
       statusCode: exception.response?.statusCode,
       params: _errorParams,
     );
