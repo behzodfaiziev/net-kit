@@ -10,6 +10,9 @@ export 'src/core/net_kit_request_options.dart';
 /// Http Request Type
 export 'src/enum/request_method.dart';
 
+/// Adapters
+export 'src/manager/adapter/web_http_adapter.dart';
+
 /// Exceptions
 export 'src/manager/error/api_exception.dart';
 
