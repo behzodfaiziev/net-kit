@@ -12,6 +12,8 @@ class NetKitErrorParams {
     this.notMapTypeError = 'Could not parse the response: Not a Map type',
     this.jsonUnsupportedObjectError = 'Unsupported object',
     this.socketExceptionError = 'Socket exception occurred',
+    this.invalidTokenResponseError =
+        'Could not parse tokens from refresh response',
   });
 
   /// The key to use for error messages
@@ -51,4 +53,7 @@ class NetKitErrorParams {
   /// This error occurs when there is a network issue
   /// or when the server is unreachable
   final String socketExceptionError;
+
+  /// The error message when a refresh response is missing a valid access token.
+  final String invalidTokenResponseError;
 }

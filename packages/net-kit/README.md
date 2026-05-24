@@ -254,10 +254,15 @@ of
 
 final netKitManager = NetKitManager(
   baseUrl: 'https://api.<URL>.com',
+  testMode: true,
+  loggerEnabled: true,
   logger: NetworkLogger(),
   // ... other parameters
 );
 ```
+
+**Note:** `loggerEnabled` and `logInterceptorEnabled` only take effect when `testMode` is `true`.
+Set `testMode` to `kDebugMode` (or similar) in development and keep it `false` in production.
 
 # Migration Guidance
 

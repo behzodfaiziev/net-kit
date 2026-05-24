@@ -1,3 +1,20 @@
+# 5.3.5-dev.1
+
+Pre-release for 5.3.5.
+
+### Bug Fixes
+
+- Register the user-provided `interceptor` in `NetKitManager` (was stored but never added to Dio)
+- Validate HTTP status codes in `uploadMultipartData` and `uploadFormData` (consistent with other request methods)
+- Fail token refresh when the refresh response is missing a valid access token (previously succeeded silently)
+- Remove fragile `package:dio/src/*` re-exports; public Dio types remain available via `package:dio/dio.dart`
+
+### Improvements
+
+- Clarify that `loggerEnabled` and `logInterceptorEnabled` only take effect when `testMode` is true
+- Added `invalidTokenResponseError` to `NetKitErrorParams` for refresh token parse failures
+- Preserve wrapped `ApiException` messages when converting `DioException` to `ApiException`
+
 # 5.3.0
 
 ### **New Features**

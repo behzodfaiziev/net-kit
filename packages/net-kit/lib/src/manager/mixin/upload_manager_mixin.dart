@@ -39,6 +39,14 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       onReceiveProgress: onReceiveProgress,
     );
 
+    if (_isRequestFailed(response.statusCode)) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        stackTrace: StackTrace.current,
+      );
+    }
+
     if (model is VoidModel) {
       return model as R;
     }
@@ -91,6 +99,14 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
     );
+
+    if (_isRequestFailed(response.statusCode)) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        stackTrace: StackTrace.current,
+      );
+    }
 
     if (model is VoidModel) {
       return model as R;

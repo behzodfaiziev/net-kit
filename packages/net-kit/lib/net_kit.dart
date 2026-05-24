@@ -1,8 +1,4 @@
 export 'package:dio/dio.dart';
-export 'package:dio/src/cancel_token.dart';
-export 'package:dio/src/dio_exception.dart';
-export 'package:dio/src/multipart_file.dart';
-export 'package:dio/src/options.dart';
 
 /// Request Options
 export 'src/core/net_kit_request_options.dart';

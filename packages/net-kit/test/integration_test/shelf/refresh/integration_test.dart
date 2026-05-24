@@ -242,6 +242,45 @@ void main() {
       }
     });
 
+    test('Refresh response missing access token triggers onRefreshFailed',
+        () async {
+      backendState.returnRefreshWithoutAccessToken = true;
+      var refreshFailedCalled = false;
+
+      final manager = NetKitManager(
+        baseUrl: baseUrl.toString(),
+        refreshTokenPath: '/api/refresh',
+        dataKey: 'data',
+        internetStatusStream: Stream.value(true),
+        onRefreshFailed: ({
+          required int? statusCode,
+          required DioException exception,
+        }) {
+          refreshFailedCalled = true;
+        },
+      )
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await manager.requestModel<DummyModel>(
+          path: '/api/user/current',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        );
+        fail('Should fail: refresh response missing access token');
+      } on ApiException catch (e) {
+        expect(refreshFailedCalled, isTrue);
+        expect(
+          e.message,
+          contains('Could not parse tokens from refresh response'),
+        );
+      }
+
+      manager.dispose();
+      backendState.returnRefreshWithoutAccessToken = false;
+    });
+
     // Simulate delayed backend refresh to stress-test queuing
     test('Delayed refresh: all queued requests are retried after refresh',
         () async {

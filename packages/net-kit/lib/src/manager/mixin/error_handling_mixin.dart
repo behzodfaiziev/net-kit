@@ -6,6 +6,10 @@ part of '../net_kit_manager.dart';
 mixin ErrorHandlingMixin on RequestManagerMixin {
   /// Returns an [ApiException] object from a DioException
   ApiException _parseToApiException(DioException exception) {
+    if (exception.error is ApiException) {
+      return exception.error! as ApiException;
+    }
+
     return ApiException.fromJson(
       json: exception.response?.data ?? exception.error,
       statusCode: exception.response?.statusCode,

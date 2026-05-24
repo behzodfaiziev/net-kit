@@ -13,6 +13,7 @@ class TestBackendState {
     Set<String>? revokedAccessTokens,
     this.refreshDelayMs = 0,
     this.simulateRefreshFailure = false,
+    this.returnRefreshWithoutAccessToken = false,
   })  : usedRefreshTokens = usedRefreshTokens ?? <String>{},
         revokedAccessTokens = revokedAccessTokens ?? <String>{},
         _refreshTokenCounter = 1;
@@ -23,6 +24,7 @@ class TestBackendState {
   final Set<String> revokedAccessTokens;
   int refreshDelayMs;
   bool simulateRefreshFailure;
+  bool returnRefreshWithoutAccessToken;
   int _refreshTokenCounter;
 
   void reset() {
@@ -33,6 +35,7 @@ class TestBackendState {
     revokedAccessTokens.clear();
     refreshDelayMs = 0;
     simulateRefreshFailure = false;
+    returnRefreshWithoutAccessToken = false;
     _refreshTokenCounter = 1;
   }
 
@@ -81,6 +84,20 @@ Handler buildBackendHandler(TestBackendState state) {
       state
         ..rotateTokens()
         ..refreshCallCount += 1;
+
+      if (state.returnRefreshWithoutAccessToken) {
+        return Response.ok(
+          jsonEncode(
+            {
+              'data': {
+                'refreshToken': state.refreshToken,
+              },
+            },
+          ),
+          headers: {'content-type': 'application/json'},
+        );
+      }
+
       return Response.ok(
         jsonEncode(
           {

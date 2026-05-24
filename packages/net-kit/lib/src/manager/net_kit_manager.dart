@@ -59,7 +59,9 @@ class NetKitManager extends INetKitManager
     /// The base options for the network requests
     BaseOptions? baseOptions,
 
-    /// The interceptor for the network requests
+    /// Custom Dio interceptor for the network requests.
+    /// Added after `LogInterceptor` (when enabled) and before the built-in
+    /// error-handling interceptor.
     Interceptor? interceptor,
 
     /// The callback function that is called before the refresh token request
@@ -69,10 +71,10 @@ class NetKitManager extends INetKitManager
     /// the refresh token request fails
     OnRefreshFailed? onRefreshFailed,
 
-    /// Whether the network manager is in test mode
-    /// If true, the devBaseUrl will be used,
-    /// otherwise the baseUrl will be used
-    /// CAUTION: Make sure that it is set to false in production environments
+    /// Whether the network manager is in development mode.
+    /// If true, `devBaseUrl` is used instead of `baseUrl`, and logging options
+    /// (`loggerEnabled`, `logInterceptorEnabled`) are allowed to take effect.
+    /// CAUTION: Make sure that it is set to false in production environments.
     bool testMode = false,
 
     /// The stream for the internet status
@@ -112,12 +114,12 @@ class NetKitManager extends INetKitManager
     /// must be created and injected into the NetKitManager class.
     INetKitLogger logger = const VoidLogger(),
 
-    /// Whether the logger is enabled for Dio requests
+    /// Whether Dio's `LogInterceptor` is enabled for raw HTTP request/response
+    /// logging. Only takes effect when `testMode` is true.
     bool logInterceptorEnabled = false,
 
-    /// Whether the network manager logs the network requests
-    /// Used within NetKitManager to determine if logging is enabled
-    /// Note: it won't work in production environments due to security reasons
+    /// Whether the injected `logger` is used for Net-Kit internal logging.
+    /// Only takes effect when `testMode` is true.
     bool loggerEnabled = false,
 
     /// The callback function that is called when the tokens are updated
@@ -530,9 +532,13 @@ class NetKitManager extends INetKitManager
     /// Initialize the logger
     _logger = loggerEnabled && testMode ? logger : const VoidLogger();
 
-    /// Add log interceptor if logger is enabled and test mode is false
+    /// Add log interceptor when enabled and test mode is true.
     if (logInterceptorEnabled && testMode) {
       interceptors.add(LogInterceptor());
+    }
+
+    if (parameters.interceptor != null) {
+      interceptors.add(parameters.interceptor!);
     }
 
     /// Initialize the converter
@@ -662,6 +668,26 @@ class NetKitManager extends INetKitManager
       data: options.data,
     );
 
-    return extractTokens(response: refreshResponse);
+    return _requireValidRefreshTokens(refreshResponse);
+  }
+
+  AuthTokenModel _requireValidRefreshTokens(Response<dynamic> response) {
+    if (_isRequestFailed(response.statusCode)) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        stackTrace: StackTrace.current,
+      );
+    }
+
+    final tokens = extractTokens(response: response);
+    if (tokens.accessToken == null || tokens.accessToken!.isEmpty) {
+      throw ApiException(
+        message: _errorParams.invalidTokenResponseError,
+        statusCode: response.statusCode ?? HttpStatuses.expectationFailed.code,
+      );
+    }
+
+    return tokens;
   }
 }
