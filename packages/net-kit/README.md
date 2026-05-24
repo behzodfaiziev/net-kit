@@ -282,7 +282,7 @@ The deprecated `testMode` parameter still works in this release but will be remo
 | FormData upload support                                     |    ✅     |
 | Refresh Token implementation (RFC 6749/6750 compliant)     |    ✅     |
 | Customizable logging with log levels                        |    ✅     |
-| Request retry logic for failed requests                     |    ✅     |
+| Automatic token-refresh retry for 401 responses              |    ✅     |
 | Comprehensive test coverage                                 |    ✅     |
 | Authentication and token management                         |    ✅     |
 | DataKey configuration with per-request override            |    ✅     |

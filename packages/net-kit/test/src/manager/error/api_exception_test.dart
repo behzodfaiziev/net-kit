@@ -37,6 +37,22 @@ void main() {
       expect(apiException.messages, ['Validation failed', 'Email is required']);
     });
 
+    test(
+      'should create ApiException from JSON with List<dynamic> messages',
+      () {
+      final json = jsonDecode(
+        '{"status": 422, "message": '
+        '["Validation failed", "Email is required"]}',
+      );
+      final apiException = ApiException.fromJson(
+        json: json,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, 422);
+      expect(apiException.message, 'Validation failed');
+      expect(apiException.messages, ['Validation failed', 'Email is required']);
+    });
+
     test('should create ApiException from JSON with missing message key', () {
       final json = {
         'status': 401,
@@ -88,8 +104,8 @@ void main() {
         params: errorParams,
       );
       expect(apiException.statusCode, 400);
-      expect(apiException.message, 'Could not parse the error');
-      expect(apiException.messages, isNull);
+      expect(apiException.message, 'Invalid Request');
+      expect(apiException.messages, ['Invalid Request', '123']);
     });
 
     test('should handle JSON with null message key', () {
@@ -134,6 +150,31 @@ void main() {
       expect(apiException.messages, isEmpty);
     });
 
+    test('should handle numeric-only message list', () {
+      final json = {
+        'status': 400,
+        'message': [400, 422],
+      };
+      final apiException = ApiException.fromJson(
+        json: json,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, 400);
+      expect(apiException.message, '400');
+      expect(apiException.messages, ['400', '422']);
+    });
+
+    test('should handle single-element List<dynamic> from jsonDecode', () {
+      final json = jsonDecode('{"status": 400, "message": ["Only error"]}');
+      final apiException = ApiException.fromJson(
+        json: json,
+        params: errorParams,
+      );
+      expect(apiException.statusCode, 400);
+      expect(apiException.message, 'Only error');
+      expect(apiException.messages, ['Only error']);
+    });
+
     test('should handle JSON with mixed types in message list', () {
       final json = {
         'status': 400,
@@ -144,8 +185,11 @@ void main() {
         params: errorParams,
       );
       expect(apiException.statusCode, 400);
-      expect(apiException.message, 'Could not parse the error');
-      expect(apiException.messages, isNull);
+      expect(apiException.message, 'Invalid Request');
+      expect(
+        apiException.messages,
+        ['Invalid Request', '123', 'Missing parameters'],
+      );
     });
 
     test('should handle JSON with missing status key', () {

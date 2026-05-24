@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -548,6 +549,150 @@ void main() {
       } finally {
         backendState.simulateRefreshFailure = false;
       }
+    });
+
+    test('Offline refresh skips HTTP attempt and triggers onRefreshFailed',
+        () async {
+      var refreshFailedCalled = false;
+      final connectivityController = StreamController<bool>.broadcast();
+      final offlineManager = NetKitManager(
+        baseUrl: baseUrl.toString(),
+        refreshTokenPath: '/api/refresh',
+        dataKey: 'data',
+        internetStatusStream: connectivityController.stream,
+        onBeforeRefreshRequest: (_) {
+          connectivityController.add(false);
+        },
+        onRefreshFailed: ({
+          required int? statusCode,
+          required DioException exception,
+        }) {
+          refreshFailedCalled = true;
+        },
+      );
+
+      connectivityController.add(true);
+      await Future<void>.delayed(Duration.zero);
+
+      offlineManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await offlineManager.requestModel<DummyModel>(
+          path: '/api/user/current',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        );
+        fail('Expected request to fail while offline during refresh');
+      } on ApiException catch (e) {
+        expect(e.message, 'No internet connection');
+      }
+
+      expect(refreshFailedCalled, isTrue);
+      expect(backendState.refreshCallCount, 0);
+      await connectivityController.close();
+      offlineManager.dispose();
+    });
+
+    test('Retried request fails when retry response is non-2xx', () async {
+      backendState.failRetriedRequestsAfterRefresh = true;
+
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await netKitManager.requestModel<DummyModel>(
+          path: '/api/user/current',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        );
+        fail('Expected request to fail after retry returned 500');
+      } on ApiException catch (e) {
+        expect(e.statusCode, 500);
+      }
+
+      expect(backendState.refreshCallCount, 1);
+      expect(backendState.protectedCallCount, 2);
+    });
+
+    test(
+      'Offline from stream fails before refresh HTTP is attempted',
+      () async {
+      final offlineManager = NetKitManager(
+        baseUrl: baseUrl.toString(),
+        refreshTokenPath: '/api/refresh',
+        dataKey: 'data',
+        internetStatusStream: Stream.value(false),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      offlineManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await offlineManager.requestModel<DummyModel>(
+          path: '/api/user/current',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        );
+        fail('Expected offline request to fail');
+      } on ApiException catch (e) {
+        expect(e.message, 'No internet connection');
+      }
+
+      expect(backendState.refreshCallCount, 0);
+      offlineManager.dispose();
+    });
+
+    test('Refresh succeeds when removeAccessTokenBeforeRefresh is false',
+        () async {
+      final manager = NetKitManager(
+        baseUrl: baseUrl.toString(),
+        refreshTokenPath: '/api/refresh',
+        dataKey: 'data',
+        removeAccessTokenBeforeRefresh: false,
+        internetStatusStream: Stream.value(true),
+        onTokenRefreshed: (token) async {
+          await authStorage.setAccessToken(token.accessToken);
+          if (token.refreshToken != null) {
+            await authStorage.setRefreshToken(token.refreshToken);
+          }
+        },
+      )
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      final result = await manager.requestModel<DummyModel>(
+        path: '/api/user/current',
+        model: const DummyModel(),
+        method: RequestMethod.get,
+      );
+
+      expect(result, isA<DummyModel>());
+      expect(backendState.refreshCallCount, 1);
+      expect(backendState.protectedCallCount, 2);
+      expect(await authStorage.getAccessToken(), backendState.accessToken);
+      manager.dispose();
+    });
+
+    test('Retried request succeeds after token refresh', () async {
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      final result = await netKitManager.requestModel<DummyModel>(
+        path: '/api/user/current',
+        model: const DummyModel(),
+        method: RequestMethod.get,
+      );
+
+      expect(result, isA<DummyModel>());
+      expect(backendState.refreshCallCount, 1);
+      expect(backendState.protectedCallCount, 2);
     });
   });
 }

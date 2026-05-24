@@ -66,17 +66,24 @@ Future<(AuthResultModel, AuthTokenModel)> signIn({
 Future<(AuthResultModel, AuthTokenModel)> signIn({
   required SignInParams signInParams,
 }) async {
-  final response = await _network.requestModel<AuthResultModel>(
+  final authResult = await _network.requestModel<AuthResultModel>(
     path: '/auth/sign-in',
     method: RequestMethod.post,
     model: AuthResultModel(),
     body: signInParams.toJson(),
   );
 
-  // Assuming `AuthResultModel` contains both user info and tokens
-  final authToken = AuthTokenModel.fromJson(response.toJson());
+  // Map token fields from your login model (adjust field names as needed)
+  final authToken = AuthTokenModel(
+    accessToken: authResult.accessToken,
+    refreshToken: authResult.refreshToken,
+  );
 
-  return (response, authToken);
+  _network
+    ..setAccessToken(authToken.accessToken)
+    ..setRefreshToken(authToken.refreshToken);
+
+  return (authResult, authToken);
 }
 ```
 

@@ -66,8 +66,10 @@ class ApiException implements Exception {
         }
 
         /// If the message is a list, cast it to a list of strings
-        else if (json[params.messageKey] is List<String>) {
-          multipleMessages = json[params.messageKey] as List<String>;
+        else if (json[params.messageKey] is List) {
+          multipleMessages = (json[params.messageKey] as List)
+              .map((e) => e.toString())
+              .toList();
 
           if (multipleMessages.isNotEmpty) {
             /// If the list is not empty, get the first message

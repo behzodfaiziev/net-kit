@@ -472,4 +472,74 @@ void main() {
       },
     );
   });
+
+  group('setAccessToken prefix handling', () {
+    late NetKitManager manager;
+
+    setUp(() {
+      manager = NetKitManager(baseUrl: 'https://example.com');
+    });
+
+    tearDown(() {
+      manager.dispose();
+    });
+
+    test('adds Bearer prefix when token has no prefix', () {
+      manager.setAccessToken('abc');
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Bearer abc',
+      );
+    });
+
+    test('does not double-prefix when token already includes Bearer', () {
+      manager.setAccessToken('Bearer abc');
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Bearer abc',
+      );
+    });
+
+    test('uses custom accessTokenPrefix', () {
+      manager.dispose();
+      manager = NetKitManager(
+        baseUrl: 'https://example.com',
+        accessTokenPrefix: 'Token',
+      )..setAccessToken('abc');
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Token abc',
+      );
+    });
+
+    test('does not double-prefix with custom accessTokenPrefix', () {
+      manager.dispose();
+      manager = NetKitManager(
+        baseUrl: 'https://example.com',
+        accessTokenPrefix: 'Token',
+      )..setAccessToken('Token abc');
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Token abc',
+      );
+    });
+
+    test('prepends default prefix when token uses a different scheme', () {
+      manager.setAccessToken('Basic abc');
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Bearer Basic abc',
+      );
+    });
+
+    test('replaces prior token when setAccessToken is called again', () {
+      manager
+        ..setAccessToken('first-token')
+        ..setAccessToken('second-token');
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Bearer second-token',
+      );
+    });
+  });
 }

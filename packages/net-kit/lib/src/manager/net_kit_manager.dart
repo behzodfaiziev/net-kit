@@ -259,16 +259,15 @@ class NetKitManager extends INetKitManager
         containsAccessToken: containsAccessToken,
       );
 
-      // Extract data and metadata
-      final data = useDataKey && parameters.dataKey != null
-          ? (response.data as MapType)[parameters.dataKey]
-          : (response.data as MapType)[parameters.metadataDataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.metadataDataKey);
+      final split = _splitMetaResponse(
+        response.data as MapType,
+        useDataKey: useDataKey,
+      );
 
       // Parse both models
-      final parsedData = _converter.toModel<R>(data as MapType, model);
-      final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
+      final parsedData = _converter.toModel<R>(split.data as MapType, model);
+      final parsedMetadata =
+          _converter.toModel<M>(split.metadata, metadataModel);
 
       return ApiMetaResponse(data: parsedData, metadata: parsedMetadata);
     } on DioException catch (error) {
@@ -350,18 +349,19 @@ class NetKitManager extends INetKitManager
         containsAccessToken: containsAccessToken,
       );
 
-      // Extract data and metadata
-      final data = useDataKey && parameters.dataKey != null
-          ? (response.data as MapType)[parameters.dataKey]
-          : (response.data as MapType)[parameters.metadataDataKey];
-      final metadataMap = (response.data as MapType)
-        ..remove(parameters.metadataDataKey);
+      final split = _splitMetaResponse(
+        response.data as MapType,
+        useDataKey: useDataKey,
+      );
 
       // Parse both models
-      final parsedList =
-          _converter.toListModel(data: data, parsingModel: model);
+      final parsedList = _converter.toListModel(
+        data: split.data,
+        parsingModel: model,
+      );
 
-      final parsedMetadata = _converter.toModel<M>(metadataMap, metadataModel);
+      final parsedMetadata =
+          _converter.toModel<M>(split.metadata, metadataModel);
 
       return ApiMetaResponse(data: parsedList, metadata: parsedMetadata);
     } on DioException catch (error) {
@@ -641,6 +641,21 @@ class NetKitManager extends INetKitManager
     }
   }
 
+  /// Splits a meta response into payload data and metadata without mutating
+  /// the original response map.
+  ({dynamic data, MapType metadata}) _splitMetaResponse(
+    MapType responseData, {
+    required bool useDataKey,
+  }) {
+    final container = useDataKey && parameters.dataKey != null
+        ? responseData[parameters.dataKey] as MapType
+        : responseData;
+
+    final copy = Map<String, dynamic>.from(container);
+    final data = copy.remove(parameters.metadataDataKey);
+    return (data: data, metadata: copy);
+  }
+
   /// Method to send a request to the server to refresh the access token.
   Future<AuthTokenModel> _requestNewTokens() async {
     if (parameters.refreshTokenPath == null) {
@@ -665,6 +680,15 @@ class NetKitManager extends INetKitManager
     );
 
     parameters.onBeforeRefreshRequest?.call(options);
+
+    await Future<void>.delayed(Duration.zero);
+
+    if (!_internetEnabled) {
+      throw ApiException(
+        message: _errorParams.noInternetError,
+        statusCode: HttpStatuses.serviceUnavailable.code,
+      );
+    }
 
     final refreshResponse = await request<dynamic>(
       options.path,

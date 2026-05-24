@@ -1,3 +1,23 @@
+# 5.3.5-dev.3
+
+Pre-release for 5.3.5.
+
+### Bug Fixes
+
+- Fix metadata map mutation in `requestModelMeta` and `requestListMeta` (response maps are no longer modified in place)
+- Fix `useDataKey: false` handling on meta endpoints to match non-meta methods and README
+- Prevent double `Bearer` prefix when `setAccessToken` is called with a token that already includes the prefix
+- Fix header race when `containsAccessToken: false` by applying token omission per request instead of mutating shared headers
+- Parse `List<dynamic>` error message arrays in `ApiException.fromJson`
+- Validate HTTP status codes after token-refresh retries (consistent with `_sendRequest`)
+- Fail token refresh immediately with `noInternetError` when `internetStatusStream` reports offline
+
+### Improvements
+
+- Run CI `dart analyze` from `packages/net-kit`
+- Backfill CHANGELOG entries for 5.3.1–5.3.4
+- Correct misleading docs (retry claim, `setAccessToken` example, `MIGRATION.md` token mapping)
+
 # 5.3.5-dev.2
 
 ### Improvements
@@ -24,6 +44,22 @@ Pre-release for 5.3.5.
 - Clarify that `loggerEnabled` and `logInterceptorEnabled` only take effect when `devMode` is true
 - Added `invalidTokenResponseError` to `NetKitErrorParams` for refresh token parse failures
 - Preserve wrapped `ApiException` messages when converting `DioException` to `ApiException`
+
+# 5.3.4-dev
+
+Pre-release for 5.3.4.
+
+# 5.3.3-dev
+
+Pre-release for 5.3.3.
+
+# 5.3.2-dev
+
+Pre-release for 5.3.2.
+
+# 5.3.1
+
+Patch release.
 
 # 5.3.0
 

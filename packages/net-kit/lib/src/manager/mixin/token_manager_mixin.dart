@@ -7,12 +7,10 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
   /// Implementation of setting the access token
   void _setAccessToken(String? token) {
     if (token == null) return;
-    baseOptions.headers.addAll(
-      {
-        parameters.accessTokenHeaderKey:
-            '${parameters.accessTokenPrefix} $token',
-      },
-    );
+    final prefix = parameters.accessTokenPrefix;
+    final normalized =
+        token.startsWith('$prefix ') ? token : '$prefix $token';
+    baseOptions.headers[parameters.accessTokenHeaderKey] = normalized;
   }
 
   /// Implementation of setting the refresh token

@@ -14,17 +14,20 @@ class TestBackendState {
     this.refreshDelayMs = 0,
     this.simulateRefreshFailure = false,
     this.returnRefreshWithoutAccessToken = false,
+    this.failRetriedRequestsAfterRefresh = false,
   })  : usedRefreshTokens = usedRefreshTokens ?? <String>{},
         revokedAccessTokens = revokedAccessTokens ?? <String>{},
         _refreshTokenCounter = 1;
   String accessToken;
   String refreshToken;
   int refreshCallCount;
+  int protectedCallCount = 0;
   final Set<String> usedRefreshTokens;
   final Set<String> revokedAccessTokens;
   int refreshDelayMs;
   bool simulateRefreshFailure;
   bool returnRefreshWithoutAccessToken;
+  bool failRetriedRequestsAfterRefresh;
   int _refreshTokenCounter;
 
   void reset() {
@@ -36,6 +39,8 @@ class TestBackendState {
     refreshDelayMs = 0;
     simulateRefreshFailure = false;
     returnRefreshWithoutAccessToken = false;
+    failRetriedRequestsAfterRefresh = false;
+    protectedCallCount = 0;
     _refreshTokenCounter = 1;
   }
 
@@ -115,6 +120,13 @@ Handler buildBackendHandler(TestBackendState state) {
         req.url.path == 'api/posts/all' ||
         req.url.path == 'api/posts/likes' ||
         req.url.path == 'api/messages/all') {
+      state.protectedCallCount++;
+      if (state.failRetriedRequestsAfterRefresh && state.refreshCallCount > 0) {
+        return Response(
+          500,
+          body: jsonEncode({'status': 500, 'message': 'Server error'}),
+        );
+      }
       final authHeader = req.headers['authorization'];
       if (authHeader != 'Bearer ${state.accessToken}' ||
           state.revokedAccessTokens.contains(authHeader)) {

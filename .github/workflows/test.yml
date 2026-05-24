@@ -30,6 +30,7 @@ jobs:
 
       - name: Analyze project source
         run: dart analyze --fatal-infos --fatal-warnings
+        working-directory: packages/net-kit
 
       - name: Run unit tests
         run: dart test

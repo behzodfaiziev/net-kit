@@ -311,7 +311,7 @@ abstract class INetKitManager {
   /// The access token is added to the network manager
   /// Example:
   /// ```dart
-  /// netKitManager.setAccessToken('Bearer YOUR_ACCESS_TOKEN');
+  /// netKitManager.setAccessToken('YOUR_ACCESS_TOKEN');
   /// ```
   /// Follows the RFC6750 standard for setting the access token
   /// https://datatracker.ietf.org/doc/html/rfc6750#section-2.1

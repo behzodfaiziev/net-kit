@@ -30,9 +30,6 @@ mixin RequestManagerMixin on DioMixin {
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
   }) async {
-    // Preserved access token. Used when the access token is removed
-    // from the headers and needs to be set back after the request
-    String? accessToken;
     try {
       if (!_internetEnabled) {
         throw ApiException(
@@ -46,14 +43,11 @@ mixin RequestManagerMixin on DioMixin {
       // Set the request method
       options.method = method.name.toUpperCase();
 
-      // Remove the access token from the headers if it's not needed.
-      if (containsAccessToken == false &&
-          baseOptions.headers[parameters.accessTokenHeaderKey] != null) {
-        // Preserve the access token to set it back after the request
-        accessToken =
-            baseOptions.headers[parameters.accessTokenHeaderKey] as String;
-        // Remove the access token from the headers
-        baseOptions.headers.remove(parameters.accessTokenHeaderKey);
+      if (containsAccessToken == false) {
+        options.headers = {
+          ...?options.headers,
+          parameters.accessTokenHeaderKey: null,
+        };
       }
 
       final response = await request<dynamic>(
@@ -88,11 +82,6 @@ mixin RequestManagerMixin on DioMixin {
         statusCode: HttpStatuses.expectationFailed.code,
         error: error,
       );
-    } finally {
-      // Set the access token back to the headers if it was removed
-      if (accessToken != null && containsAccessToken == false) {
-        baseOptions.headers[parameters.accessTokenHeaderKey] = accessToken;
-      }
     }
   }
 
@@ -116,7 +105,7 @@ mixin RequestManagerMixin on DioMixin {
       final newFormData = formData.clone();
       requestOptions.data = newFormData;
     }
-    return request<dynamic>(
+    final response = await request<dynamic>(
       requestOptions.path,
       options: Options(
         method: requestOptions.method,
@@ -127,5 +116,15 @@ mixin RequestManagerMixin on DioMixin {
       data: requestOptions.data,
       queryParameters: requestOptions.queryParameters,
     );
+
+    if (_isRequestFailed(response.statusCode)) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        stackTrace: StackTrace.current,
+      );
+    }
+
+    return response;
   }
 }
