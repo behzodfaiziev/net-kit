@@ -1,3 +1,13 @@
+# 5.3.5-dev.2
+
+### Improvements
+
+- Renamed `testMode` to `devMode` on `NetKitManager` and `NetKitParams` for clarity
+
+### Deprecations
+
+- `testMode` is deprecated in favor of `devMode` (alias retained for one release; removed in a future major version)
+
 # 5.3.5-dev.1
 
 Pre-release for 5.3.5.
@@ -11,7 +21,7 @@ Pre-release for 5.3.5.
 
 ### Improvements
 
-- Clarify that `loggerEnabled` and `logInterceptorEnabled` only take effect when `testMode` is true
+- Clarify that `loggerEnabled` and `logInterceptorEnabled` only take effect when `devMode` is true
 - Added `invalidTokenResponseError` to `NetKitErrorParams` for refresh token parse failures
 - Preserve wrapped `ApiException` messages when converting `DioException` to `ApiException`
 

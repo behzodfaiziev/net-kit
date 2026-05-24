@@ -53,7 +53,7 @@ class NetKitManager extends INetKitManager
     /// The HTTP client adapter
     HttpClientAdapter? httpClientAdapter,
 
-    /// The development base URL for test mode
+    /// The development base URL for dev mode
     String? devBaseUrl,
 
     /// The base options for the network requests
@@ -75,7 +75,13 @@ class NetKitManager extends INetKitManager
     /// If true, `devBaseUrl` is used instead of `baseUrl`, and logging options
     /// (`loggerEnabled`, `logInterceptorEnabled`) are allowed to take effect.
     /// CAUTION: Make sure that it is set to false in production environments.
-    bool testMode = false,
+    bool devMode = false,
+
+    /// Deprecated. Use `devMode` instead.
+    @Deprecated(
+      'Use devMode instead. Will be removed in a future major release.',
+    )
+    bool? testMode,
 
     /// The stream for the internet status
     Stream<bool>? internetStatusStream,
@@ -115,16 +121,18 @@ class NetKitManager extends INetKitManager
     INetKitLogger logger = const VoidLogger(),
 
     /// Whether Dio's `LogInterceptor` is enabled for raw HTTP request/response
-    /// logging. Only takes effect when `testMode` is true.
+    /// logging. Only takes effect when `devMode` is true.
     bool logInterceptorEnabled = false,
 
     /// Whether the injected `logger` is used for Net-Kit internal logging.
-    /// Only takes effect when `testMode` is true.
+    /// Only takes effect when `devMode` is true.
     bool loggerEnabled = false,
 
     /// The callback function that is called when the tokens are updated
     OnTokenRefreshed? onTokenRefreshed,
   }) {
+    final effectiveDevMode = testMode ?? devMode;
+
     // Initialize the network manager
     _initialize(
       clientAdapter: httpClientAdapter,
@@ -136,7 +144,7 @@ class NetKitManager extends INetKitManager
       onBeforeRefreshRequest: onBeforeRefreshRequest,
       onRefreshFailed: onRefreshFailed,
       onTokenRefreshed: onTokenRefreshed,
-      testMode: testMode,
+      devMode: effectiveDevMode,
       logInterceptorEnabled: logInterceptorEnabled,
       loggerEnabled: loggerEnabled,
       logger: logger,
@@ -478,7 +486,7 @@ class NetKitManager extends INetKitManager
 
   void _initialize({
     required String baseUrl,
-    required bool testMode,
+    required bool devMode,
     required String accessTokenHeaderKey,
     required String accessTokenBodyKey,
     required String accessTokenPrefix,
@@ -509,7 +517,7 @@ class NetKitManager extends INetKitManager
     parameters = NetKitParams(
       baseOptions: baseOptions,
       interceptor: interceptor,
-      testMode: testMode,
+      devMode: devMode,
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       accessTokenPrefix: accessTokenPrefix,
@@ -530,10 +538,10 @@ class NetKitManager extends INetKitManager
     );
 
     /// Initialize the logger
-    _logger = loggerEnabled && testMode ? logger : const VoidLogger();
+    _logger = loggerEnabled && devMode ? logger : const VoidLogger();
 
-    /// Add log interceptor when enabled and test mode is true.
-    if (logInterceptorEnabled && testMode) {
+    /// Add log interceptor when enabled and dev mode is true.
+    if (logInterceptorEnabled && devMode) {
       interceptors.add(LogInterceptor());
     }
 
@@ -547,8 +555,8 @@ class NetKitManager extends INetKitManager
     /// Set up the http client adapter
     httpClientAdapter = clientAdapter ?? createPlatformAdapter().getAdapter();
 
-    /// If test mode is enabled, use devBaseUrl
-    parameters.testMode
+    /// If dev mode is enabled, use devBaseUrl
+    parameters.devMode
         ? parameters.baseOptions.baseUrl = devBaseUrl ?? baseUrl
         : parameters.baseOptions.baseUrl = baseUrl;
 

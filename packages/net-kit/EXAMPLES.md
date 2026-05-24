@@ -101,7 +101,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
     return NetKitManager(
       baseUrl: APIConst.baseUrl,
       devBaseUrl: APIConst.baseDevUrl,
-      testMode: kDebugMode,
+      devMode: kDebugMode,
       logger: NetworkLogger(),
       internetStatusStream: _internetStatusStream.map(
             (event) => event != ConnectivityResultEnum.none,

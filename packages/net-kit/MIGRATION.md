@@ -1,5 +1,37 @@
 # Migration Guidance
 
+## testMode renamed to devMode: v5.3.5-dev.2
+
+### Why was it renamed?
+
+`testMode` sounded like a unit-test flag, but it controls development behavior: using `devBaseUrl`, enabling logging, and similar dev-only features. `devMode` better matches that intent.
+
+### How to migrate
+
+- Before (deprecated)
+
+```dart
+NetKitManager(
+  baseUrl: url,
+  devBaseUrl: devUrl,
+  testMode: kDebugMode,
+);
+```
+
+- After (recommended)
+
+```dart
+NetKitManager(
+  baseUrl: url,
+  devBaseUrl: devUrl,
+  devMode: kDebugMode,
+);
+```
+
+`testMode` still works in this release but is deprecated and will be removed in a future major version.
+
+If you read the flag from `NetKitParams`, use `parameters.devMode` instead of `parameters.testMode`.
+
 ## authenticate Method Deprecation: v3.6.0
 
 ### Why is `authenticate` Deprecated?

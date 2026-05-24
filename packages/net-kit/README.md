@@ -254,15 +254,17 @@ of
 
 final netKitManager = NetKitManager(
   baseUrl: 'https://api.<URL>.com',
-  testMode: true,
+  devMode: true,
   loggerEnabled: true,
   logger: NetworkLogger(),
   // ... other parameters
 );
 ```
 
-**Note:** `loggerEnabled` and `logInterceptorEnabled` only take effect when `testMode` is `true`.
-Set `testMode` to `kDebugMode` (or similar) in development and keep it `false` in production.
+**Note:** `loggerEnabled` and `logInterceptorEnabled` only take effect when `devMode` is `true`.
+Set `devMode` to `kDebugMode` (or similar) in development and keep it `false` in production.
+
+The deprecated `testMode` parameter still works in this release but will be removed in a future major version.
 
 # Migration Guidance
 

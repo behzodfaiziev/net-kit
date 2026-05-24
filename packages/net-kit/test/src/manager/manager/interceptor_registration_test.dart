@@ -96,7 +96,7 @@ void main() {
 
     test(
         'does not use custom logger when loggerEnabled is true '
-        'but testMode is false', () async {
+        'but devMode is false', () async {
       final spyLogger = _SpyLogger();
       final manager = NetKitManager(
         baseUrl: 'https://example.com',
@@ -122,13 +122,42 @@ void main() {
       manager.dispose();
     });
 
-    test('uses custom logger when loggerEnabled and testMode are both true',
+    test('uses custom logger when loggerEnabled and devMode are both true',
         () async {
       final spyLogger = _SpyLogger();
       final manager = NetKitManager(
         baseUrl: 'https://example.com',
         logger: spyLogger,
         loggerEnabled: true,
+        devMode: true,
+        dataKey: 'data',
+      );
+      adapter = DioAdapter(dio: manager);
+      manager.httpClientAdapter = adapter;
+
+      adapter.onGet(
+        '/test',
+        (server) => server.reply(200, {'data': <String, dynamic>{}}),
+      );
+
+      await manager.requestModel(
+        path: '/test',
+        method: RequestMethod.get,
+        model: const _TestModel(),
+      );
+
+      expect(spyLogger.debugCalled, isTrue);
+      manager.dispose();
+    });
+
+    test('deprecated testMode alias still enables custom logger', () async {
+      final spyLogger = _SpyLogger();
+      final manager = NetKitManager(
+        baseUrl: 'https://example.com',
+        logger: spyLogger,
+        loggerEnabled: true,
+        // Deprecated alias coverage for backward compatibility.
+        // ignore: deprecated_member_use_from_same_package
         testMode: true,
         dataKey: 'data',
       );

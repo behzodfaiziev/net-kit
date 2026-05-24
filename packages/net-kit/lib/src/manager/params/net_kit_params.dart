@@ -9,7 +9,7 @@ class NetKitParams {
   /// The constructor for the NetKitParams class
   const NetKitParams({
     required this.baseOptions,
-    required this.testMode,
+    required this.devMode,
     required this.accessTokenHeaderKey,
     required this.accessTokenPrefix,
     required this.accessTokenBodyKey,
@@ -69,8 +69,12 @@ class NetKitParams {
   ///  be set when initializing the network manager.
   final OnTokenRefreshed? onTokenRefreshed;
 
-  /// Whether the network manager is in test mode
-  final bool testMode;
+  /// Whether the network manager is in development mode.
+  final bool devMode;
+
+  /// Deprecated. Use `devMode` instead.
+  @Deprecated('Use devMode instead. Will be removed in a future major release.')
+  bool get testMode => devMode;
 
   /// The access token key.
   /// The default value is ['Authorization']
