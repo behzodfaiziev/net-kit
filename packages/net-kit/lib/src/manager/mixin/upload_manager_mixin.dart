@@ -125,4 +125,65 @@ mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
       statusCode: response.statusCode,
     );
   }
+
+  Future<R> _uploadRawData<R extends INetKitModel>({
+    required String path,
+    required R model,
+    required List<int> data,
+    required RequestMethod method,
+    String contentType = 'application/octet-stream',
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    bool useDataKey = true,
+  }) async {
+    if (!_internetEnabled) {
+      throw ApiException(
+        message: _errorParams.noInternetError,
+        statusCode: HttpStatuses.serviceUnavailable.code,
+      );
+    }
+
+    options ??= Options();
+    options.headers ??= {};
+    options.headers!['Content-Type'] = contentType;
+    options.method = method.name.toUpperCase();
+
+    final response = await request<dynamic>(
+      path,
+      data: data,
+      options: options,
+      queryParameters: queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    if (_isRequestFailed(response.statusCode)) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        stackTrace: StackTrace.current,
+      );
+    }
+
+    if (model is VoidModel) {
+      return model as R;
+    }
+
+    final responseData = useDataKey && parameters.dataKey != null
+        ? (response.data as MapType)[parameters.dataKey]
+        : response.data;
+
+    if (responseData is MapType) {
+      return _converter.toModel<R>(responseData, model);
+    }
+
+    throw ApiException(
+      message: _errorParams.notMapTypeError,
+      statusCode: response.statusCode,
+    );
+  }
 }

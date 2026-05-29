@@ -310,6 +310,79 @@ abstract class INetKitManager {
     bool useDataKey = true,
   });
 
+  /// Uploads raw bytes as the request body without multipart encoding.
+  ///
+  /// Typically used for endpoints that expect a raw binary payload such as
+  /// `application/octet-stream`. Works on all platforms including web.
+  ///
+  /// ### **If return type is not need then use VoidModel as R**
+  ///
+  /// ## Example:
+  /// ```dart
+  /// final result = await netKitManager.uploadRawData<UploadResponseModel>(
+  ///   path: '/upload/raw',
+  ///   model: const UploadResponseModel(),
+  ///   data: fileBytes,
+  ///   method: RequestMethod.put,
+  /// );
+  /// ```
+  Future<R> uploadRawData<R extends INetKitModel>({
+    required String path,
+    required R model,
+    required List<int> data,
+    required RequestMethod method,
+    String contentType = 'application/octet-stream',
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
+  });
+
+  /// Uploads a file from disk as raw bytes without multipart encoding.
+  ///
+  /// Reads the file at [filePath] and delegates to [uploadRawData].
+  /// Not supported on web; throws [UnsupportedError] when file I/O is
+  /// unavailable.
+  ///
+  /// ### **If return type is not need then use VoidModel as R**
+  ///
+  /// ## Example:
+  /// ```dart
+  /// final result = await netKitManager.uploadFile<UploadResponseModel>(
+  ///   path: '/upload/raw',
+  ///   model: const UploadResponseModel(),
+  ///   filePath: '/path/to/file.bin',
+  ///   method: RequestMethod.put,
+  /// );
+  /// ```
+  Future<R> uploadFile<R extends INetKitModel>({
+    required String path,
+    required R model,
+    required String filePath,
+    required RequestMethod method,
+    String contentType = 'application/octet-stream',
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+
+    /// Whether to use the dataKey wrapper for this request.
+    /// If false, the response data will be used directly without dataKey
+    /// extraction. If true, the dataKey will be used if it's configured.
+    /// Note: This parameter has no effect if dataKey is not set in the
+    /// NetKitManager configuration. Defaults to true.
+    bool useDataKey = true,
+  });
+
   /// Get all headers
   /// It returns a map of all headers
   Map<String, dynamic> getAllHeaders();

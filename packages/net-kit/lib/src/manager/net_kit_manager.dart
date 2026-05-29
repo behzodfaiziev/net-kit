@@ -10,6 +10,7 @@ import '../model/auth_token_model.dart';
 import '../model/i_net_kit_model.dart';
 import '../model/void_model.dart';
 import '../utility/converter.dart';
+import '../utility/file/file_reader.dart';
 import '../utility/logger/i_net_kit_logger.dart';
 import '../utility/logger/void_logger.dart';
 import '../utility/typedef/request_type_def.dart';
@@ -533,6 +534,89 @@ class NetKitManager extends INetKitManager
       throw ApiException(
         message: e.toString(),
         statusCode: HttpStatuses.internalServerError.code,
+      );
+    }
+  }
+
+  @override
+  Future<R> uploadRawData<R extends INetKitModel>({
+    required String path,
+    required R model,
+    required List<int> data,
+    required RequestMethod method,
+    String contentType = 'application/octet-stream',
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    bool useDataKey = true,
+  }) async {
+    try {
+      return await _uploadRawData(
+        path: path,
+        model: model,
+        data: data,
+        method: method,
+        contentType: contentType,
+        options: options,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+        useDataKey: useDataKey,
+      );
+    } on DioException catch (error) {
+      throw _parseToApiException(error);
+    } on ApiException catch (_) {
+      rethrow;
+    } on Exception catch (e) {
+      throw ApiException(
+        message: e.toString(),
+        statusCode: HttpStatuses.internalServerError.code,
+        error: e,
+      );
+    }
+  }
+
+  @override
+  Future<R> uploadFile<R extends INetKitModel>({
+    required String path,
+    required R model,
+    required String filePath,
+    required RequestMethod method,
+    String contentType = 'application/octet-stream',
+    Options? options,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    bool useDataKey = true,
+  }) async {
+    try {
+      final bytes = await readFileAsBytes(filePath);
+      return await _uploadRawData(
+        path: path,
+        model: model,
+        data: bytes,
+        method: method,
+        contentType: contentType,
+        options: options,
+        queryParameters: queryParameters,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+        useDataKey: useDataKey,
+      );
+    } on DioException catch (error) {
+      throw _parseToApiException(error);
+    } on ApiException catch (_) {
+      rethrow;
+    } on Exception catch (e) {
+      throw ApiException(
+        message: e.toString(),
+        statusCode: HttpStatuses.internalServerError.code,
+        error: e,
       );
     }
   }

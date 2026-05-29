@@ -1,3 +1,12 @@
+# 5.3.5-dev.5
+
+Pre-release for 5.3.5.
+
+### Features
+
+- Added `uploadRawData` for direct binary uploads (`application/octet-stream`) without multipart encoding
+- Added `uploadFile` convenience method to read a file from disk and upload as raw bytes (IO platforms only)
+
 # 5.3.5-dev.4
 
 Pre-release for 5.3.5.

@@ -133,6 +133,8 @@ NetKitManager provides several methods for making HTTP requests. Each method is 
 | `requestListMeta` | Request a list with metadata | Get paginated data with metadata |
 | `uploadMultipartData` | Upload a single file | File uploads |
 | `uploadFormData` | Upload form data | Form submissions with files |
+| `uploadRawData` | Upload raw bytes as request body | Binary/raw file uploads (web-safe) |
+| `uploadFile` | Upload a file from disk as raw bytes | Binary/raw file uploads from path (IO only) |
 
 ### **Request Examples**
 
@@ -143,6 +145,7 @@ NetKitManager provides several methods for making HTTP requests. Each method is 
 - **📋 [Request List with Metadata (Pagination) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#pagination)**
 - **📋 [Upload Multipart Data (Single File) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
 - **📋 [Upload Form Data →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
+- **📋 [Upload Raw Data (Direct Binary) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
 
 ### **Why DataKey is Used**
 
@@ -170,7 +173,7 @@ The `useDataKey` parameter (default: `true`) allows you to control whether to us
 - When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
 - **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
 
-Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`, `requestListMeta`, `uploadMultipartData`, and `uploadFormData`.
+Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`, `requestListMeta`, `uploadMultipartData`, `uploadFormData`, `uploadRawData`, and `uploadFile`.
 
 ### **Advanced Examples**
 

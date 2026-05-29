@@ -919,6 +919,51 @@ Future<FormSubmissionResponse> submitApplication({
 }
 ```
 
+</details>
+
+<details>
+<summary>📁 <strong>Direct Raw Binary Upload</strong></summary>
+
+Use `uploadRawData` when the API expects the file bytes as the request body (e.g. `application/octet-stream`) without multipart wrapping. Works on all platforms including web.
+
+```dart
+// Example: Upload raw bytes (web-safe)
+Future<UploadResponseModel> uploadRawBytes(
+  List<int> fileBytes, {
+  ProgressCallback? onProgress,
+}) async {
+  try {
+    final result = await netKitManager.uploadRawData<UploadResponseModel>(
+      path: '/upload/raw',
+      method: RequestMethod.put,
+      model: const UploadResponseModel(),
+      data: fileBytes,
+      onSendProgress: onProgress,
+    );
+
+    return result;
+  } on ApiException catch (e) {
+    throw UploadException('Failed to upload raw data: ${e.message}');
+  }
+}
+
+// Example: Upload from file path (IO platforms only)
+Future<UploadResponseModel> uploadFromPath(String filePath) async {
+  try {
+    return await netKitManager.uploadFile<UploadResponseModel>(
+      path: '/upload/raw',
+      method: RequestMethod.put,
+      model: const UploadResponseModel(),
+      filePath: filePath,
+    );
+  } on ApiException catch (e) {
+    throw UploadException('Failed to upload file: ${e.message}');
+  }
+}
+```
+
+</details>
+
 ## Error Handling
 
 NetKitManager handles errors automatically through its built-in error handling system. You don't need to implement

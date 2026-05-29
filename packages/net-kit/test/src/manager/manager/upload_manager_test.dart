@@ -78,5 +78,50 @@ void main() {
         throwsA(isA<ApiException>()),
       );
     });
+
+    test('uploadRawData returns parsed model on success', () async {
+      adapter.onPost(
+        '/upload/raw',
+        (server) => server.reply(
+          HttpStatuses.ok.code,
+          {
+            'data': {'id': 42},
+          },
+        ),
+        data: Matchers.any,
+        headers: {'Content-Type': 'application/octet-stream'},
+      );
+
+      final result = await manager.uploadRawData(
+        path: '/upload/raw',
+        model: const _UploadModel(),
+        data: [1, 2, 3, 4],
+        method: RequestMethod.post,
+      );
+
+      expect(result.id, 42);
+    });
+
+    test('uploadRawData throws ApiException on non-2xx response', () async {
+      adapter.onPost(
+        '/upload/raw',
+        (server) => server.reply(
+          HttpStatuses.badRequest.code,
+          {'message': 'Invalid payload'},
+        ),
+        data: Matchers.any,
+        headers: {'Content-Type': 'application/octet-stream'},
+      );
+
+      await expectLater(
+        manager.uploadRawData(
+          path: '/upload/raw',
+          model: const _UploadModel(),
+          data: [1, 2, 3, 4],
+          method: RequestMethod.post,
+        ),
+        throwsA(isA<ApiException>()),
+      );
+    });
   });
 }
