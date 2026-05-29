@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import '../interceptors/request_extra_keys.dart';
 import '../../utility/typedef/request_type_def.dart';
+import '../interceptors/request_extra_keys.dart';
 
 /// Network kit params for the network manager
 class NetKitParams {

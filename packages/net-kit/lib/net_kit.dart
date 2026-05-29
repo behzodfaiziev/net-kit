@@ -11,10 +11,8 @@ export 'src/manager/error/api_exception.dart';
 
 /// Manager
 export 'src/manager/i_net_kit_manager.dart';
-export 'src/manager/net_kit_manager.dart';
-
-/// Params
 export 'src/manager/interceptors/request_extra_keys.dart';
+export 'src/manager/net_kit_manager.dart';
 export 'src/manager/params/net_kit_error_params.dart';
 export 'src/manager/params/net_kit_params.dart';
 

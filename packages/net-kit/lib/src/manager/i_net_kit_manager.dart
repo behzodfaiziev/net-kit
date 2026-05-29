@@ -1,7 +1,6 @@
 import '../../net_kit.dart';
 import '../model/api_meta_response.dart';
 import '../utility/typedef/request_type_def.dart';
-import 'params/net_kit_params.dart';
 
 /// The abstract class for the network manager
 /// It contains methods to make network requests

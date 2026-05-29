@@ -7,7 +7,6 @@ import '../enum/http_status_codes.dart';
 import '../enum/request_method.dart';
 import '../model/api_meta_response.dart';
 import '../model/auth_token_model.dart';
-import '../model/error_interceptor.dart';
 import '../model/i_net_kit_model.dart';
 import '../model/void_model.dart';
 import '../utility/converter.dart';
@@ -17,10 +16,10 @@ import '../utility/typedef/request_type_def.dart';
 import 'adapter/platform_http_adapter.dart';
 import 'error/api_exception.dart';
 import 'i_net_kit_manager.dart';
+import 'interceptors/request_extra_keys.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
-import 'interceptors/request_extra_keys.dart';
 import 'token/token_manager.dart';
 
 part 'interceptors/error_handling_interceptor.dart';
@@ -226,7 +225,7 @@ class NetKitManager extends INetKitManager
         idempotencyKey: idempotencyKey,
       );
 
-      _logger.debug('Response received from ${path}: ${response.data}');
+      _logger.debug('Response received from $path: ${response.data}');
 
       if (_hasEmptyResponseBody(response)) {
         throw _parseToApiException(_emptyResponseBodyError(response));
@@ -339,7 +338,7 @@ class NetKitManager extends INetKitManager
         idempotencyKey: idempotencyKey,
       );
 
-      _logger.debug('Response received from ${path}: ${response.data}');
+      _logger.debug('Response received from $path: ${response.data}');
 
       if (_hasEmptyResponseBody(response)) {
         throw _parseToApiException(_emptyResponseBodyError(response));
@@ -750,7 +749,8 @@ class NetKitManager extends INetKitManager
     }
 
     final refreshContentType =
-        parameters.refreshTokenContentType == RefreshTokenContentType.formUrlEncoded
+        parameters.refreshTokenContentType ==
+                RefreshTokenContentType.formUrlEncoded
             ? Headers.formUrlEncodedContentType
             : options.contentType;
 
