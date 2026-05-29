@@ -3,6 +3,9 @@ enum HttpStatuses {
   /// 200 OK
   ok(200),
 
+  /// 204 No Content
+  noContent(204),
+
   /// 300 Multiple Choices
   multipleChoices(300),
 

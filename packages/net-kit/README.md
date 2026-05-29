@@ -41,7 +41,9 @@
 
 ## **Features**
 
-- 🔄 Automatic token refresh with queue-safe retry
+- 🔄 Completer single-flight token refresh (one refresh for concurrent 401s)
+- 🔒 RFC 9110-safe POST retry policy (`allowRetryOn401` opt-in)
+- 🚫 Per-request `skipTokenRefresh` for public 401 endpoints
 - ⚙️ `onBeforeRefreshRequest` to mutate refresh payload
 - 🛠 Parsing responses into models or lists using `INetKitModel`
 - 🧪 Configurable base URLs for development and production
@@ -282,7 +284,9 @@ The deprecated `testMode` parameter still works in this release but will be remo
 | FormData upload support                                     |    ✅     |
 | Refresh Token implementation (RFC 6749/6750 compliant)     |    ✅     |
 | Customizable logging with log levels                        |    ✅     |
-| Automatic token-refresh retry for 401 responses              |    ✅     |
+| Automatic token-refresh for 401 (single-flight)              |    ✅     |
+| POST/PATCH blocked from auto-retry unless opted in           |    ✅     |
+| `skipTokenRefresh` / `allowRetryOn401` / `idempotencyKey`   |    ✅     |
 | Comprehensive test coverage                                 |    ✅     |
 | Authentication and token management                         |    ✅     |
 | DataKey configuration with per-request override            |    ✅     |

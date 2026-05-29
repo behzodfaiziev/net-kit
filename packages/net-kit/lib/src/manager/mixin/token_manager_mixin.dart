@@ -7,10 +7,15 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
   /// Implementation of setting the access token
   void _setAccessToken(String? token) {
     if (token == null) return;
+    if (parameters.devMode && RegExp(r'\s').hasMatch(token)) {
+      _logger.warning(
+        'Access token contains whitespace or newlines (RFC 6750)',
+      );
+    }
     final prefix = parameters.accessTokenPrefix;
     final normalized =
         token.startsWith('$prefix ') ? token : '$prefix $token';
-    baseOptions.headers[parameters.accessTokenHeaderKey] = normalized;
+    parameters.baseOptions.headers[parameters.accessTokenHeaderKey] = normalized;
   }
 
   /// Implementation of setting the refresh token
@@ -21,7 +26,7 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
 
   /// Implementation of removing the access token
   void _removeAccessToken() {
-    baseOptions.headers.remove(parameters.accessTokenHeaderKey);
+    parameters.baseOptions.headers.remove(parameters.accessTokenHeaderKey);
   }
 
   /// Implementation of removing the refresh token

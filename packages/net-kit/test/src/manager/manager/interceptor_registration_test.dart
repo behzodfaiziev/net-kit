@@ -17,6 +17,7 @@ class _FlagInterceptor extends Interceptor {
 
 class _SpyLogger implements INetKitLogger {
   bool debugCalled = false;
+  final warnings = <String>[];
 
   @override
   void debug(String message) {
@@ -36,7 +37,9 @@ class _SpyLogger implements INetKitLogger {
   void trace(String message) {}
 
   @override
-  void warning(String message) {}
+  void warning(String message) {
+    warnings.add(message);
+  }
 }
 
 class _TestModel extends INetKitModel {
@@ -176,6 +179,24 @@ void main() {
       );
 
       expect(spyLogger.debugCalled, isTrue);
+      manager.dispose();
+    });
+
+    test('devMode warns when access token contains whitespace', () {
+      final spyLogger = _SpyLogger();
+      final manager = NetKitManager(
+        baseUrl: 'https://example.com',
+        logger: spyLogger,
+        loggerEnabled: true,
+        devMode: true,
+      );
+
+      manager.setAccessToken('token with space');
+
+      expect(
+        spyLogger.warnings,
+        contains('Access token contains whitespace or newlines (RFC 6750)'),
+      );
       manager.dispose();
     });
   });

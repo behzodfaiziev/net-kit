@@ -67,8 +67,15 @@ Handler buildBackendHandler(TestBackendState state) {
         );
       }
       final body = await req.readAsString();
-      final data = jsonDecode(body) as Map<String, dynamic>;
-      final refreshToken = data['refreshToken'] as String?;
+      final contentType = req.headers['content-type'] ?? '';
+      String? refreshToken;
+      if (contentType.contains('application/x-www-form-urlencoded')) {
+        final params = Uri.splitQueryString(body);
+        refreshToken = params['refreshToken'] ?? params['refresh_token'];
+      } else {
+        final data = jsonDecode(body) as Map<String, dynamic>;
+        refreshToken = data['refreshToken'] as String?;
+      }
       if (refreshToken == null) {
         return Response(
           400,
@@ -119,8 +126,12 @@ Handler buildBackendHandler(TestBackendState state) {
     if (req.url.path == 'api/user/current' ||
         req.url.path == 'api/posts/all' ||
         req.url.path == 'api/posts/likes' ||
-        req.url.path == 'api/messages/all') {
+        req.url.path == 'api/messages/all' ||
+        req.url.path == 'api/forbidden') {
       state.protectedCallCount++;
+      if (req.url.path == 'api/forbidden') {
+        return Response(403, body: jsonEncode({'message': 'Forbidden'}));
+      }
       if (state.failRetriedRequestsAfterRefresh && state.refreshCallCount > 0) {
         return Response(
           500,
@@ -140,6 +151,23 @@ Handler buildBackendHandler(TestBackendState state) {
         ),
         headers: {'content-type': 'application/json'},
       );
+    }
+    if (req.url.path == 'api/posts/create' && req.method == 'POST') {
+      state.protectedCallCount++;
+      final authHeader = req.headers['authorization'];
+      if (authHeader != 'Bearer ${state.accessToken}') {
+        return Response(401, body: jsonEncode({'message': 'Unauthorized'}));
+      }
+      return Response.ok(
+        jsonEncode({'data': {'result': 'created'}}),
+        headers: {'content-type': 'application/json'},
+      );
+    }
+    if (req.url.path == 'api/items/1' && req.method == 'DELETE') {
+      return Response(204);
+    }
+    if (req.url.path == 'api/items/empty' && req.method == 'GET') {
+      return Response(204);
     }
     return Response.notFound('Not found');
   };

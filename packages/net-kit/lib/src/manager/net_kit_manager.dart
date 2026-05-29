@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 import '../core/net_kit_request_options.dart';
@@ -18,6 +20,7 @@ import 'i_net_kit_manager.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
 import 'queue/request_queue.dart';
+import 'interceptors/request_extra_keys.dart';
 import 'token/token_manager.dart';
 
 part 'interceptors/error_handling_interceptor.dart';
@@ -130,6 +133,10 @@ class NetKitManager extends INetKitManager
 
     /// The callback function that is called when the tokens are updated
     OnTokenRefreshed? onTokenRefreshed,
+
+    /// Content type for the refresh token request body.
+    RefreshTokenContentType refreshTokenContentType =
+        RefreshTokenContentType.json,
   }) {
     final effectiveDevMode = testMode ?? devMode;
 
@@ -157,6 +164,7 @@ class NetKitManager extends INetKitManager
       removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
       dataKey: dataKey,
       metadataDataKey: metadataDataKey,
+      refreshTokenContentType: refreshTokenContentType,
     );
   }
 
@@ -195,6 +203,9 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
     bool useDataKey = true,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   }) async {
     try {
       _logger.debug(
@@ -210,9 +221,16 @@ class NetKitManager extends INetKitManager
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
+        skipTokenRefresh: skipTokenRefresh,
+        allowRetryOn401: allowRetryOn401,
+        idempotencyKey: idempotencyKey,
       );
 
-      _logger.debug('Response received: ${response.data}');
+      _logger.debug('Response received from ${path}: ${response.data}');
+
+      if (_hasEmptyResponseBody(response)) {
+        throw _parseToApiException(_emptyResponseBodyError(response));
+      }
 
       if ((response.data is MapType) == false) {
         throw _notMapTypeError(response);
@@ -245,6 +263,9 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
     bool useDataKey = true,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   }) async {
     try {
       final response = await _sendRequest(
@@ -257,7 +278,14 @@ class NetKitManager extends INetKitManager
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
+        skipTokenRefresh: skipTokenRefresh,
+        allowRetryOn401: allowRetryOn401,
+        idempotencyKey: idempotencyKey,
       );
+
+      if (_hasEmptyResponseBody(response)) {
+        throw _parseToApiException(_emptyResponseBodyError(response));
+      }
 
       final split = _splitMetaResponse(
         response.data as MapType,
@@ -288,6 +316,9 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
     bool useDataKey = true,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   }) async {
     try {
       _logger.debug(
@@ -303,9 +334,16 @@ class NetKitManager extends INetKitManager
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
+        skipTokenRefresh: skipTokenRefresh,
+        allowRetryOn401: allowRetryOn401,
+        idempotencyKey: idempotencyKey,
       );
 
-      _logger.debug('Response received: ${response.data}');
+      _logger.debug('Response received from ${path}: ${response.data}');
+
+      if (_hasEmptyResponseBody(response)) {
+        throw _parseToApiException(_emptyResponseBodyError(response));
+      }
 
       final data = useDataKey && parameters.dataKey != null
           ? (response.data as MapType)[parameters.dataKey]
@@ -335,6 +373,9 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
     bool useDataKey = true,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   }) async {
     try {
       final response = await _sendRequest(
@@ -347,7 +388,14 @@ class NetKitManager extends INetKitManager
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
+        skipTokenRefresh: skipTokenRefresh,
+        allowRetryOn401: allowRetryOn401,
+        idempotencyKey: idempotencyKey,
       );
+
+      if (_hasEmptyResponseBody(response)) {
+        throw _parseToApiException(_emptyResponseBodyError(response));
+      }
 
       final split = _splitMetaResponse(
         response.data as MapType,
@@ -380,6 +428,9 @@ class NetKitManager extends INetKitManager
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   }) async {
     try {
       await _sendRequest(
@@ -392,6 +443,9 @@ class NetKitManager extends INetKitManager
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
         containsAccessToken: containsAccessToken,
+        skipTokenRefresh: skipTokenRefresh,
+        allowRetryOn401: allowRetryOn401,
+        idempotencyKey: idempotencyKey,
       );
 
       return;
@@ -507,6 +561,8 @@ class NetKitManager extends INetKitManager
     required Interceptor? interceptor,
     required HttpClientAdapter? clientAdapter,
     required Stream<bool>? internetStatusStream,
+    RefreshTokenContentType refreshTokenContentType =
+        RefreshTokenContentType.json,
   }) {
     /// Set up the base options if not provided
     /// Making sure the BaseOptions is not null
@@ -529,6 +585,7 @@ class NetKitManager extends INetKitManager
       dataKey: dataKey,
       refreshTokenPath: refreshTokenPath,
       removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
+      refreshTokenContentType: refreshTokenContentType,
       internetStatusSubscription: internetStatusStream?.listen(
         (event) {
           /// Update the internet status when the stream emits a new value
@@ -574,6 +631,8 @@ class NetKitManager extends INetKitManager
         onTokensUpdated: _onTokensUpdated,
         logger: _logger,
       ),
+      errorParams: _errorParams,
+      accessTokenHeaderKey: parameters.accessTokenHeaderKey,
     ).getErrorInterceptor();
 
     interceptors.add(errorInterceptor);
@@ -690,12 +749,19 @@ class NetKitManager extends INetKitManager
       );
     }
 
+    final refreshContentType =
+        parameters.refreshTokenContentType == RefreshTokenContentType.formUrlEncoded
+            ? Headers.formUrlEncodedContentType
+            : options.contentType;
+
     final refreshResponse = await request<dynamic>(
       options.path,
       options: Options(
         method: options.method,
         headers: options.headers,
         responseType: ResponseType.json,
+        contentType: refreshContentType,
+        extra: {RequestExtraKeys.isRefreshRequest: true},
       ),
       data: options.data,
     );

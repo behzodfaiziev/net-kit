@@ -1,3 +1,27 @@
+# 5.3.5-dev.4
+
+Pre-release for 5.3.5.
+
+### Features
+
+- Completer-based single-flight token refresh (concurrent 401s share one refresh)
+- Per-request `skipTokenRefresh`, `allowRetryOn401`, and optional `idempotencyKey`
+- RFC 9110-safe default: POST/PATCH are not replayed after 401 unless `allowRetryOn401: true`
+- Optional `refreshTokenContentType: formUrlEncoded` for OAuth backends
+- `requestVoid` accepts 204; `requestModel` / `requestList` throw `emptyResponseBodyError` on 204/empty body
+
+### Improvements
+
+- Retry requests merge per-request headers and forward `cancelToken` / progress callbacks
+- Refresh requests tagged with internal `__isRefreshRequest` guard; normalized refresh path matching
+- `devMode` logs a warning when access tokens contain whitespace (RFC 6750)
+
+### Bug Fixes
+
+- Fix refresh failure propagation (`Completer.completeError` no longer leaks uncaught errors)
+- Fix retry limit so retried 401s do not trigger a second refresh
+- Propagate refresh/retry `DioException` responses correctly to callers
+
 # 5.3.5-dev.3
 
 Pre-release for 5.3.5.

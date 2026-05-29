@@ -2,120 +2,100 @@ part of '../net_kit_manager.dart';
 
 /// Mixin for request manager
 mixin RequestManagerMixin on DioMixin {
-  /// Overridden parameters getter
-  NetKitParams get parameters;
-
-  /// Overridden errorParams getter
+  /// The error params for the network manager
   NetKitErrorParams get _errorParams;
 
-  /// Overridden internetEnabled getter
-  bool get _internetEnabled;
+  /// The parameters for the network manager
+  NetKitParams get parameters;
 
+  /// The logger for the network manager
   INetKitLogger get _logger;
 
-  /// Overridden converter getter
+  /// Whether the internet is enabled
+  bool get _internetEnabled;
+
+  /// The converter for the network manager
   Converter get _converter;
 
-  /// Overridden baseOptions getter
-  BaseOptions get baseOptions;
-
+  /// Sends a request to the server
   Future<Response<dynamic>> _sendRequest({
     required String path,
     required RequestMethod method,
-    bool? containsAccessToken,
     MapType? body,
     Options? options,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   }) async {
-    try {
-      if (!_internetEnabled) {
-        throw ApiException(
-          message: _errorParams.noInternetError,
-          statusCode: HttpStatuses.serviceUnavailable.code,
-        );
-      }
-
-      options ??= Options();
-
-      // Set the request method
-      options.method = method.name.toUpperCase();
-
-      if (containsAccessToken == false) {
-        options.headers = {
-          ...?options.headers,
-          parameters.accessTokenHeaderKey: null,
-        };
-      }
-
-      final response = await request<dynamic>(
-        path,
-        data: body,
-        options: options,
-        onReceiveProgress: onReceiveProgress,
-        onSendProgress: onSendProgress,
-        queryParameters: queryParameters,
-        cancelToken: cancelToken,
-      );
-
-      if (_isRequestFailed(response.statusCode)) {
-        // Throw an exception if the request failed
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          stackTrace: StackTrace.current,
-        );
-      }
-      return response;
-    } on DioException {
-      _logger.error('_sendRequest.DioException: Request failed: $path');
-      rethrow;
-    } on ApiException {
-      _logger.error('_sendRequest.ApiException: Request failed: $path');
-      rethrow;
-    } on Object catch (error) {
-      _logger.error('_sendRequest.Exception: Request failed: $path');
+    if (!_internetEnabled) {
       throw ApiException(
-        message: error.toString(),
-        statusCode: HttpStatuses.expectationFailed.code,
-        error: error,
+        message: _errorParams.noInternetError,
+        statusCode: HttpStatuses.serviceUnavailable.code,
       );
     }
-  }
 
-  /// Check if the request failed
-  /// If the status code is null or not in the range of 200-299, return true
-  /// Otherwise, return false
-  bool _isRequestFailed(int? statusCode) {
-    // If the status code is null, return true (request failed)
-    if (statusCode == null) return true;
+    options ??= Options();
+    options.method = method.name.toUpperCase();
+    options.headers ??= {};
 
-    // If the status code is not in the range of 200-299,
-    // return true (request failed)
-    return statusCode < HttpStatuses.ok.code ||
-        statusCode >= HttpStatuses.multipleChoices.code;
-  }
-
-  Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
-    // Check if the request's body is FormData
-    if (requestOptions.data is FormData && requestOptions.data != null) {
-      final formData = requestOptions.data as FormData;
-      final newFormData = formData.clone();
-      requestOptions.data = newFormData;
+    if (containsAccessToken == false) {
+      options.headers![parameters.accessTokenHeaderKey] = null;
     }
-    final response = await request<dynamic>(
-      requestOptions.path,
-      options: Options(
-        method: requestOptions.method,
-        // Make sure to add the new access token to the headers
-        headers: baseOptions.headers,
-        extra: requestOptions.extra,
-      ),
-      data: requestOptions.data,
-      queryParameters: requestOptions.queryParameters,
+
+    options.extra = Map<String, dynamic>.from(options.extra ?? const {});
+    if (skipTokenRefresh) {
+      options.extra![RequestExtraKeys.skipTokenRefresh] = true;
+    }
+    if (allowRetryOn401) {
+      options.extra![RequestExtraKeys.allowRetryOn401] = true;
+    }
+    if (idempotencyKey != null) {
+      options.extra![RequestExtraKeys.idempotencyKey] = idempotencyKey;
+      options.headers!['Idempotency-Key'] = idempotencyKey;
+    }
+    if (onSendProgress != null) {
+      options.extra![RequestExtraKeys.onSendProgress] = onSendProgress;
+    }
+    if (onReceiveProgress != null) {
+      options.extra![RequestExtraKeys.onReceiveProgress] = onReceiveProgress;
+    }
+
+    return request<dynamic>(
+      path,
+      data: body,
+      options: options,
+      queryParameters: queryParameters,
+      cancelToken: cancelToken,
+      onReceiveProgress: onReceiveProgress,
+      onSendProgress: onSendProgress,
     );
+  }
+
+  /// Retries a request with the given request options
+  Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
+    final mergedHeaders = Map<String, dynamic>.from(parameters.baseOptions.headers)
+      ..addAll(requestOptions.headers)
+      ..remove(parameters.accessTokenHeaderKey);
+    if (parameters.baseOptions.headers[parameters.accessTokenHeaderKey] !=
+        null) {
+      mergedHeaders[parameters.accessTokenHeaderKey] =
+          parameters.baseOptions.headers[parameters.accessTokenHeaderKey];
+    }
+
+    final retryOptions = requestOptions.copyWith(
+      headers: mergedHeaders,
+      cancelToken: requestOptions.cancelToken,
+      data: requestOptions.data is FormData
+          ? (requestOptions.data as FormData).clone()
+          : requestOptions.data,
+    );
+
+    final response = await fetch<dynamic>(retryOptions);
 
     if (_isRequestFailed(response.statusCode)) {
       throw DioException(
@@ -126,5 +106,50 @@ mixin RequestManagerMixin on DioMixin {
     }
 
     return response;
+  }
+
+  /// Checks if the request failed based on the status code
+  bool _isRequestFailed(int? statusCode) {
+    if (statusCode == null) {
+      return true;
+    }
+
+    return statusCode < HttpStatuses.ok.code ||
+        statusCode >= HttpStatuses.multipleChoices.code;
+  }
+
+  bool _hasEmptyResponseBody(Response<dynamic> response) {
+    if (response.statusCode == HttpStatuses.noContent.code) {
+      return true;
+    }
+
+    final data = response.data;
+    if (data == null) {
+      return true;
+    }
+
+    if (data is String && data.isEmpty) {
+      return true;
+    }
+
+    if (data is List && data.isEmpty) {
+      return true;
+    }
+
+    return false;
+  }
+
+  DioException _emptyResponseBodyError(Response<dynamic> response) {
+    return DioException(
+      requestOptions: response.requestOptions,
+      response: Response<dynamic>(
+        requestOptions: response.requestOptions,
+        statusCode: response.statusCode,
+        data: {
+          _errorParams.messageKey: _errorParams.emptyResponseBodyError,
+          _errorParams.statusCodeKey: response.statusCode,
+        },
+      ),
+    );
   }
 }

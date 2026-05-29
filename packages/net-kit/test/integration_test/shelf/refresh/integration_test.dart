@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:net_kit/net_kit.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
@@ -693,6 +696,183 @@ void main() {
       expect(result, isA<DummyModel>());
       expect(backendState.refreshCallCount, 1);
       expect(backendState.protectedCallCount, 2);
+    });
+
+    test('403 on protected route does not trigger refresh', () async {
+      netKitManager
+        ..setAccessToken(backendState.accessToken)
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await netKitManager.requestModel<DummyModel>(
+          path: '/api/forbidden',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        );
+        fail('Expected 403');
+      } on ApiException catch (e) {
+        expect(e.statusCode, 403);
+      }
+
+      expect(backendState.refreshCallCount, 0);
+    });
+
+    test('skipTokenRefresh skips automatic refresh on 401', () async {
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await netKitManager.requestModel<DummyModel>(
+          path: '/api/user/current',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+          skipTokenRefresh: true,
+        );
+        fail('Expected 401');
+      } on ApiException catch (e) {
+        expect(e.statusCode, 401);
+      }
+
+      expect(backendState.refreshCallCount, 0);
+    });
+
+    test('POST 401 refreshes but does not replay without allowRetryOn401',
+        () async {
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      try {
+        await netKitManager.requestVoid(
+          path: '/api/posts/create',
+          method: RequestMethod.post,
+          body: {'title': 'test'},
+        );
+        fail('Expected non-idempotent retry block');
+      } on ApiException catch (e) {
+        expect(
+          e.message,
+          const NetKitErrorParams().nonIdempotentRetryBlockedError,
+        );
+      }
+
+      expect(backendState.refreshCallCount, 1);
+      expect(backendState.protectedCallCount, 1);
+    });
+
+    test('POST with allowRetryOn401 replays once after refresh', () async {
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      await netKitManager.requestVoid(
+        path: '/api/posts/create',
+        method: RequestMethod.post,
+        body: {'title': 'test'},
+        allowRetryOn401: true,
+      );
+
+      expect(backendState.refreshCallCount, 1);
+      expect(backendState.protectedCallCount, 2);
+    });
+
+    test('requestVoid accepts 204 No Content', () async {
+      await netKitManager.requestVoid(
+        path: '/api/items/1',
+        method: RequestMethod.delete,
+      );
+    });
+
+    test('requestModel with 204 throws emptyResponseBodyError', () async {
+      try {
+        await netKitManager.requestModel<DummyModel>(
+          path: '/api/items/empty',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        );
+        fail('Expected empty body error');
+      } on ApiException catch (e) {
+        expect(
+          e.message,
+          const NetKitErrorParams().emptyResponseBodyError,
+        );
+      }
+    });
+
+    test('50+ concurrent 401s trigger exactly one refresh', () async {
+      backendState.refreshDelayMs = 100;
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      final futures = List.generate(
+        55,
+        (_) => netKitManager.requestModel<DummyModel>(
+          path: '/api/user/current',
+          model: const DummyModel(),
+          method: RequestMethod.get,
+        ),
+      );
+
+      final results = await Future.wait(futures);
+      for (final result in results) {
+        expect(result, isA<DummyModel>());
+      }
+      expect(backendState.refreshCallCount, 1);
+    });
+
+    test('cancelToken cancelled during refresh yields cancel', () async {
+      backendState.refreshDelayMs = 500;
+      netKitManager
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      final cancelToken = CancelToken();
+      final future = netKitManager.requestModel<DummyModel>(
+        path: '/api/user/current',
+        model: const DummyModel(),
+        method: RequestMethod.get,
+        cancelToken: cancelToken,
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      cancelToken.cancel('cancelled before retry');
+
+      try {
+        await future;
+        fail('Expected cancel');
+      } on ApiException catch (e) {
+        expect(e.message, contains('cancelled'));
+      }
+    });
+
+    test('formUrlEncoded refresh succeeds', () async {
+      final formManager = NetKitManager(
+        baseUrl: baseUrl.toString(),
+        refreshTokenPath: '/api/refresh',
+        dataKey: 'data',
+        refreshTokenContentType: RefreshTokenContentType.formUrlEncoded,
+        internetStatusStream: Stream.value(true),
+        onTokenRefreshed: (token) async {
+          await authStorage.setAccessToken(token.accessToken);
+          if (token.refreshToken != null) {
+            await authStorage.setRefreshToken(token.refreshToken);
+          }
+        },
+      )
+        ..setAccessToken('EXPIRED_ACCESS_TOKEN')
+        ..setRefreshToken(backendState.refreshToken);
+
+      final result = await formManager.requestModel<DummyModel>(
+        path: '/api/user/current',
+        model: const DummyModel(),
+        method: RequestMethod.get,
+      );
+
+      expect(result, isA<DummyModel>());
+      expect(backendState.refreshCallCount, 1);
+      formManager.dispose();
     });
   });
 }

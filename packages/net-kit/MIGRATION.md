@@ -1,5 +1,37 @@
 # Migration Guidance
 
+## Auth refresh hardening: v5.3.5-dev.4
+
+### New per-request flags
+
+All request methods accept optional auth/retry flags (defaults preserve prior behavior):
+
+| Parameter | Default | Purpose |
+|-----------|---------|---------|
+| `skipTokenRefresh` | `false` | When `true`, a 401 does **not** trigger automatic refresh |
+| `allowRetryOn401` | `false` | When `true`, POST/PATCH may be replayed once after refresh |
+| `idempotencyKey` | `null` | Sent as `Idempotency-Key` header when set |
+
+`containsAccessToken: false` omits the Bearer header on the request; `skipTokenRefresh: true` keeps automatic refresh off when the server returns 401.
+
+### POST retry policy (RFC 9110)
+
+GET, PUT, and DELETE are retried once after a successful refresh. POST and PATCH are **not** retried unless you pass `allowRetryOn401: true`.
+
+### Optional form-encoded refresh
+
+```dart
+NetKitManager(
+  baseUrl: url,
+  refreshTokenPath: '/oauth/token',
+  refreshTokenContentType: RefreshTokenContentType.formUrlEncoded,
+);
+```
+
+### Not an HTTP cache (RFC 9111)
+
+Net-Kit does not implement HTTP caching (ETag, Cache-Control, etc.).
+
 ## testMode renamed to devMode: v5.3.5-dev.2
 
 ### Why was it renamed?

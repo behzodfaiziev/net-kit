@@ -14,6 +14,9 @@ class NetKitErrorParams {
     this.socketExceptionError = 'Socket exception occurred',
     this.invalidTokenResponseError =
         'Could not parse tokens from refresh response',
+    this.nonIdempotentRetryBlockedError =
+        '401 after refresh; non-idempotent request not retried',
+    this.emptyResponseBodyError = 'Response body is empty',
   });
 
   /// The key to use for error messages
@@ -56,4 +59,10 @@ class NetKitErrorParams {
 
   /// The error message when a refresh response is missing a valid access token.
   final String invalidTokenResponseError;
+
+  /// The error message when a non-idempotent request is not retried after 401.
+  final String nonIdempotentRetryBlockedError;
+
+  /// The error message when a model/list response has no body.
+  final String emptyResponseBodyError;
 }

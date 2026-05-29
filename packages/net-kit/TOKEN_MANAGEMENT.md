@@ -13,7 +13,7 @@ NetKitManager's token management implementation follows these RFC standards:
 ### Additional Standards
 
 - **Token Storage Security**: Implements secure token storage patterns (application-level, not HTTP cookies)
-- **Request Queuing**: Handles concurrent requests during token refresh to prevent race conditions
+- **Request Queuing**: Handles concurrent requests during token refresh via Completer single-flight
 - **Error Handling**: Comprehensive error handling for authentication failures and network issues
 
 > **Note**: If you identify any RFC compliance issues or need additional standards support, please open an issue on
@@ -36,7 +36,34 @@ NetKitManager provides a robust and RFC-compliant refresh token mechanism to ens
 1. When a request fails with a 401 Unauthorized, NetKit will automatically:
 2. Pause the failing request and any subsequent requests.
 3. Attempt to refresh the access token via the configured refreshTokenPath.
-4. Retry the failed requests using the new token upon successful refresh.
+4. Retry the failed requests using the new token upon successful refresh (GET/PUT/DELETE by default; POST/PATCH only with `allowRetryOn401: true`, RFC 9110).
+
+Concurrent 401s share a single refresh via an internal Completer (single-flight).
+
+### Per-request opt-out and opt-in
+
+```dart
+// Public endpoint: do not treat 401 as "refresh me"
+await netKitManager.requestModel(
+  path: '/public/profile',
+  method: RequestMethod.get,
+  model: const ProfileModel(),
+  skipTokenRefresh: true,
+);
+
+// Idempotent POST: allow one replay after refresh
+await netKitManager.requestVoid(
+  path: '/orders',
+  method: RequestMethod.post,
+  body: {'item': 'x'},
+  allowRetryOn401: true,
+  idempotencyKey: 'my-key',
+);
+```
+
+`containsAccessToken: false` omits the Bearer header; `skipTokenRefresh: true` disables automatic refresh on 401.
+
+Net-Kit is **not** an HTTP cache layer (RFC 9111).
 
 ### Refresh Token Initialization
 
@@ -49,6 +76,7 @@ To use the refresh token feature, you need to initialize the NetKitManager with 
 | `refreshTokenBodyKey`            | ➖        | Key for the refresh token in the refresh body (default: "refreshToken").   |
 | `accessTokenBodyKey`             | ➖        | Key for the access token in the refresh body (default: "accessToken").     |
 | `removeAccessTokenBeforeRefresh` | ➖        | Whether to strip access token header during token refresh (default: true). |
+| `refreshTokenContentType`        | ➖        | `json` (default) or `formUrlEncoded` refresh body.                        |
 | `accessTokenPrefix`              | ➖        | Prefix added to accessToken in headers (default: "Bearer").                |
 | `onBeforeRefreshRequest`         | ➖        | Allows modifying headers/body before refresh is sent.                      |
 

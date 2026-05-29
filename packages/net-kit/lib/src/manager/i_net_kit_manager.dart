@@ -58,7 +58,11 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
 
     /// Whether to use the dataKey wrapper for this request.
     /// If false, the response data will be used directly without dataKey
@@ -92,6 +96,9 @@ abstract class INetKitManager {
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
 
     /// Whether to use the dataKey wrapper for this request.
     /// If false, the response data will be used directly without dataKey
@@ -138,7 +145,11 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
 
     /// Whether to use the dataKey wrapper for this request.
     /// If false, the response data will be used directly without dataKey
@@ -172,6 +183,9 @@ abstract class INetKitManager {
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
 
     /// Whether to use the dataKey wrapper for this request.
     /// If false, the response data will be used directly without dataKey
@@ -214,7 +228,11 @@ abstract class INetKitManager {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
     bool? containsAccessToken,
+    bool skipTokenRefresh = false,
+    bool allowRetryOn401 = false,
+    String? idempotencyKey,
   });
 
   /// This method is responsible for uploading multipart form data to a

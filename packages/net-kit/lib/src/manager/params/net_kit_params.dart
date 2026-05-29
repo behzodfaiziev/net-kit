@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
+import '../interceptors/request_extra_keys.dart';
 import '../../utility/typedef/request_type_def.dart';
 
 /// Network kit params for the network manager
@@ -23,6 +24,7 @@ class NetKitParams {
     required this.interceptor,
     required this.refreshTokenPath,
     required this.internetStatusSubscription,
+    this.refreshTokenContentType = RefreshTokenContentType.json,
   });
 
   /// The subscription for the internet status
@@ -109,4 +111,7 @@ class NetKitParams {
 
   /// The key to extract data from the metadata response.
   final String metadataDataKey;
+
+  /// Content type for the refresh token request body.
+  final RefreshTokenContentType refreshTokenContentType;
 }
