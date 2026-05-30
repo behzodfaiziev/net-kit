@@ -14,7 +14,6 @@
 <!-- TOC -->
   * [**Contents**](#contents)
   * [**Features**](#features)
-  * [**Sponsors**](#sponsors)
   * [**Getting started**](#getting-started)
     * [**Initialize**](#initialize)
     * [**Extend the model**](#extend-the-model)
@@ -51,7 +50,7 @@
 - 📦 Multipart upload support
 - 📋 Extensible logger integration
 
-## **Sponsors**
+<!-- ## **Sponsors**
 
 A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
 becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
@@ -68,7 +67,7 @@ becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
             <td style="border: 1px solid black">
                 <a href="https://jurnalle.com"><img src="https://github.com/user-attachments/assets/2de36aa9-2c4e-4669-b3db-b6565846e4c8" width="225" alt="JURNALLE"/></a>
             </td>
-</table>
+</table> -->
 
 ## **Getting started**
 
