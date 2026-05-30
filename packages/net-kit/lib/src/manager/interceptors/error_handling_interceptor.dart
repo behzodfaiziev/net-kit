@@ -95,7 +95,7 @@ class ErrorHandlingInterceptor {
           _refreshCompleter!.complete();
           await requestQueue.processQueue();
           return _finishAfterRefresh(error, handler);
-        } catch (e) {
+        } on Object catch (e) {
           _refreshFailure = e;
           if (!_refreshCompleter!.isCompleted) {
             _refreshCompleter!.complete();
@@ -132,7 +132,6 @@ class ErrorHandlingInterceptor {
         : DioException(
             requestOptions: error.requestOptions,
             error: failure,
-            type: DioExceptionType.unknown,
           );
     if (!_refreshFailedNotified) {
       _refreshFailedNotified = true;
@@ -209,7 +208,7 @@ class ErrorHandlingInterceptor {
 
       final response = await retryRequest(error.requestOptions);
       return handler.resolve(response);
-    } catch (e) {
+    } on Object catch (e) {
       if (e is DioException) {
         return handler.reject(e);
       }
@@ -217,7 +216,6 @@ class ErrorHandlingInterceptor {
         DioException(
           requestOptions: error.requestOptions,
           error: e,
-          type: DioExceptionType.unknown,
         ),
       );
     }

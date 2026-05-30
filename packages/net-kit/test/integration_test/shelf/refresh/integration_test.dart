@@ -2,9 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'dart:async';
-
-import 'package:dio/dio.dart';
 import 'package:net_kit/net_kit.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';

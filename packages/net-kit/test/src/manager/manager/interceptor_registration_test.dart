@@ -189,9 +189,7 @@ void main() {
         logger: spyLogger,
         loggerEnabled: true,
         devMode: true,
-      );
-
-      manager.setAccessToken('token with space');
+      )..setAccessToken('token with space');
 
       expect(
         spyLogger.warnings,

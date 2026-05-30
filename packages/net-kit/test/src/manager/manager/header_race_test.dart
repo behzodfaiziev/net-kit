@@ -193,7 +193,7 @@ void main() {
     });
 
     test(
-      'omits auth token when Map<String, String> already contains Authorization',
+      'omits auth when typed headers already contain Authorization',
       () async {
         adapter.onGet(
           '/typed-auth-header',

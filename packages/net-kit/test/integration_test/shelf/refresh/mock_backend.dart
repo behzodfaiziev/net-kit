@@ -160,7 +160,7 @@ Handler buildBackendHandler(TestBackendState state) {
       }
       return Response.ok(
         jsonEncode({
-          'data': {'result': 'created'}
+          'data': {'result': 'created'},
         }),
         headers: {'content-type': 'application/json'},
       );
