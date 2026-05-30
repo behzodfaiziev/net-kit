@@ -832,11 +832,10 @@ class NetKitManager extends INetKitManager
       );
     }
 
-    final refreshContentType =
-        parameters.refreshTokenContentType ==
-                RefreshTokenContentType.formUrlEncoded
-            ? Headers.formUrlEncodedContentType
-            : options.contentType;
+    final refreshContentType = parameters.refreshTokenContentType ==
+            RefreshTokenContentType.formUrlEncoded
+        ? Headers.formUrlEncodedContentType
+        : options.contentType;
 
     final refreshResponse = await request<dynamic>(
       options.path,

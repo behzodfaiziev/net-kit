@@ -159,7 +159,9 @@ Handler buildBackendHandler(TestBackendState state) {
         return Response(401, body: jsonEncode({'message': 'Unauthorized'}));
       }
       return Response.ok(
-        jsonEncode({'data': {'result': 'created'}}),
+        jsonEncode({
+          'data': {'result': 'created'}
+        }),
         headers: {'content-type': 'application/json'},
       );
     }

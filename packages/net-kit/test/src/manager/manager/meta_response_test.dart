@@ -176,9 +176,8 @@ void main() {
       expect(result.metadata.total, 5);
     });
 
-    test(
-      'handles missing metadataDataKey with metadata-only response',
-      () async {
+    test('handles missing metadataDataKey with metadata-only response',
+        () async {
       manager.dispose();
       manager = NetKitManager(baseUrl: 'https://example.com');
       adapter = DioAdapter(dio: manager);
@@ -205,9 +204,8 @@ void main() {
       expect(responseBody.containsKey('page'), isTrue);
     });
 
-    test(
-      'returns empty metadata when response contains only payload key',
-      () async {
+    test('returns empty metadata when response contains only payload key',
+        () async {
       manager.dispose();
       manager = NetKitManager(baseUrl: 'https://example.com');
       adapter = DioAdapter(dio: manager);
@@ -236,9 +234,8 @@ void main() {
       expect(result.metadata.total, 0);
     });
 
-    test(
-      'useDataKey true with null dataKey splits top-level response',
-      () async {
+    test('useDataKey true with null dataKey splits top-level response',
+        () async {
       manager.dispose();
       manager = NetKitManager(baseUrl: 'https://example.com');
       adapter = DioAdapter(dio: manager);

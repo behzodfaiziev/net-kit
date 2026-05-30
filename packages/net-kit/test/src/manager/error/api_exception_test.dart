@@ -37,9 +37,8 @@ void main() {
       expect(apiException.messages, ['Validation failed', 'Email is required']);
     });
 
-    test(
-      'should create ApiException from JSON with List<dynamic> messages',
-      () {
+    test('should create ApiException from JSON with List<dynamic> messages',
+        () {
       final json = jsonDecode(
         '{"status": 422, "message": '
         '["Validation failed", "Email is required"]}',

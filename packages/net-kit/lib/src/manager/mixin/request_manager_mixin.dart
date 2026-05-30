@@ -80,10 +80,12 @@ mixin RequestManagerMixin on DioMixin {
 
   /// Retries a request with the given request options
   Future<Response<dynamic>> _retryRequest(RequestOptions requestOptions) async {
-    final mergedHeaders = Map<String, dynamic>.from(parameters.baseOptions.headers)
-      ..addAll(requestOptions.headers)
-      ..remove(parameters.accessTokenHeaderKey);
-    if (parameters.baseOptions.headers[parameters.accessTokenHeaderKey] != null) {
+    final mergedHeaders =
+        Map<String, dynamic>.from(parameters.baseOptions.headers)
+          ..addAll(requestOptions.headers)
+          ..remove(parameters.accessTokenHeaderKey);
+    if (parameters.baseOptions.headers[parameters.accessTokenHeaderKey] !=
+        null) {
       mergedHeaders[parameters.accessTokenHeaderKey] =
           parameters.baseOptions.headers[parameters.accessTokenHeaderKey];
     }
@@ -115,7 +117,8 @@ mixin RequestManagerMixin on DioMixin {
       return true;
     }
 
-    return statusCode < HttpStatuses.ok.code || statusCode >= HttpStatuses.multipleChoices.code;
+    return statusCode < HttpStatuses.ok.code ||
+        statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   bool _hasEmptyResponseBody(Response<dynamic> response) {

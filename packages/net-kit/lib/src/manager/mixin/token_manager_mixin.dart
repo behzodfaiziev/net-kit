@@ -13,9 +13,9 @@ mixin TokenManagerMixin on DioMixin, RequestManagerMixin, ErrorHandlingMixin {
       );
     }
     final prefix = parameters.accessTokenPrefix;
-    final normalized =
-        token.startsWith('$prefix ') ? token : '$prefix $token';
-    parameters.baseOptions.headers[parameters.accessTokenHeaderKey] = normalized;
+    final normalized = token.startsWith('$prefix ') ? token : '$prefix $token';
+    parameters.baseOptions.headers[parameters.accessTokenHeaderKey] =
+        normalized;
   }
 
   /// Implementation of setting the refresh token

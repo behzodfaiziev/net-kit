@@ -75,7 +75,8 @@ class ErrorHandlingInterceptor {
         }
 
         final retryCount =
-            error.requestOptions.extra[RequestExtraKeys.retryCount] as int? ?? 0;
+            error.requestOptions.extra[RequestExtraKeys.retryCount] as int? ??
+                0;
         if (retryCount >= _maxRetryCount) {
           return handler.reject(error);
         }
@@ -159,7 +160,8 @@ class ErrorHandlingInterceptor {
             requestOptions: error.requestOptions,
             statusCode: HttpStatuses.unauthorized.code,
             data: {
-              errorParams.messageKey: errorParams.nonIdempotentRetryBlockedError,
+              errorParams.messageKey:
+                  errorParams.nonIdempotentRetryBlockedError,
               errorParams.statusCodeKey: HttpStatuses.unauthorized.code,
             },
           ),

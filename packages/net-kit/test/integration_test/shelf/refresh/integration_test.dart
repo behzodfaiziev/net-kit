@@ -620,9 +620,8 @@ void main() {
       expect(backendState.protectedCallCount, 2);
     });
 
-    test(
-      'Offline from stream fails before refresh HTTP is attempted',
-      () async {
+    test('Offline from stream fails before refresh HTTP is attempted',
+        () async {
       final offlineManager = NetKitManager(
         baseUrl: baseUrl.toString(),
         refreshTokenPath: '/api/refresh',
