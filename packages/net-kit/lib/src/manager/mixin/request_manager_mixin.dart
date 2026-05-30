@@ -40,11 +40,13 @@ mixin RequestManagerMixin on DioMixin {
     }
 
     options ??= Options();
-    options.method = method.name.toUpperCase();
-    options.headers ??= {};
+    options
+      ..method = method.name.toUpperCase()
+      ..headers ??= {};
 
     if (containsAccessToken == false) {
-      options.headers![parameters.accessTokenHeaderKey] = null;
+      options.headers = Map<String, dynamic>.from(options.headers ?? const {})
+        ..[parameters.accessTokenHeaderKey] = null;
     }
 
     options.extra = Map<String, dynamic>.from(options.extra ?? const {});
@@ -81,8 +83,7 @@ mixin RequestManagerMixin on DioMixin {
     final mergedHeaders = Map<String, dynamic>.from(parameters.baseOptions.headers)
       ..addAll(requestOptions.headers)
       ..remove(parameters.accessTokenHeaderKey);
-    if (parameters.baseOptions.headers[parameters.accessTokenHeaderKey] !=
-        null) {
+    if (parameters.baseOptions.headers[parameters.accessTokenHeaderKey] != null) {
       mergedHeaders[parameters.accessTokenHeaderKey] =
           parameters.baseOptions.headers[parameters.accessTokenHeaderKey];
     }
@@ -114,8 +115,7 @@ mixin RequestManagerMixin on DioMixin {
       return true;
     }
 
-    return statusCode < HttpStatuses.ok.code ||
-        statusCode >= HttpStatuses.multipleChoices.code;
+    return statusCode < HttpStatuses.ok.code || statusCode >= HttpStatuses.multipleChoices.code;
   }
 
   bool _hasEmptyResponseBody(Response<dynamic> response) {

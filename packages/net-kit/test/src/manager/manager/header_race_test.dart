@@ -171,6 +171,55 @@ void main() {
       expect(request.headers['Authorization'], isNull);
     });
 
+    test('omits auth token when caller passes Map<String, String> headers',
+        () async {
+      adapter.onGet(
+        '/typed-headers',
+        (server) => server.reply(200, <String, dynamic>{}),
+      );
+
+      await manager.requestModel(
+        path: '/typed-headers',
+        method: RequestMethod.get,
+        model: const _TestModel(),
+        containsAccessToken: false,
+        useDataKey: false,
+        options: Options(headers: <String, String>{'X-Custom': '1'}),
+      );
+
+      final request = captureInterceptor.captured.last;
+      expect(request.headers['X-Custom'], '1');
+      expect(request.headers['Authorization'], isNull);
+    });
+
+    test(
+      'omits auth token when Map<String, String> already contains Authorization',
+      () async {
+        adapter.onGet(
+          '/typed-auth-header',
+          (server) => server.reply(200, <String, dynamic>{}),
+        );
+
+        await manager.requestModel(
+          path: '/typed-auth-header',
+          method: RequestMethod.get,
+          model: const _TestModel(),
+          containsAccessToken: false,
+          useDataKey: false,
+          options: Options(
+            headers: <String, String>{
+              'X-Custom': '1',
+              'Authorization': 'Bearer caller-token',
+            },
+          ),
+        );
+
+        final request = captureInterceptor.captured.last;
+        expect(request.headers['X-Custom'], '1');
+        expect(request.headers['Authorization'], isNull);
+      },
+    );
+
     test('keeps baseOptions token across sequential tokenless requests',
         () async {
       for (var i = 0; i < 3; i++) {

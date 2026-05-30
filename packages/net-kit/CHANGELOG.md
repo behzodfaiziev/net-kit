@@ -1,3 +1,11 @@
+# 5.3.5-dev.6
+
+Pre-release for 5.3.5.
+
+### Bug Fixes
+
+- Fix runtime crash when `containsAccessToken: false` is used with caller-provided `Map<String, String>` headers
+
 # 5.3.5-dev.5
 
 Pre-release for 5.3.5.
