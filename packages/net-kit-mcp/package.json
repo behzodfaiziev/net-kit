@@ -11,7 +11,6 @@
     "networking"
   ],
   "license": "MIT",
-  "private": true,
   "type": "module",
   "homepage": "https://github.com/behzodfaiziev/net-kit#readme",
   "bugs": {
