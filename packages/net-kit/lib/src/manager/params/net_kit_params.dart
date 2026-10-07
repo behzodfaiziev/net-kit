@@ -1,15 +1,17 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
-
+import '../../core/net_kit_interceptor.dart';
+import '../../core/net_kit_timeout.dart';
+import '../../enum/refresh_token_content_type.dart';
 import '../../utility/typedef/request_type_def.dart';
-import '../interceptors/request_extra_keys.dart';
 
 /// Network kit params for the network manager
 class NetKitParams {
   /// The constructor for the NetKitParams class
   const NetKitParams({
-    required this.baseOptions,
+    required this.baseUrl,
+    required this.headers,
+    required this.timeout,
     required this.devMode,
     required this.accessTokenHeaderKey,
     required this.accessTokenPrefix,
@@ -17,37 +19,44 @@ class NetKitParams {
     required this.removeAccessTokenBeforeRefresh,
     required this.metadataDataKey,
     required this.refreshTokenBodyKey,
-    required this.onRefreshFailed,
+    required this.onSessionInvalidated,
     required this.onBeforeRefreshRequest,
     required this.onTokenRefreshed,
     required this.dataKey,
-    required this.interceptor,
+    required this.interceptors,
     required this.refreshTokenPath,
     required this.internetStatusSubscription,
+    required this.allowCrossOriginRequests,
+    required this.sensitiveHeaders,
+    required this.logResponseBodies,
+    required this.sensitiveQueryParameters,
     this.refreshTokenContentType = RefreshTokenContentType.json,
   });
+
+  /// The effective base URL: `devBaseUrl` in dev mode, otherwise `baseUrl`.
+  final String baseUrl;
+
+  /// Headers sent with every same-origin request. Mutable: `setAccessToken`,
+  /// `addHeader`, and friends edit this map.
+  final Map<String, String> headers;
+
+  /// Manager-wide timeouts, merged under per-request timeouts.
+  final NetKitTimeout timeout;
 
   /// The subscription for the internet status
   /// The default value is ['null']
   final StreamSubscription<bool>? internetStatusSubscription;
 
-  /// The interceptor for the network requests
-  /// The default value is ['null']
-  /// The interceptor is used to intercept the network requests:
-  /// - onRequest
-  /// - onResponse
-  /// - onError
-  final Interceptor? interceptor;
-
-  /// The base options for the network manager
-  /// It is from the Dio package
-  final BaseOptions baseOptions;
+  /// Interceptors in execution order. Includes the development log
+  /// interceptor when it is enabled.
+  final List<NetKitInterceptor> interceptors;
 
   /// The function to be called before the refresh token request
   final OnBeforeRefresh? onBeforeRefreshRequest;
 
-  /// The function to be called when the refresh token request fails
-  final OnRefreshFailed? onRefreshFailed;
+  /// Called once when the refresh endpoint answers `401` and the session is
+  /// over. See [OnSessionInvalidated].
+  final OnSessionInvalidated? onSessionInvalidated;
 
   /// The callback function that is called when the tokens are updated
   /// This function can be used to update the tokens in the app
@@ -65,23 +74,13 @@ class NetKitParams {
   ///  ```
   ///  The callback function takes an [`AuthTokenModel`] as a parameter
   ///  which contains the access token and refresh token.
-  ///  The callback function is called when the tokens are updated
-  ///  after a successful refresh token request.
-  ///  The callback function is optional and can
-  ///  be set when initializing the network manager.
   final OnTokenRefreshed? onTokenRefreshed;
 
   /// Whether the network manager is in development mode.
   final bool devMode;
 
-  /// Deprecated. Use `devMode` instead.
-  @Deprecated('Use devMode instead. Will be removed in a future major release.')
-  bool get testMode => devMode;
-
   /// The access token key.
   /// The default value is ['Authorization']
-  /// The access token key can used to get the access token from the headers
-  /// of the network responses
   final String accessTokenHeaderKey;
 
   /// The access token prefix.
@@ -89,14 +88,10 @@ class NetKitParams {
 
   /// The refresh token body key.
   /// The default value is ['refreshToken']
-  /// The refresh token body key is used to get the refresh token from the body
-  /// to use for automatic token refreshing
   final String refreshTokenBodyKey;
 
   /// The access token body key.
   /// The default value is ['accessToken']
-  /// The access token body key is used to get the access token from the body
-  /// to use for automatic token refreshing
   final String accessTokenBodyKey;
 
   /// The path for the refresh token request
@@ -114,4 +109,20 @@ class NetKitParams {
 
   /// Content type for the refresh token request body.
   final RefreshTokenContentType refreshTokenContentType;
+
+  /// Whether absolute URLs on another origin than [baseUrl] may be requested.
+  /// Such requests never carry [headers].
+  final bool allowCrossOriginRequests;
+
+  /// Lower-case header names treated as credentials: redacted from logs and
+  /// stripped when a redirect leaves the request's origin.
+  final Set<String> sensitiveHeaders;
+
+  /// Lower-case query parameter names whose values are redacted from logged
+  /// URLs.
+  final Set<String> sensitiveQueryParameters;
+
+  /// Whether parsed response data is written to the injected logger and the
+  /// development log interceptor prints bodies.
+  final bool logResponseBodies;
 }

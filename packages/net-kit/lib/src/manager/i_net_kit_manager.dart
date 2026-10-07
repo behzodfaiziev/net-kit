@@ -1,29 +1,49 @@
-import '../../net_kit.dart';
+import '../core/auth_policy.dart';
+import '../core/net_kit_cancellation_token.dart';
+import '../core/net_kit_progress_callback.dart';
+import '../core/net_kit_timeout.dart';
+import '../enum/request_method.dart';
 import '../model/api_meta_response.dart';
+import '../model/i_net_kit_model.dart';
+import '../raw/net_kit_transport.dart';
+import '../raw/raw_http_body.dart';
 import '../utility/typedef/request_type_def.dart';
+import 'params/net_kit_params.dart';
 
 /// The abstract class for the network manager
 /// It contains methods to make network requests
+///
+/// Every request method shares these parameters:
+///
+/// - `path`: relative to `baseUrl`, or an absolute URL. Absolute URLs on
+///   another origin are rejected unless `allowCrossOriginRequests` is true,
+///   and even then never carry the stored headers or access token.
+/// - `headers`: per-request headers merged over the stored headers
+///   (case-insensitive override). A `Content-Type` header controls how a
+///   `body` map is encoded (JSON by default, form-urlencoded when set so).
+/// - `timeout`: per-request timeouts merged over the manager-wide ones.
+/// - `cancellationToken`: cancels the request; shared tokens are allowed.
+/// - `authPolicy`: see [AuthPolicy].
+/// - `allowRetryOn401`: lets POST/PATCH be replayed once after a token
+///   refresh (GET, PUT, and DELETE are always replayed).
+/// - `idempotencyKey`: sent as the `Idempotency-Key` header when set.
 abstract class INetKitManager {
   /// The constructor for the INetKitManager class
   const INetKitManager();
 
   /// The parameters for the network manager
-  /// It contains the base options for the network manager
-  /// and the parameters for the network manager
-  /// The parameters are used to configure the network manager
-  /// and the base options are used to configure the network requests
   NetKitParams get parameters;
 
-  /// The base options for the network manager
-  /// It contains the base options for the network manager
-  BaseOptions get baseOptions;
+  /// The transport this manager sends through.
+  ///
+  /// The transport has no knowledge of the stored headers or tokens, so it
+  /// can be used directly as a `RawHttpClient` for external URLs.
+  NetKitTransport get transport;
 
   /// The `requestModel()` method is responsible for making a network request
-  /// to the specified path with the specified method. It takes in the following
-  /// parameters:
-  /// `path`, `method`, `model`, `body`, `options`, `queryParameters`,
-  /// `cancelToken`, and `onReceiveProgress`.
+  /// to the specified path with the specified method and parsing the JSON
+  /// object in the response into [model].
+  ///
   /// Example:
   /// ```dart
   /// Future<RandomUserModel> getRandomUser() async {
@@ -42,8 +62,6 @@ abstract class INetKitManager {
   ///   }
   /// }
   /// ```
-  ///
-  /// The response of the request is returned as a [`RandomUserModel`] object.
   Future<R> requestModel<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
@@ -53,13 +71,13 @@ abstract class INetKitManager {
 
     /// The body of the request, which is type of [Map<String, dynamic>]
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
 
@@ -78,40 +96,31 @@ abstract class INetKitManager {
   /// such as request details or other relevant data.
   ///
   /// The method signature and parameters are almost identical, but the
-  /// return type is `ApiResponse<R>`, which wraps the model along
+  /// return type is `ApiMetaResponse<R, M>`, which wraps the model along
   /// with the metadata.
-  ///
-  /// The metadata is of type `MapType`, not a model.
   Future<ApiMetaResponse<R, M>>
       requestModelMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
-    required M metadataModel, // Add required metadata model
+    required M metadataModel,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
     bool useDataKey = true,
   });
 
   /// The `requestList()` method is responsible for making a network request
-  /// to the specified path with the specified method. It takes in the following
-  /// parameters:
-  /// `path`, `method`, `model`, `body`, `options`, `queryParameters`,
-  /// `cancelToken`, and `onReceiveProgress`.
+  /// to the specified path with the specified method and parsing the JSON
+  /// array in the response into a list of [model].
+  ///
   /// Example:
   /// ```dart
   /// Future<List<ProductModel>> getProducts() async {
@@ -130,9 +139,6 @@ abstract class INetKitManager {
   ///   }
   /// }
   /// ```
-
-  /// The response of the request is returned
-  /// as a [`List<ProductModel>`] object.
   Future<List<R>> requestList<R extends INetKitModel>({
     required String path,
     required RequestMethod method,
@@ -140,21 +146,15 @@ abstract class INetKitManager {
     /// The model to parse the data to
     required R model,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
     bool useDataKey = true,
   });
 
@@ -163,42 +163,29 @@ abstract class INetKitManager {
   ///
   /// This metadata can provide extra information about the list of items
   /// returned, such as pagination details or other relevant data.
-  ///
-  /// The method signature and parameters are almost identical, but the
-  /// return type is `ApiResponse<List<R>>`, which wraps the list of items
-  /// along with the metadata.
-  ///
-  /// The metadata is of type `MapType`, not a model.
   Future<ApiMetaResponse<List<R>, M>>
       requestListMeta<R extends INetKitModel, M extends INetKitModel>({
     required String path,
     required RequestMethod method,
     required R model,
-    required M metadataModel, // Add required metadata model
+    required M metadataModel,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
     bool useDataKey = true,
   });
 
   /// The `requestVoid()` method is responsible for making a network request
-  /// to the specified path with the specified method. It takes in the following
-  /// parameters:
-  /// `path`, `method`, `body`, `options`, `queryParameters`,
-  /// `cancelToken`, and `onReceiveProgress`.
+  /// to the specified path with the specified method without decoding the
+  /// response body. A `204 No Content` response is accepted.
+  ///
   /// Example:
   /// ```dart
   /// Future<void> deleteProduct() async {
@@ -216,31 +203,28 @@ abstract class INetKitManager {
   ///   }
   /// }
   /// ```
-  ///
-  /// The response of the request is returned as a `null` object, because
-  /// the request does not return any data.
   Future<void> requestVoid({
     required String path,
     required RequestMethod method,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
   });
 
-  /// This method is responsible for uploading multipart form data to a
-  /// specified endpoint. Typically used for uploading files or other
-  /// data where multipart encoding is required.
+  /// Uploads a single file as a `multipart/form-data` body.
   ///
-  /// R extends INetKitModel: The generic type R must extend the INetKitModel.
-  /// This allows the server response to be parsed into a specific model
-  /// class that represents the data returned by the API.
+  /// The file is sent as the part named [fieldName]. Use [uploadFormData]
+  /// when the form has several fields or files.
+  ///
+  /// The part content is streamed from its source on every send, so a retry
+  /// after a token refresh sends the full payload again without buffering it.
   ///
   /// ### **If return type is not need then use VoidModel as R**
   Future<R> uploadMultipartData<R extends INetKitModel>({
@@ -248,65 +232,49 @@ abstract class INetKitManager {
 
     /// The model to parse the data to
     required R model,
-    required MultipartFile multipartFile,
+    required NetKitMultipartFile multipartFile,
     required RequestMethod method,
-    Options? options,
+    String fieldName = 'file',
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-
-    /// The content type of the file. Defaults to `application/form-data`.
-    String? contentType,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
   });
 
-  /// This method is responsible for uploading form data to
-  /// a specified endpoint. Typically used for submitting forms or
-  /// other data where multipart encoding is required.
-  ///
-  /// R extends INetKitModel: The generic type R must extend the INetKitModel.
-  /// This allows the server response to be parsed into a specific model class
-  /// that represents the data returned by the API.
+  /// Uploads a `multipart/form-data` body with text fields and file parts.
   ///
   /// ### **If return type is not need then use VoidModel as R**
-  /// ## Returns:
-  /// - A Future that resolves to an instance of R, which extends INetKitModel.
   ///
   /// ## Example:
   /// ```dart
   /// final result = await netKitManager.uploadFormData<UserModel>(
   ///   path: '/upload',
   ///   model: UserModel(),
-  ///   formData: formData,
+  ///   formData: NetKitFormData.fromMap({
+  ///     'title': 'Report',
+  ///     'file': await NetKitMultipartFile.fromPath(filePath),
+  ///   }),
   ///   method: RequestMethod.post,
   /// );
   /// ```
   Future<R> uploadFormData<R extends INetKitModel>({
     required String path,
     required R model,
-    required FormData formData,
+    required NetKitFormData formData,
     required RequestMethod method,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-
-    /// The content type of the file. Defaults to `application/form-data`.
-    String? contentType,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
   });
 
@@ -332,25 +300,26 @@ abstract class INetKitManager {
     required List<int> data,
     required RequestMethod method,
     String contentType = 'application/octet-stream',
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
   });
 
-  /// Uploads a file from disk as raw bytes without multipart encoding.
+  /// Uploads a file from disk as the raw request body without multipart
+  /// encoding.
   ///
-  /// Reads the file at [filePath] and delegates to [uploadRawData].
-  /// Not supported on web; throws [UnsupportedError] when file I/O is
-  /// unavailable.
+  /// The file is **streamed** with `File.openRead()`; its size comes from
+  /// `File.length()` and is sent as `Content-Length`. Nothing is loaded into
+  /// memory as a whole, so a 100 MiB file does not cost 100 MiB of memory.
+  /// A retry after an automatic token refresh reopens the file and sends the
+  /// full payload again. Not supported on web; throws [UnsupportedError]
+  /// when file I/O is unavailable.
   ///
   /// ### **If return type is not need then use VoidModel as R**
   ///
@@ -369,23 +338,20 @@ abstract class INetKitManager {
     required String filePath,
     required RequestMethod method,
     String contentType = 'application/octet-stream',
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-
-    /// Whether to use the dataKey wrapper for this request.
-    /// If false, the response data will be used directly without dataKey
-    /// extraction. If true, the dataKey will be used if it's configured.
-    /// Note: This parameter has no effect if dataKey is not set in the
-    /// NetKitManager configuration. Defaults to true.
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
   });
 
   /// Get all headers
-  /// It returns a map of all headers
-  Map<String, dynamic> getAllHeaders();
+  /// It returns the stored headers sent with every same-origin request
+  Map<String, String> getAllHeaders();
 
   /// Add a header to the network manager
   /// It takes a `MapEntry<String, String>` as a parameter

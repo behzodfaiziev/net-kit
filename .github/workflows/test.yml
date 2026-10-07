@@ -33,6 +33,38 @@ jobs:
         working-directory: packages/net-kit
 
       - name: Run unit tests
-        run: dart test
+        run: dart test --exclude-tags live
         working-directory: packages/net-kit
 
+      - name: Run live third-party API tests
+        run: dart test --tags live
+        working-directory: packages/net-kit
+        continue-on-error: true
+
+  # The package declares `dio: ^5.8.0`. `flutter pub get` above resolves the
+  # newest 5.x, so the job above covers the latest Dio. This job pins the
+  # lowest supported Dio so both ends of the constraint compile and pass.
+  dio-min:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.29.2
+
+      - name: Pin minimum supported Dio
+        run: dart pub add 'override:dio:5.8.0+1'
+        working-directory: packages/net-kit
+
+      - name: Show resolved Dio
+        run: dart pub deps --style=list | grep '^- dio '
+        working-directory: packages/net-kit
+
+      - name: Analyze project source
+        run: dart analyze --fatal-infos --fatal-warnings
+        working-directory: packages/net-kit
+
+      - name: Run unit tests
+        run: dart test --exclude-tags live
+        working-directory: packages/net-kit

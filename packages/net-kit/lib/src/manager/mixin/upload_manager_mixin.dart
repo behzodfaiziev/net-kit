@@ -1,189 +1,74 @@
 part of '../net_kit_manager.dart';
 
-/// Mixin for upload manager
-mixin UploadManagerMixin on DioMixin, RequestManagerMixin {
-  Future<R> _uploadMultipartData<R extends INetKitModel>({
+/// Upload helpers: every upload is a replayable body sent through the same
+/// pipeline as JSON requests, so token refresh and retry apply unchanged.
+mixin UploadManagerMixin on RequestManagerMixin, ErrorHandlingMixin {
+  Converter get _converter;
+
+  Future<R> _upload<R extends INetKitModel>({
     required String path,
-
-    /// The model to parse the data to
     required R model,
-    required MultipartFile multipartFile,
+    required RawHttpBody body,
     required RequestMethod method,
-    Options? options,
-    Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    String? contentType,
-    bool useDataKey = true,
-  }) async {
-    if (!_internetEnabled) {
-      throw ApiException(
-        message: _errorParams.noInternetError,
-        statusCode: HttpStatuses.serviceUnavailable.code,
-      );
-    }
-
-    options ??= Options();
-    options.headers ??= {}; // Ensure headers is not null
-    options.headers!['Content-Type'] = contentType ?? 'multipart/form-data';
-    options.method = method.name.toUpperCase(); // Set the request method
-
-    final response = await request<dynamic>(
-      path,
-      data: multipartFile,
-      options: options,
-      queryParameters: queryParameters,
-      cancelToken: cancelToken,
-      onSendProgress: onSendProgress,
-      onReceiveProgress: onReceiveProgress,
-    );
-
-    if (_isRequestFailed(response.statusCode)) {
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        stackTrace: StackTrace.current,
-      );
-    }
-
-    if (model is VoidModel) {
-      return model as R;
-    }
-
-    final data = useDataKey && parameters.dataKey != null
-        ? (response.data as MapType)[parameters.dataKey]
-        : response.data;
-
-    if (data is MapType) {
-      return _converter.toModel<R>(data, model);
-    }
-
-    throw ApiException(
-      message: _errorParams.notMapTypeError,
-      statusCode: response.statusCode,
+    required String? contentType,
+    required Map<String, String>? headers,
+    required Map<String, dynamic>? queryParameters,
+    required NetKitTimeout? timeout,
+    required NetKitCancellationToken? cancellationToken,
+    required NetKitProgressCallback? onSendProgress,
+    required NetKitProgressCallback? onReceiveProgress,
+    required AuthPolicy authPolicy,
+    required bool allowRetryOn401,
+    required bool useDataKey,
+  }) {
+    return _execute(
+      _Call(
+        path: path,
+        method: method.name.toUpperCase(),
+        body: body,
+        contentType: contentType,
+        headers: headers,
+        queryParameters: queryParameters,
+        timeout: timeout,
+        cancellationToken: cancellationToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+        authPolicy: authPolicy,
+        allowRetryOn401: allowRetryOn401,
+      ),
+      (outcome) {
+        if (model is VoidModel) {
+          return model;
+        }
+        return _decodeModel(outcome, model, useDataKey: useDataKey);
+      },
     );
   }
 
-  Future<R> _uploadFormData<R extends INetKitModel>({
-    required String path,
-    required R model,
-    required FormData formData,
-    required RequestMethod method,
-    Options? options,
-    Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    String? contentType,
-    bool useDataKey = true,
-  }) async {
-    if (!_internetEnabled) {
-      throw ApiException(
-        message: _errorParams.noInternetError,
-        statusCode: HttpStatuses.serviceUnavailable.code,
-      );
+  /// Decodes a JSON object response into [model], honouring `dataKey`.
+  R _decodeModel<R extends INetKitModel>(
+    _Outcome outcome,
+    R model, {
+    required bool useDataKey,
+  }) {
+    if (_hasEmptyResponseBody(outcome)) {
+      throw _emptyResponseBodyError(outcome);
     }
-
-    options ??= Options();
-    options.headers ??= {}; // Ensure headers is not null
-    options.headers!['Content-Type'] = contentType ?? 'multipart/form-data';
-    options.method = method.name.toUpperCase(); // Set the request method
-
-    final response = await request<dynamic>(
-      path,
-      data: formData,
-      options: options,
-      queryParameters: queryParameters,
-      cancelToken: cancelToken,
-      onSendProgress: onSendProgress,
-      onReceiveProgress: onReceiveProgress,
-    );
-
-    if (_isRequestFailed(response.statusCode)) {
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        stackTrace: StackTrace.current,
-      );
+    final data = _unwrapData(outcome.data, useDataKey: useDataKey);
+    if (data is! MapType) {
+      throw _notMapTypeError();
     }
-
-    if (model is VoidModel) {
-      return model as R;
-    }
-
-    final data = useDataKey && parameters.dataKey != null
-        ? (response.data as MapType)[parameters.dataKey]
-        : response.data;
-
-    if (data is MapType) {
-      return _converter.toModel<R>(data, model);
-    }
-
-    throw ApiException(
-      message: _errorParams.notMapTypeError,
-      statusCode: response.statusCode,
-    );
+    return _converter.toModel<R>(data, model);
   }
 
-  Future<R> _uploadRawData<R extends INetKitModel>({
-    required String path,
-    required R model,
-    required List<int> data,
-    required RequestMethod method,
-    String contentType = 'application/octet-stream',
-    Options? options,
-    Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    bool useDataKey = true,
-  }) async {
-    if (!_internetEnabled) {
-      throw ApiException(
-        message: _errorParams.noInternetError,
-        statusCode: HttpStatuses.serviceUnavailable.code,
-      );
+  Object? _unwrapData(Object? data, {required bool useDataKey}) {
+    final dataKey = parameters.dataKey;
+    if (!useDataKey || dataKey == null) {
+      return data;
     }
-
-    options ??= Options();
-    options.headers ??= {};
-    options.headers!['Content-Type'] = contentType;
-    options.method = method.name.toUpperCase();
-
-    final response = await request<dynamic>(
-      path,
-      data: data,
-      options: options,
-      queryParameters: queryParameters,
-      cancelToken: cancelToken,
-      onSendProgress: onSendProgress,
-      onReceiveProgress: onReceiveProgress,
-    );
-
-    if (_isRequestFailed(response.statusCode)) {
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        stackTrace: StackTrace.current,
-      );
+    if (data is! MapType) {
+      throw _notMapTypeError();
     }
-
-    if (model is VoidModel) {
-      return model as R;
-    }
-
-    final responseData = useDataKey && parameters.dataKey != null
-        ? (response.data as MapType)[parameters.dataKey]
-        : response.data;
-
-    if (responseData is MapType) {
-      return _converter.toModel<R>(responseData, model);
-    }
-
-    throw ApiException(
-      message: _errorParams.notMapTypeError,
-      statusCode: response.statusCode,
-    );
+    return data[dataKey];
   }
 }

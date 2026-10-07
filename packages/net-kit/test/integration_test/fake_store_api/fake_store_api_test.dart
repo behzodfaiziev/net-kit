@@ -1,3 +1,8 @@
+// Calls a public third-party API; excluded from deterministic runs with
+// `dart test --exclude-tags live`.
+@Tags(['live'])
+library;
+
 import 'package:net_kit/net_kit.dart';
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:test/test.dart';

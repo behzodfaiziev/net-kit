@@ -7,12 +7,18 @@ import 'i_http_adapter.dart';
 /// and returns an instance of the BrowserHttpClientAdapter class
 /// for working with the browser.
 class WebHttpAdapter implements IHttpAdapter {
+  /// Creates the browser adapter factory.
+  WebHttpAdapter({required this.withCredentials});
+
+  /// Whether cross-site requests include cookies and HTTP credentials.
+  final bool withCredentials;
+
   @override
   HttpClientAdapter getAdapter() {
     /// Workaround for the issue with the browser adapter
     /// https://github.com/cfug/dio/issues/2282#issuecomment-2293342475
     final adapter = HttpClientAdapter() as BrowserHttpClientAdapter
-      ..withCredentials = true;
+      ..withCredentials = withCredentials;
     return adapter;
   }
 }

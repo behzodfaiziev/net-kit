@@ -196,6 +196,10 @@ void main() {
         );
         fail('Should have failed: refresh token is already used');
       } on ApiException catch (e) {
+        // A refresh 400 is not a session rejection (only 401 is).
+        expect(e.type, ApiFailureType.response);
+        expect(e.fromRefresh, isTrue);
+        expect(e.statusCode, 400);
         expect(e.message, contains('invalid or already used'));
       }
     });
@@ -218,6 +222,10 @@ void main() {
         );
         fail('Should fail: refresh token revoked');
       } on ApiException catch (e) {
+        // A refresh 400 is not a session rejection (only 401 is).
+        expect(e.type, ApiFailureType.response);
+        expect(e.fromRefresh, isTrue);
+        expect(e.statusCode, 400);
         expect(e.message, contains('invalid or already used'));
       }
     });
@@ -239,26 +247,24 @@ void main() {
         );
         fail('Should fail: no refresh token');
       } on ApiException catch (e) {
+        // A refresh 400 is not a session rejection (only 401 is).
+        expect(e.type, ApiFailureType.response);
+        expect(e.fromRefresh, isTrue);
+        expect(e.statusCode, 400);
         expect(e.message, contains('required'));
       }
     });
 
-    test('Refresh response missing access token triggers onRefreshFailed',
-        () async {
+    test('Refresh response missing access token keeps the session', () async {
       backendState.returnRefreshWithoutAccessToken = true;
-      var refreshFailedCalled = false;
+      var sessionInvalidated = false;
 
       final manager = NetKitManager(
         baseUrl: baseUrl.toString(),
         refreshTokenPath: '/api/refresh',
         dataKey: 'data',
         internetStatusStream: Stream.value(true),
-        onRefreshFailed: ({
-          required int? statusCode,
-          required DioException exception,
-        }) {
-          refreshFailedCalled = true;
-        },
+        onSessionInvalidated: (_) => sessionInvalidated = true,
       )
         ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
@@ -271,12 +277,18 @@ void main() {
         );
         fail('Should fail: refresh response missing access token');
       } on ApiException catch (e) {
-        expect(refreshFailedCalled, isTrue);
+        expect(sessionInvalidated, isFalse);
+        expect(e.type, ApiFailureType.decoding);
+        expect(e.fromRefresh, isTrue);
         expect(
           e.message,
           contains('Could not parse tokens from refresh response'),
         );
       }
+      expect(
+        manager.getAllHeaders()['Authorization'],
+        'Bearer EXPIRED_ACCESS_TOKEN',
+      );
 
       manager.dispose();
       backendState.returnRefreshWithoutAccessToken = false;
@@ -488,6 +500,8 @@ void main() {
         );
         fail('Should have thrown due to refresh network failure');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.response);
+        expect(e.fromRefresh, isTrue);
         expect(e.message, contains('Simulated network error'));
         expect(e.statusCode, 500);
       } finally {
@@ -551,9 +565,8 @@ void main() {
       }
     });
 
-    test('Offline refresh skips HTTP attempt and triggers onRefreshFailed',
-        () async {
-      var refreshFailedCalled = false;
+    test('Offline refresh skips HTTP attempt and keeps the session', () async {
+      var sessionInvalidated = false;
       final connectivityController = StreamController<bool>.broadcast();
       final offlineManager = NetKitManager(
         baseUrl: baseUrl.toString(),
@@ -563,12 +576,7 @@ void main() {
         onBeforeRefreshRequest: (_) {
           connectivityController.add(false);
         },
-        onRefreshFailed: ({
-          required int? statusCode,
-          required DioException exception,
-        }) {
-          refreshFailedCalled = true;
-        },
+        onSessionInvalidated: (_) => sessionInvalidated = true,
       );
 
       connectivityController.add(true);
@@ -586,10 +594,16 @@ void main() {
         );
         fail('Expected request to fail while offline during refresh');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.transport);
+        expect(e.fromRefresh, isTrue);
         expect(e.message, 'No internet connection');
       }
 
-      expect(refreshFailedCalled, isTrue);
+      expect(sessionInvalidated, isFalse);
+      expect(
+        offlineManager.getAllHeaders()['Authorization'],
+        'Bearer EXPIRED_ACCESS_TOKEN',
+      );
       expect(backendState.refreshCallCount, 0);
       await connectivityController.close();
       offlineManager.dispose();
@@ -640,6 +654,8 @@ void main() {
         );
         fail('Expected offline request to fail');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.transport);
+        expect(e.statusCode, 503);
         expect(e.message, 'No internet connection');
       }
 
@@ -707,13 +723,14 @@ void main() {
         );
         fail('Expected 403');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.response);
         expect(e.statusCode, 403);
       }
 
       expect(backendState.refreshCallCount, 0);
     });
 
-    test('skipTokenRefresh skips automatic refresh on 401', () async {
+    test('AuthPolicy.none skips automatic refresh on 401', () async {
       netKitManager
         ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
@@ -723,10 +740,11 @@ void main() {
           path: '/api/user/current',
           model: const DummyModel(),
           method: RequestMethod.get,
-          skipTokenRefresh: true,
+          authPolicy: AuthPolicy.none,
         );
         fail('Expected 401');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.response);
         expect(e.statusCode, 401);
       }
 
@@ -747,6 +765,8 @@ void main() {
         );
         fail('Expected non-idempotent retry block');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.auth);
+        expect(e.statusCode, 401);
         expect(
           e.message,
           const NetKitErrorParams().nonIdempotentRetryBlockedError,
@@ -789,6 +809,7 @@ void main() {
         );
         fail('Expected empty body error');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.decoding);
         expect(
           e.message,
           const NetKitErrorParams().emptyResponseBodyError,
@@ -818,29 +839,43 @@ void main() {
       expect(backendState.refreshCallCount, 1);
     });
 
-    test('cancelToken cancelled during refresh yields cancel', () async {
+    test('cancellationToken cancelled during refresh yields cancel', () async {
       backendState.refreshDelayMs = 500;
       netKitManager
         ..setAccessToken('EXPIRED_ACCESS_TOKEN')
         ..setRefreshToken(backendState.refreshToken);
 
-      final cancelToken = CancelToken();
+      final cancellationToken = NetKitCancellationToken();
       final future = netKitManager.requestModel<DummyModel>(
         path: '/api/user/current',
         model: const DummyModel(),
         method: RequestMethod.get,
-        cancelToken: cancelToken,
+        cancellationToken: cancellationToken,
       );
 
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      cancelToken.cancel('cancelled before retry');
+      cancellationToken.cancel();
 
       try {
         await future;
         fail('Expected cancel');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.cancelled);
+        expect(e.statusCode, isNull);
         expect(e.message, contains('cancelled'));
       }
+      // The caller stopped waiting immediately; the shared refresh is owned
+      // by the manager and still completes for everyone else.
+      expect(backendState.refreshCallCount, 0);
+      for (var i = 0; i < 100 && backendState.refreshCallCount == 0; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(backendState.refreshCallCount, 1);
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        netKitManager.getAllHeaders()['Authorization'],
+        'Bearer ${backendState.accessToken}',
+      );
     });
 
     test('formUrlEncoded refresh succeeds', () async {

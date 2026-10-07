@@ -1,19 +1,18 @@
+import '../core/net_kit_cancellation_token.dart';
+import '../core/net_kit_progress_callback.dart';
+import '../core/net_kit_timeout.dart';
 import 'raw_http_body.dart';
-import 'raw_http_cancellation_token.dart';
 import 'raw_http_method.dart';
 
-/// Upload progress for a raw HTTP request.
-///
-/// `sent` is the number of bytes written so far. `total` is the declared
-/// content length when known.
-typedef RawHttpProgressCallback = void Function(int sent, int total);
+/// Alias kept for raw-transport code written against 5.5.
+typedef RawHttpProgressCallback = NetKitProgressCallback;
 
-/// A single raw HTTP request.
+/// A single transport request.
 ///
 /// The caller owns headers. The transport does not inject authorization,
 /// JSON content type, or API-specific headers.
 final class RawHttpRequest {
-  /// Creates a raw HTTP request.
+  /// Creates a transport request.
   ///
   /// [uri] must be absolute (`hasScheme` and a non-empty host).
   RawHttpRequest({
@@ -21,11 +20,11 @@ final class RawHttpRequest {
     required this.method,
     this.headers = const {},
     this.body,
-    this.connectTimeout,
-    this.sendTimeout,
-    this.receiveTimeout,
+    this.timeout,
     this.cancellationToken,
     this.onSendProgress,
+    this.onReceiveProgress,
+    this.followRedirects = false,
   }) {
     if (!uri.hasScheme || uri.host.isEmpty) {
       throw ArgumentError.value(uri, 'uri', 'Must be an absolute URI');
@@ -44,18 +43,49 @@ final class RawHttpRequest {
   /// Optional request body.
   final RawHttpBody? body;
 
-  /// Timeout for establishing the connection.
-  final Duration? connectTimeout;
-
-  /// Timeout for sending the request body.
-  final Duration? sendTimeout;
-
-  /// Timeout for receiving the response.
-  final Duration? receiveTimeout;
+  /// Per-request timeouts. `null` phases use the transport default.
+  final NetKitTimeout? timeout;
 
   /// Optional cancellation handle.
-  final RawHttpCancellationToken? cancellationToken;
+  final NetKitCancellationToken? cancellationToken;
 
   /// Upload progress. `total` is the declared content length when known.
-  final RawHttpProgressCallback? onSendProgress;
+  final NetKitProgressCallback? onSendProgress;
+
+  /// Download progress. `total` is the response `Content-Length` when known.
+  final NetKitProgressCallback? onReceiveProgress;
+
+  /// Whether the transport follows `3xx` redirects itself.
+  ///
+  /// Defaults to `false` so protocol statuses such as `308` stay visible and
+  /// no header is forwarded to another origin without the caller seeing it.
+  /// When `true`, the underlying HTTP client follows redirects with its own
+  /// rules, which may forward every header to the redirect target.
+  final bool followRedirects;
+
+  /// Returns a copy with the given fields replaced.
+  RawHttpRequest copyWith({
+    Uri? uri,
+    RawHttpMethod? method,
+    Map<String, String>? headers,
+    RawHttpBody? body,
+    bool clearBody = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    bool? followRedirects,
+  }) {
+    return RawHttpRequest(
+      uri: uri ?? this.uri,
+      method: method ?? this.method,
+      headers: headers ?? this.headers,
+      body: clearBody ? null : body ?? this.body,
+      timeout: timeout ?? this.timeout,
+      cancellationToken: cancellationToken ?? this.cancellationToken,
+      onSendProgress: onSendProgress ?? this.onSendProgress,
+      onReceiveProgress: onReceiveProgress ?? this.onReceiveProgress,
+      followRedirects: followRedirects ?? this.followRedirects,
+    );
+  }
 }

@@ -5,7 +5,7 @@ import 'package:net_kit/net_kit.dart';
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:test/test.dart';
 
-class MockStream extends Mock implements Stream<bool> {}
+import '../../../mocks/fake_transport.dart';
 
 class MockINetKitModel extends Mock implements INetKitModel {}
 
@@ -20,18 +20,21 @@ void main() {
     setUp(() {
       internetStatusController = StreamController<bool>.broadcast();
       netKitManager = NetKitManager(
-        baseUrl: 'https://<TEST-API>.com',
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
         internetStatusStream: internetStatusController.stream,
       );
 
       netKitManagerWithCustomDataKey = NetKitManager(
-        baseUrl: 'https://<TEST-API>.com',
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
         internetStatusStream: internetStatusController.stream,
         dataKey: 'customData',
       );
 
       netKitManagerWithCustomKeys = NetKitManager(
-        baseUrl: 'https://<TEST-API>.com',
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
         internetStatusStream: internetStatusController.stream,
         accessTokenBodyKey: 'access_token',
         refreshTokenBodyKey: 'refresh_token',
@@ -39,7 +42,8 @@ void main() {
       );
 
       netKitManagerWithCustomKeysAndDataKey = NetKitManager(
-        baseUrl: 'https://<TEST-API>.com',
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
         internetStatusStream: internetStatusController.stream,
         accessTokenBodyKey: 'access_token',
         refreshTokenBodyKey: 'refresh_token',
@@ -51,19 +55,17 @@ void main() {
     tearDown(() {
       internetStatusController.close();
       netKitManager.dispose();
+      netKitManagerWithCustomDataKey.dispose();
+      netKitManagerWithCustomKeys.dispose();
+      netKitManagerWithCustomKeysAndDataKey.dispose();
     });
 
     test(
         'throws ApiException with correct message and status '
         'code when internet connection is false', () async {
-      /// Set the internet connection to false
       internetStatusController.add(false);
-
-      /// Wait for the stream to be processed
       await Future<void>.delayed(Duration.zero);
 
-      /// Verify that an ApiException is thrown
-      /// with the correct message and status code
       try {
         await netKitManager.requestModel(
           path: '/test',
@@ -76,6 +78,7 @@ void main() {
         final apiException = e as ApiException;
         expect(apiException.message, 'No internet connection');
         expect(apiException.statusCode, HttpStatuses.serviceUnavailable.code);
+        expect(apiException.type, ApiFailureType.transport);
       }
     });
 
@@ -83,25 +86,20 @@ void main() {
       test(
           'should extract tokens when both access and '
           'refresh tokens are present', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
+        final tokens = netKitManager.extractTokens(
+          statusCode: 200,
           data: <String, dynamic>{
             'accessToken': 'access-token-value',
             'refreshToken': 'refresh-token-value',
           },
         );
 
-        final tokens = netKitManager.extractTokens(response: response);
-
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, 'refresh-token-value');
       });
 
       test('should return null tokens when tokens are missing', () {
-        final response =
-            Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
-
-        final tokens = netKitManager.extractTokens(response: response);
+        final tokens = netKitManager.extractTokens(statusCode: 200, data: null);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
@@ -109,12 +107,10 @@ void main() {
 
       test('should return null access token when only refresh token is present',
           () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
+        final tokens = netKitManager.extractTokens(
+          statusCode: 200,
           data: <String, dynamic>{'refreshToken': 'refresh-token-value'},
         );
-
-        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, 'refresh-token-value');
@@ -122,12 +118,10 @@ void main() {
 
       test('should return null refresh token when only access token is present',
           () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
+        final tokens = netKitManager.extractTokens(
+          statusCode: 200,
           data: <String, dynamic>{'accessToken': 'access-token-value'},
         );
-
-        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, isNull);
@@ -136,16 +130,13 @@ void main() {
       test(
           'should extract tokens when accessTokenKey '
           'and refreshTokenKey are different', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
+        final tokens = netKitManagerWithCustomKeys.extractTokens(
+          statusCode: 200,
           data: <String, dynamic>{
             'access_token': 'access-token-value',
             'refresh_token': 'refresh-token-value',
           },
         );
-
-        final tokens =
-            netKitManagerWithCustomKeys.extractTokens(response: response);
 
         expect(tokens.accessToken, 'access-token-value');
         expect(tokens.refreshToken, 'refresh-token-value');
@@ -154,55 +145,46 @@ void main() {
       test(
           'should return null tokens when accessTokenKey is '
           'AccessToken and refreshTokenKey is RefreshToken and missing', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          headers: Headers(),
-        );
-
-        final tokens = netKitManager.extractTokens(response: response);
+        final tokens =
+            netKitManager.extractTokens(statusCode: null, data: null);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
       });
 
       test('should return null tokens when tokens are not strings', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
+        final tokens = netKitManager.extractTokens(
+          statusCode: 200,
           data: <String, dynamic>{
             'accessToken': 12345, // Invalid type (int)
             'refreshToken': true, // Invalid type (bool)
           },
         );
 
-        final tokens = netKitManager.extractTokens(response: response);
-
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
       });
 
       test('should return empty string tokens when values are empty', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
+        final tokens = netKitManager.extractTokens(
+          statusCode: 200,
           data: <String, dynamic>{
             'accessToken': '',
             'refreshToken': '',
           },
         );
 
-        final tokens = netKitManager.extractTokens(response: response);
-
         expect(tokens.accessToken, '');
         expect(tokens.refreshToken, '');
       });
+
       test(
           'should return null tokens when response data is empty '
           'a map with wrong type', () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          data: <String, int>{}, // String instead of a map
+        final tokens = netKitManager.extractTokens(
+          statusCode: 200,
+          data: <String, int>{},
         );
-
-        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
@@ -210,34 +192,29 @@ void main() {
 
       test('should return null tokens when response has an error status code',
           () {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          statusCode: 500, // Internal server error
+        final tokens = netKitManager.extractTokens(
+          statusCode: 500,
           data: <String, dynamic>{
             'accessToken': 'access-token-value',
             'refreshToken': 'refresh-token-value',
           },
         );
-
-        final tokens = netKitManager.extractTokens(response: response);
 
         expect(tokens.accessToken, isNull);
         expect(tokens.refreshToken, isNull);
       });
 
       test('should extract tokens correctly in concurrent requests', () async {
-        final response = Response<dynamic>(
-          requestOptions: RequestOptions(path: '/test'),
-          data: <String, dynamic>{
-            'accessToken': 'access-token-value',
-            'refreshToken': 'refresh-token-value',
-          },
-        );
+        final data = <String, dynamic>{
+          'accessToken': 'access-token-value',
+          'refreshToken': 'refresh-token-value',
+        };
 
         final results = await Future.wait([
-          Future(() => netKitManager.extractTokens(response: response)),
-          Future(() => netKitManager.extractTokens(response: response)),
-          Future(() => netKitManager.extractTokens(response: response)),
+          for (var i = 0; i < 3; i++)
+            Future(
+              () => netKitManager.extractTokens(statusCode: 200, data: data),
+            ),
         ]);
 
         for (final tokens in results) {
@@ -247,237 +224,182 @@ void main() {
       });
     });
 
-    group(
-      "Extract tokens from body's data ",
-      () {
-        test(
-            'should extract tokens when both access and '
-            'refresh tokens are present', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: <String, dynamic>{
-              'customData': {
-                'accessToken': 'access-token-value',
-                'refreshToken': 'refresh-token-value',
-              },
+    group("Extract tokens from body's data", () {
+      test(
+          'should extract tokens when both access and '
+          'refresh tokens are present', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: <String, dynamic>{
+            'customData': {
+              'accessToken': 'access-token-value',
+              'refreshToken': 'refresh-token-value',
             },
-          );
+          },
+        );
 
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
 
-          expect(tokens.accessToken, 'access-token-value');
-          expect(tokens.refreshToken, 'refresh-token-value');
-        });
+      test('should return null tokens when tokens are missing', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: null,
+        );
 
-        test('should return null tokens when tokens are missing', () {
-          final response =
-              Response<dynamic>(requestOptions: RequestOptions(path: '/test'));
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
 
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
+      test(
+          'should return null access token when only '
+          'refresh token is present', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: <String, dynamic>{
+            'customData': {'refreshToken': 'refresh-token-value'},
+          },
+        );
 
-          expect(tokens.accessToken, isNull);
-          expect(tokens.refreshToken, isNull);
-        });
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
 
-        test(
-            'should return null access token when only '
-            'refresh token is present', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: <String, dynamic>{
-              'customData': {
-                'refreshToken': 'refresh-token-value',
-              },
+      test(
+          'should return null refresh token '
+          'when only access token is present', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: <String, dynamic>{
+            'customData': {'accessToken': 'access-token-value'},
+          },
+        );
+
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test(
+          'should extract tokens when accessTokenKey '
+          'and refreshTokenKey are different', () {
+        final tokens = netKitManagerWithCustomKeysAndDataKey.extractTokens(
+          statusCode: 200,
+          data: <String, dynamic>{
+            'customData': {
+              'access_token': 'access-token-value',
+              'refresh_token': 'refresh-token-value',
             },
-          );
+          },
+        );
 
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
+        expect(tokens.accessToken, 'access-token-value');
+        expect(tokens.refreshToken, 'refresh-token-value');
+      });
 
-          expect(tokens.accessToken, isNull);
-          expect(tokens.refreshToken, 'refresh-token-value');
-        });
+      test(
+          'should return null tokens when accessTokenKey is '
+          'AccessToken and refreshTokenKey is RefreshToken and missing', () {
+        final tokens = netKitManagerWithCustomKeysAndDataKey.extractTokens(
+          statusCode: 200,
+          data: <String, dynamic>{
+            'customData': {'accessToken': null, 'refreshToken': null},
+          },
+        );
 
-        test(
-            'should return null refresh token '
-            'when only access token is present', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: <String, dynamic>{
-              'customData': {
-                'accessToken': 'access-token-value',
-              },
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test('should return null tokens when tokens are not strings', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: {
+            'customData': <String, dynamic>{
+              'accessToken': 12345, // Invalid type (int)
+              'refreshToken': true, // Invalid type (bool)
             },
-          );
+          },
+        );
 
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
 
-          expect(tokens.accessToken, 'access-token-value');
-          expect(tokens.refreshToken, isNull);
-        });
+      test('should return empty string tokens when values are empty', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: <String, dynamic>{
+            'customData': {'accessToken': '', 'refreshToken': ''},
+          },
+        );
 
-        test(
-            'should extract tokens when accessTokenKey '
-            'and refreshTokenKey are different', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: <String, dynamic>{
-              'customData': {
-                'access_token': 'access-token-value',
-                'refresh_token': 'refresh-token-value',
-              },
+        expect(tokens.accessToken, '');
+        expect(tokens.refreshToken, '');
+      });
+
+      test(
+          'should return null tokens when response data is empty '
+          'a map with wrong type', () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 200,
+          data: {'customData': <String, int>{}},
+        );
+
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
+
+      test('should return null tokens when response has an error status code',
+          () {
+        final tokens = netKitManagerWithCustomDataKey.extractTokens(
+          statusCode: 500,
+          data: {
+            'customData': <String, dynamic>{
+              'accessToken': 'access-token-value',
+              'refreshToken': 'refresh-token-value',
             },
-          );
+          },
+        );
 
-          final tokens = netKitManagerWithCustomKeysAndDataKey.extractTokens(
-            response: response,
-          );
+        expect(tokens.accessToken, isNull);
+        expect(tokens.refreshToken, isNull);
+      });
 
-          expect(tokens.accessToken, 'access-token-value');
-          expect(tokens.refreshToken, 'refresh-token-value');
-        });
+      test('should extract tokens correctly in concurrent requests', () async {
+        final data = {
+          'customData': <String, dynamic>{
+            'accessToken': 'access-token-value',
+            'refreshToken': 'refresh-token-value',
+          },
+        };
 
-        test(
-            'should return null tokens when accessTokenKey is '
-            'AccessToken and refreshTokenKey is RefreshToken and missing', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            headers: Headers(),
-            data: <String, dynamic>{
-              'customData': {
-                'accessToken': null,
-                'refreshToken': null,
-              },
-            },
-          );
-
-          final tokens = netKitManagerWithCustomKeysAndDataKey.extractTokens(
-            response: response,
-          );
-
-          expect(tokens.accessToken, isNull);
-          expect(tokens.refreshToken, isNull);
-        });
-
-        test('should return null tokens when tokens are not strings', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: {
-              'customData': <String, dynamic>{
-                'accessToken': 12345, // Invalid type (int)
-                'refreshToken': true, // Invalid type (bool)
-              },
-            },
-          );
-
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
-
-          expect(tokens.accessToken, isNull);
-          expect(tokens.refreshToken, isNull);
-        });
-
-        test('should return empty string tokens when values are empty', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: <String, dynamic>{
-              'customData': {
-                'accessToken': '',
-                'refreshToken': '',
-              },
-            },
-          );
-
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
-
-          expect(tokens.accessToken, '');
-          expect(tokens.refreshToken, '');
-        });
-        test(
-            'should return null tokens when response data is empty '
-            'a map with wrong type', () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: {
-              'customData': <String, int>{}, // String instead of a map
-            },
-          );
-
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
-
-          expect(tokens.accessToken, isNull);
-          expect(tokens.refreshToken, isNull);
-        });
-
-        test('should return null tokens when response has an error status code',
-            () {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            statusCode: 500, // Internal server error
-            data: {
-              'customData': <String, dynamic>{
-                'accessToken': 'access-token-value',
-                'refreshToken': 'refresh-token-value',
-              },
-            },
-          );
-
-          final tokens =
-              netKitManagerWithCustomDataKey.extractTokens(response: response);
-
-          expect(tokens.accessToken, isNull);
-          expect(tokens.refreshToken, isNull);
-        });
-
-        test('should extract tokens correctly in concurrent requests',
-            () async {
-          final response = Response<dynamic>(
-            requestOptions: RequestOptions(path: '/test'),
-            data: {
-              'customData': <String, dynamic>{
-                'accessToken': 'access-token-value',
-                'refreshToken': 'refresh-token-value',
-              },
-            },
-          );
-
-          final results = await Future.wait([
+        final results = await Future.wait([
+          for (var i = 0; i < 3; i++)
             Future(
               () => netKitManagerWithCustomDataKey.extractTokens(
-                response: response,
+                statusCode: 200,
+                data: data,
               ),
             ),
-            Future(
-              () => netKitManagerWithCustomDataKey.extractTokens(
-                response: response,
-              ),
-            ),
-            Future(
-              () => netKitManagerWithCustomDataKey.extractTokens(
-                response: response,
-              ),
-            ),
-          ]);
+        ]);
 
-          for (final tokens in results) {
-            expect(tokens.accessToken, 'access-token-value');
-            expect(tokens.refreshToken, 'refresh-token-value');
-          }
-        });
-      },
-    );
+        for (final tokens in results) {
+          expect(tokens.accessToken, 'access-token-value');
+          expect(tokens.refreshToken, 'refresh-token-value');
+        }
+      });
+    });
   });
 
   group('setAccessToken prefix handling', () {
     late NetKitManager manager;
 
     setUp(() {
-      manager = NetKitManager(baseUrl: 'https://example.com');
+      manager = NetKitManager(
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
+      );
     });
 
     tearDown(() {
@@ -486,60 +408,44 @@ void main() {
 
     test('adds Bearer prefix when token has no prefix', () {
       manager.setAccessToken('abc');
-      expect(
-        manager.getAllHeaders()['Authorization'],
-        'Bearer abc',
-      );
+      expect(manager.getAllHeaders()['Authorization'], 'Bearer abc');
     });
 
     test('does not double-prefix when token already includes Bearer', () {
       manager.setAccessToken('Bearer abc');
-      expect(
-        manager.getAllHeaders()['Authorization'],
-        'Bearer abc',
-      );
+      expect(manager.getAllHeaders()['Authorization'], 'Bearer abc');
     });
 
     test('uses custom accessTokenPrefix', () {
       manager.dispose();
       manager = NetKitManager(
-        baseUrl: 'https://example.com',
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
         accessTokenPrefix: 'Token',
       )..setAccessToken('abc');
-      expect(
-        manager.getAllHeaders()['Authorization'],
-        'Token abc',
-      );
+      expect(manager.getAllHeaders()['Authorization'], 'Token abc');
     });
 
     test('does not double-prefix with custom accessTokenPrefix', () {
       manager.dispose();
       manager = NetKitManager(
-        baseUrl: 'https://example.com',
+        baseUrl: 'https://api.example.com',
+        transport: FakeTransport(),
         accessTokenPrefix: 'Token',
       )..setAccessToken('Token abc');
-      expect(
-        manager.getAllHeaders()['Authorization'],
-        'Token abc',
-      );
+      expect(manager.getAllHeaders()['Authorization'], 'Token abc');
     });
 
     test('prepends default prefix when token uses a different scheme', () {
       manager.setAccessToken('Basic abc');
-      expect(
-        manager.getAllHeaders()['Authorization'],
-        'Bearer Basic abc',
-      );
+      expect(manager.getAllHeaders()['Authorization'], 'Bearer Basic abc');
     });
 
     test('replaces prior token when setAccessToken is called again', () {
       manager
         ..setAccessToken('first-token')
         ..setAccessToken('second-token');
-      expect(
-        manager.getAllHeaders()['Authorization'],
-        'Bearer second-token',
-      );
+      expect(manager.getAllHeaders()['Authorization'], 'Bearer second-token');
     });
   });
 }

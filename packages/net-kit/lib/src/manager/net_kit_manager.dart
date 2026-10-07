@@ -1,46 +1,58 @@
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
 
+import '../core/auth_policy.dart';
+import '../core/net_kit_cancellation_token.dart';
+import '../core/net_kit_interceptor.dart';
+import '../core/net_kit_progress_callback.dart';
 import '../core/net_kit_request_options.dart';
+import '../core/net_kit_timeout.dart';
 import '../enum/http_status_codes.dart';
+import '../enum/refresh_token_content_type.dart';
 import '../enum/request_method.dart';
 import '../model/api_meta_response.dart';
 import '../model/auth_token_model.dart';
 import '../model/i_net_kit_model.dart';
 import '../model/void_model.dart';
+import '../raw/dio/dio_net_kit_transport.dart';
+import '../raw/net_kit_transport.dart';
+import '../raw/raw_http_body.dart';
+import '../raw/raw_http_exception.dart';
+import '../raw/raw_http_method.dart';
+import '../raw/raw_http_request.dart';
+import '../raw/raw_http_response.dart';
 import '../utility/converter.dart';
-import '../utility/file/file_reader.dart';
+import '../utility/log/log_redaction.dart';
 import '../utility/logger/i_net_kit_logger.dart';
 import '../utility/logger/void_logger.dart';
 import '../utility/typedef/request_type_def.dart';
-import 'adapter/platform_http_adapter.dart';
 import 'error/api_exception.dart';
+import 'error/api_failure_type.dart';
 import 'i_net_kit_manager.dart';
-import 'interceptors/request_extra_keys.dart';
+import 'interceptors/redacting_log_interceptor.dart';
 import 'params/net_kit_error_params.dart';
 import 'params/net_kit_params.dart';
-import 'queue/request_queue.dart';
-import 'token/token_manager.dart';
 
-part 'interceptors/error_handling_interceptor.dart';
 part 'mixin/error_handling_mixin.dart';
 part 'mixin/request_manager_mixin.dart';
 part 'mixin/token_manager_mixin.dart';
 part 'mixin/upload_manager_mixin.dart';
 
-/// The NetKitManager class is a network manager that extends DioMixin and
-/// implements the INetKitManager interface.
-/// It is designed to handle HTTP requests and responses, providing methods to
-/// send requests and parse responses into models or lists of models.
-/// The class supports various configurations such as base URLs, interceptors
-/// and logging. It also includes error handling and
-/// response validation mechanisms. The NetKitManager is initialized with
-/// parameters that define its behavior and can be used to perform network
-/// operations in a structured and consistent manner.
+/// The API client of net_kit.
+///
+/// `NetKitManager` composes a [NetKitTransport] and adds everything an
+/// application API needs on top of raw HTTP: base URL and stored headers,
+/// JSON encoding and decoding into [INetKitModel]s, `dataKey` envelopes,
+/// access-token injection governed by [AuthPolicy], single-flight token
+/// refresh with one retry, origin enforcement, safe redirect handling, and
+/// error mapping to [ApiException].
+///
+/// The transport is Dio by default; pass [transport] to use another one.
+/// No transport library type appears in the public API.
 class NetKitManager extends INetKitManager
     with
-        DioMixin,
         RequestManagerMixin,
         ErrorHandlingMixin,
         TokenManagerMixin,
@@ -53,38 +65,39 @@ class NetKitManager extends INetKitManager
     /// The parameters for error messages and error keys
     NetKitErrorParams? errorParams,
 
-    /// The HTTP client adapter
-    HttpClientAdapter? httpClientAdapter,
+    /// The transport to send requests through. Defaults to the built-in Dio
+    /// transport. An injected transport is not closed by [dispose].
+    NetKitTransport? transport,
 
     /// The development base URL for dev mode
     String? devBaseUrl,
 
-    /// The base options for the network requests
-    BaseOptions? baseOptions,
+    /// Headers sent with every same-origin request, for example
+    /// `Accept-Language`. `setAccessToken` and `addHeader` edit this set.
+    Map<String, String>? headers,
 
-    /// Custom Dio interceptor for the network requests.
-    /// Added after `LogInterceptor` (when enabled) and before the built-in
-    /// error-handling interceptor.
-    Interceptor? interceptor,
+    /// Manager-wide timeouts. Per-request timeouts are merged over them.
+    NetKitTimeout timeout = const NetKitTimeout(),
+
+    /// Application interceptors, run in order after the development log
+    /// interceptor (when enabled).
+    List<NetKitInterceptor> interceptors = const [],
 
     /// The callback function that is called before the refresh token request
     OnBeforeRefresh? onBeforeRefreshRequest,
 
-    /// The callback function that is called when
-    /// the refresh token request fails
-    OnRefreshFailed? onRefreshFailed,
+    /// Called once when the **refresh endpoint** answers HTTP `401`, after
+    /// the stored tokens have been cleared. This is the only signal that the
+    /// session is over; sign the user out here. It is never called for a
+    /// `401` from an ordinary request or for offline, timeout, TLS, `429`,
+    /// `5xx`, or malformed refresh responses, which leave the session intact.
+    OnSessionInvalidated? onSessionInvalidated,
 
     /// Whether the network manager is in development mode.
     /// If true, `devBaseUrl` is used instead of `baseUrl`, and logging options
     /// (`loggerEnabled`, `logInterceptorEnabled`) are allowed to take effect.
     /// CAUTION: Make sure that it is set to false in production environments.
     bool devMode = false,
-
-    /// Deprecated. Use `devMode` instead.
-    @Deprecated(
-      'Use devMode instead. Will be removed in a future major release.',
-    )
-    bool? testMode,
 
     /// The stream for the internet status
     Stream<bool>? internetStatusStream,
@@ -107,7 +120,8 @@ class NetKitManager extends INetKitManager
     /// Used for automatic token refresh
     String refreshTokenBodyKey = 'refreshToken',
 
-    /// The path for the refresh token request
+    /// The path for the refresh token request. When `null`, a `401` is
+    /// returned to the caller and no refresh is attempted.
     String? refreshTokenPath,
 
     /// The key to extract data from the response.
@@ -123,13 +137,20 @@ class NetKitManager extends INetKitManager
     /// must be created and injected into the NetKitManager class.
     INetKitLogger logger = const VoidLogger(),
 
-    /// Whether Dio's `LogInterceptor` is enabled for raw HTTP request/response
-    /// logging. Only takes effect when `devMode` is true.
+    /// Whether the development HTTP log interceptor is registered. It prints
+    /// URLs, methods, statuses, and headers with sensitive values redacted;
+    /// bodies only when `logResponseBodies` is true. Only takes effect when
+    /// `devMode` is true.
     bool logInterceptorEnabled = false,
 
     /// Whether the injected `logger` is used for Net-Kit internal logging.
     /// Only takes effect when `devMode` is true.
     bool loggerEnabled = false,
+
+    /// Whether parsed response data is written to the injected logger and
+    /// the log interceptor prints bodies. Off by default so tokens and
+    /// personal data in responses stay out of logs.
+    bool logResponseBodies = false,
 
     /// The callback function that is called when the tokens are updated
     OnTokenRefreshed? onTokenRefreshed,
@@ -137,39 +158,92 @@ class NetKitManager extends INetKitManager
     /// Content type for the refresh token request body.
     RefreshTokenContentType refreshTokenContentType =
         RefreshTokenContentType.json,
-  }) {
-    final effectiveDevMode = testMode ?? devMode;
 
-    // Initialize the network manager
-    _initialize(
-      clientAdapter: httpClientAdapter,
-      baseUrl: baseUrl,
-      errorParams: errorParams,
-      devBaseUrl: devBaseUrl,
-      baseOptions: baseOptions,
-      interceptor: interceptor,
-      onBeforeRefreshRequest: onBeforeRefreshRequest,
-      onRefreshFailed: onRefreshFailed,
-      onTokenRefreshed: onTokenRefreshed,
-      devMode: effectiveDevMode,
-      logInterceptorEnabled: logInterceptorEnabled,
-      loggerEnabled: loggerEnabled,
-      logger: logger,
-      internetStatusStream: internetStatusStream,
+    /// Whether requests may target an absolute URL whose origin differs from
+    /// `baseUrl` (or `devBaseUrl` in dev mode).
+    ///
+    /// Defaults to false: such requests, and redirects to such URLs, fail
+    /// with an `ApiException` (`crossOriginRequestBlockedError`) before
+    /// anything is sent. When true, they are sent **without** the stored
+    /// headers and access token. Use the transport directly (`RawHttpClient`)
+    /// for external URLs such as signed storage uploads.
+    bool allowCrossOriginRequests = false,
+
+    /// Additional header names treated as credentials: redacted from the
+    /// development log and stripped from cross-origin redirects.
+    /// `Authorization`, `Cookie`, `Set-Cookie`, and common API-key headers
+    /// are always included.
+    Iterable<String> sensitiveHeaders = const [],
+
+    /// Additional query parameter names whose values are redacted from
+    /// logged URLs. Common credential names (`token`, `access_token`,
+    /// `api_key`, `signature`, `X-Amz-Signature`, `code`, ...) are always
+    /// included.
+    Iterable<String> sensitiveQueryParameters = const [],
+  }) {
+    _errorParams = errorParams ?? const NetKitErrorParams();
+    _logger = loggerEnabled && devMode ? logger : const VoidLogger();
+    _converter = const Converter();
+    _ownsTransport = transport == null;
+    this.transport =
+        transport ?? DioNetKitTransport(browserWithCredentials: true);
+
+    final sensitive = <String>{
+      ...RedactingLogInterceptor.defaultSensitiveHeaders,
+      ...sensitiveHeaders.map((name) => name.toLowerCase()),
+      accessTokenHeaderKey.toLowerCase(),
+    };
+
+    final sensitiveQuery = <String>{
+      ...defaultSensitiveQueryParameters,
+      ...sensitiveQueryParameters.map((name) => name.toLowerCase()),
+      accessTokenBodyKey.toLowerCase(),
+      refreshTokenBodyKey.toLowerCase(),
+    };
+
+    parameters = NetKitParams(
+      baseUrl: devMode ? devBaseUrl ?? baseUrl : baseUrl,
+      headers: Map<String, String>.from(headers ?? const {}),
+      timeout: timeout,
+      interceptors: List<NetKitInterceptor>.unmodifiable([
+        if (logInterceptorEnabled && devMode)
+          RedactingLogInterceptor(
+            sensitiveHeaders: sensitive,
+            sensitiveQueryParameters: sensitiveQuery,
+            logBodies: logResponseBodies,
+          ),
+        ...interceptors,
+      ]),
+      devMode: devMode,
       accessTokenHeaderKey: accessTokenHeaderKey,
       accessTokenBodyKey: accessTokenBodyKey,
       accessTokenPrefix: accessTokenPrefix,
       refreshTokenBodyKey: refreshTokenBodyKey,
+      onBeforeRefreshRequest: onBeforeRefreshRequest,
+      onSessionInvalidated: onSessionInvalidated,
+      onTokenRefreshed: onTokenRefreshed,
+      metadataDataKey: metadataDataKey,
+      dataKey: dataKey,
       refreshTokenPath: refreshTokenPath,
       removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
-      dataKey: dataKey,
-      metadataDataKey: metadataDataKey,
       refreshTokenContentType: refreshTokenContentType,
+      allowCrossOriginRequests: allowCrossOriginRequests,
+      sensitiveHeaders: Set<String>.unmodifiable(sensitive),
+      logResponseBodies: logResponseBodies,
+      sensitiveQueryParameters: Set<String>.unmodifiable(sensitiveQuery),
+      internetStatusSubscription: internetStatusStream?.listen(
+        (event) => _internetEnabled = event,
+      ),
     );
   }
 
   @override
   late final NetKitParams parameters;
+
+  @override
+  late final NetKitTransport transport;
+
+  late final bool _ownsTransport;
 
   @override
   late final NetKitErrorParams _errorParams;
@@ -180,15 +254,9 @@ class NetKitManager extends INetKitManager
   @override
   late final Converter _converter;
 
-  /// This boolean value is used to determine if the internet is enabled
-  /// The default value is true, meaning that
-  /// the internet is enabled by default.
-  /// The value is updated based on the internet status stream.
+  /// Updated from `internetStatusStream`; requests fail fast when false.
   @override
   bool _internetEnabled = true;
-
-  @override
-  BaseOptions get baseOptions => parameters.baseOptions;
 
   @override
   Future<R> requestModel<R extends INetKitModel>({
@@ -196,56 +264,40 @@ class NetKitManager extends INetKitManager
     required RequestMethod method,
     required R model,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool useDataKey = true,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-  }) async {
-    try {
-      _logger.debug(
-        'Requesting model: $R at path: $path with method: $method',
-      );
-      final response = await _sendRequest(
+    bool useDataKey = true,
+  }) {
+    _logger.debug(
+      'Requesting model: $R at path: ${_logPath(path)} with method: $method',
+    );
+    return _execute(
+      _call(
         path: path,
         method: method,
         body: body,
-        options: options,
+        headers: headers,
         queryParameters: queryParameters,
-        cancelToken: cancelToken,
+        timeout: timeout,
+        cancellationToken: cancellationToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
-        containsAccessToken: containsAccessToken,
-        skipTokenRefresh: skipTokenRefresh,
+        authPolicy: authPolicy,
         allowRetryOn401: allowRetryOn401,
         idempotencyKey: idempotencyKey,
-      );
-
-      _logger.debug('Response received from $path: ${response.data}');
-
-      if (_hasEmptyResponseBody(response)) {
-        throw _parseToApiException(_emptyResponseBodyError(response));
-      }
-
-      if ((response.data is MapType) == false) {
-        throw _notMapTypeError(response);
-      }
-
-      final data = useDataKey && parameters.dataKey != null
-          ? (response.data as MapType)[parameters.dataKey]
-          : response.data;
-
-      final parsedModel = _converter.toModel<R>(data as MapType, model);
-
-      return parsedModel;
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    }
+      ),
+      (outcome) {
+        _logResponse(path, outcome);
+        return _decodeModel(outcome, model, useDataKey: useDataKey);
+      },
+    );
   }
 
   @override
@@ -254,53 +306,48 @@ class NetKitManager extends INetKitManager
     required String path,
     required RequestMethod method,
     required R model,
-    required M metadataModel, // Add required metadata model
+    required M metadataModel,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool useDataKey = true,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-  }) async {
-    try {
-      final response = await _sendRequest(
+    bool useDataKey = true,
+  }) {
+    return _execute(
+      _call(
         path: path,
         method: method,
         body: body,
-        options: options,
+        headers: headers,
         queryParameters: queryParameters,
-        cancelToken: cancelToken,
+        timeout: timeout,
+        cancellationToken: cancellationToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
-        containsAccessToken: containsAccessToken,
-        skipTokenRefresh: skipTokenRefresh,
+        authPolicy: authPolicy,
         allowRetryOn401: allowRetryOn401,
         idempotencyKey: idempotencyKey,
-      );
-
-      if (_hasEmptyResponseBody(response)) {
-        throw _parseToApiException(_emptyResponseBodyError(response));
-      }
-
-      final split = _splitMetaResponse(
-        response.data as MapType,
-        useDataKey: useDataKey,
-      );
-
-      // Parse both models
-      final parsedData = _converter.toModel<R>(split.data as MapType, model);
-      final parsedMetadata =
-          _converter.toModel<M>(split.metadata, metadataModel);
-
-      return ApiMetaResponse(data: parsedData, metadata: parsedMetadata);
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    }
+      ),
+      (outcome) {
+        if (_hasEmptyResponseBody(outcome)) {
+          throw _emptyResponseBodyError(outcome);
+        }
+        final split = _splitMetaResponse(
+          outcome.data! as MapType,
+          useDataKey: useDataKey,
+        );
+        return ApiMetaResponse(
+          data: _converter.toModel<R>(split.data as MapType, model),
+          metadata: _converter.toModel<M>(split.metadata, metadataModel),
+        );
+      },
+    );
   }
 
   @override
@@ -309,53 +356,47 @@ class NetKitManager extends INetKitManager
     required RequestMethod method,
     required R model,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool useDataKey = true,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-  }) async {
-    try {
-      _logger.debug(
-        'Requesting list of model: $R at path: $path with method: $method',
-      );
-      final response = await _sendRequest(
+    bool useDataKey = true,
+  }) {
+    _logger.debug(
+      'Requesting list of model: $R at path: ${_logPath(path)} '
+      'with method: $method',
+    );
+    return _execute(
+      _call(
         path: path,
         method: method,
         body: body,
-        options: options,
+        headers: headers,
         queryParameters: queryParameters,
-        cancelToken: cancelToken,
+        timeout: timeout,
+        cancellationToken: cancellationToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
-        containsAccessToken: containsAccessToken,
-        skipTokenRefresh: skipTokenRefresh,
+        authPolicy: authPolicy,
         allowRetryOn401: allowRetryOn401,
         idempotencyKey: idempotencyKey,
-      );
-
-      _logger.debug('Response received from $path: ${response.data}');
-
-      if (_hasEmptyResponseBody(response)) {
-        throw _parseToApiException(_emptyResponseBodyError(response));
-      }
-
-      final data = useDataKey && parameters.dataKey != null
-          ? (response.data as MapType)[parameters.dataKey]
-          : response.data;
-
-      return _converter.toListModel(
-        data: data,
-        parsingModel: model,
-      );
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    }
+      ),
+      (outcome) {
+        _logResponse(path, outcome);
+        if (_hasEmptyResponseBody(outcome)) {
+          throw _emptyResponseBodyError(outcome);
+        }
+        return _converter.toListModel(
+          data: _unwrapData(outcome.data, useDataKey: useDataKey),
+          parsingModel: model,
+        );
+      },
+    );
   }
 
   @override
@@ -364,57 +405,48 @@ class NetKitManager extends INetKitManager
     required String path,
     required RequestMethod method,
     required R model,
-    required M metadataModel, // Add required metadata model
+    required M metadataModel,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool useDataKey = true,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-  }) async {
-    try {
-      final response = await _sendRequest(
+    bool useDataKey = true,
+  }) {
+    return _execute(
+      _call(
         path: path,
         method: method,
         body: body,
-        options: options,
+        headers: headers,
         queryParameters: queryParameters,
-        cancelToken: cancelToken,
+        timeout: timeout,
+        cancellationToken: cancellationToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
-        containsAccessToken: containsAccessToken,
-        skipTokenRefresh: skipTokenRefresh,
+        authPolicy: authPolicy,
         allowRetryOn401: allowRetryOn401,
         idempotencyKey: idempotencyKey,
-      );
-
-      if (_hasEmptyResponseBody(response)) {
-        throw _parseToApiException(_emptyResponseBodyError(response));
-      }
-
-      final split = _splitMetaResponse(
-        response.data as MapType,
-        useDataKey: useDataKey,
-      );
-
-      // Parse both models
-      final parsedList = _converter.toListModel(
-        data: split.data,
-        parsingModel: model,
-      );
-
-      final parsedMetadata =
-          _converter.toModel<M>(split.metadata, metadataModel);
-
-      return ApiMetaResponse(data: parsedList, metadata: parsedMetadata);
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    }
+      ),
+      (outcome) {
+        if (_hasEmptyResponseBody(outcome)) {
+          throw _emptyResponseBodyError(outcome);
+        }
+        final split = _splitMetaResponse(
+          outcome.data! as MapType,
+          useDataKey: useDataKey,
+        );
+        return ApiMetaResponse(
+          data: _converter.toListModel(data: split.data, parsingModel: model),
+          metadata: _converter.toModel<M>(split.metadata, metadataModel),
+        );
+      },
+    );
   }
 
   @override
@@ -422,120 +454,102 @@ class NetKitManager extends INetKitManager
     required String path,
     required RequestMethod method,
     MapType? body,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onReceiveProgress,
-    ProgressCallback? onSendProgress,
-    bool? containsAccessToken,
-    bool skipTokenRefresh = false,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onReceiveProgress,
+    NetKitProgressCallback? onSendProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
     bool allowRetryOn401 = false,
     String? idempotencyKey,
-  }) async {
-    try {
-      await _sendRequest(
+  }) {
+    return _execute(
+      _call(
         path: path,
         method: method,
         body: body,
-        options: options,
+        headers: headers,
         queryParameters: queryParameters,
-        cancelToken: cancelToken,
+        timeout: timeout,
+        cancellationToken: cancellationToken,
         onReceiveProgress: onReceiveProgress,
         onSendProgress: onSendProgress,
-        containsAccessToken: containsAccessToken,
-        skipTokenRefresh: skipTokenRefresh,
+        authPolicy: authPolicy,
         allowRetryOn401: allowRetryOn401,
         idempotencyKey: idempotencyKey,
-      );
-
-      return;
-    } on DioException catch (error) {
-      /// Parse the API exception and throw it
-      throw _parseToApiException(error);
-    }
+      ),
+      (_) {},
+    );
   }
 
   @override
   Future<R> uploadMultipartData<R extends INetKitModel>({
     required String path,
-
-    /// The model to parse the data to
     required R model,
-    required MultipartFile multipartFile,
+    required NetKitMultipartFile multipartFile,
     required RequestMethod method,
-    Options? options,
+    String fieldName = 'file',
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    String? contentType,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
-  }) async {
-    try {
-      return await _uploadMultipartData(
-        path: path,
-        model: model,
-        multipartFile: multipartFile,
-        method: method,
-        options: options,
-        onSendProgress: onSendProgress,
-        cancelToken: cancelToken,
-        contentType: contentType,
-        onReceiveProgress: onReceiveProgress,
-        queryParameters: queryParameters,
-        useDataKey: useDataKey,
-      );
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    } on ApiException catch (_) {
-      rethrow;
-    } on Exception catch (e) {
-      throw ApiException(
-        message: e.toString(),
-        statusCode: HttpStatuses.internalServerError.code,
-        error: e,
-      );
-    }
+  }) {
+    return uploadFormData(
+      path: path,
+      model: model,
+      formData: NetKitFormData(files: [MapEntry(fieldName, multipartFile)]),
+      method: method,
+      headers: headers,
+      queryParameters: queryParameters,
+      timeout: timeout,
+      cancellationToken: cancellationToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+      authPolicy: authPolicy,
+      allowRetryOn401: allowRetryOn401,
+      useDataKey: useDataKey,
+    );
   }
 
   @override
   Future<R> uploadFormData<R extends INetKitModel>({
     required String path,
     required R model,
-    required FormData formData,
+    required NetKitFormData formData,
     required RequestMethod method,
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-    String? contentType,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
-  }) async {
-    try {
-      return await _uploadFormData(
-        path: path,
-        model: model,
-        formData: formData,
-        method: method,
-        options: options,
-        onSendProgress: onSendProgress,
-        cancelToken: cancelToken,
-        contentType: contentType,
-        onReceiveProgress: onReceiveProgress,
-        queryParameters: queryParameters,
-        useDataKey: useDataKey,
-      );
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    } on ApiException catch (_) {
-      rethrow;
-    } on Exception catch (e) {
-      throw ApiException(
-        message: e.toString(),
-        statusCode: HttpStatuses.internalServerError.code,
-      );
-    }
+  }) {
+    return _upload(
+      path: path,
+      model: model,
+      body: formData,
+      method: method,
+      // The transport sets the multipart content type with its boundary.
+      contentType: null,
+      headers: headers,
+      queryParameters: queryParameters,
+      timeout: timeout,
+      cancellationToken: cancellationToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+      authPolicy: authPolicy,
+      allowRetryOn401: allowRetryOn401,
+      useDataKey: useDataKey,
+    );
   }
 
   @override
@@ -545,38 +559,32 @@ class NetKitManager extends INetKitManager
     required List<int> data,
     required RequestMethod method,
     String contentType = 'application/octet-stream',
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
-  }) async {
-    try {
-      return await _uploadRawData(
-        path: path,
-        model: model,
-        data: data,
-        method: method,
-        contentType: contentType,
-        options: options,
-        queryParameters: queryParameters,
-        cancelToken: cancelToken,
-        onSendProgress: onSendProgress,
-        onReceiveProgress: onReceiveProgress,
-        useDataKey: useDataKey,
-      );
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    } on ApiException catch (_) {
-      rethrow;
-    } on Exception catch (e) {
-      throw ApiException(
-        message: e.toString(),
-        statusCode: HttpStatuses.internalServerError.code,
-        error: e,
-      );
-    }
+  }) {
+    return _upload(
+      path: path,
+      model: model,
+      body: BytesRawHttpBody(data),
+      method: method,
+      contentType: contentType,
+      headers: headers,
+      queryParameters: queryParameters,
+      timeout: timeout,
+      cancellationToken: cancellationToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+      authPolicy: authPolicy,
+      allowRetryOn401: allowRetryOn401,
+      useDataKey: useDataKey,
+    );
   }
 
   @override
@@ -586,201 +594,127 @@ class NetKitManager extends INetKitManager
     required String filePath,
     required RequestMethod method,
     String contentType = 'application/octet-stream',
-    Options? options,
+    Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
-    CancelToken? cancelToken,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
+    NetKitTimeout? timeout,
+    NetKitCancellationToken? cancellationToken,
+    NetKitProgressCallback? onSendProgress,
+    NetKitProgressCallback? onReceiveProgress,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    bool allowRetryOn401 = false,
     bool useDataKey = true,
-  }) async {
-    try {
-      final bytes = await readFileAsBytes(filePath);
-      return await _uploadRawData(
-        path: path,
-        model: model,
-        data: bytes,
-        method: method,
-        contentType: contentType,
-        options: options,
-        queryParameters: queryParameters,
-        cancelToken: cancelToken,
-        onSendProgress: onSendProgress,
-        onReceiveProgress: onReceiveProgress,
-        useDataKey: useDataKey,
-      );
-    } on DioException catch (error) {
-      throw _parseToApiException(error);
-    } on ApiException catch (_) {
-      rethrow;
-    } on Exception catch (e) {
-      throw ApiException(
-        message: e.toString(),
-        statusCode: HttpStatuses.internalServerError.code,
-        error: e,
-      );
-    }
-  }
-
-  void _initialize({
-    required String baseUrl,
-    required bool devMode,
-    required String accessTokenHeaderKey,
-    required String accessTokenBodyKey,
-    required String accessTokenPrefix,
-    required String refreshTokenBodyKey,
-    required String? refreshTokenPath,
-    required bool removeAccessTokenBeforeRefresh,
-    required INetKitLogger logger,
-    required bool loggerEnabled,
-    required bool logInterceptorEnabled,
-    required String metadataDataKey,
-    required String? dataKey,
-    required NetKitErrorParams? errorParams,
-    required OnBeforeRefresh? onBeforeRefreshRequest,
-    required OnRefreshFailed? onRefreshFailed,
-    required OnTokenRefreshed? onTokenRefreshed,
-    required String? devBaseUrl,
-    required BaseOptions? baseOptions,
-    required Interceptor? interceptor,
-    required HttpClientAdapter? clientAdapter,
-    required Stream<bool>? internetStatusStream,
-    RefreshTokenContentType refreshTokenContentType =
-        RefreshTokenContentType.json,
   }) {
-    /// Set up the base options if not provided
-    /// Making sure the BaseOptions is not null
-    baseOptions ??= BaseOptions();
-
-    _errorParams = errorParams ?? const NetKitErrorParams();
-
-    parameters = NetKitParams(
-      baseOptions: baseOptions,
-      interceptor: interceptor,
-      devMode: devMode,
-      accessTokenHeaderKey: accessTokenHeaderKey,
-      accessTokenBodyKey: accessTokenBodyKey,
-      accessTokenPrefix: accessTokenPrefix,
-      refreshTokenBodyKey: refreshTokenBodyKey,
-      onBeforeRefreshRequest: onBeforeRefreshRequest,
-      onRefreshFailed: onRefreshFailed,
-      onTokenRefreshed: onTokenRefreshed,
-      metadataDataKey: metadataDataKey,
-      dataKey: dataKey,
-      refreshTokenPath: refreshTokenPath,
-      removeAccessTokenBeforeRefresh: removeAccessTokenBeforeRefresh,
-      refreshTokenContentType: refreshTokenContentType,
-      internetStatusSubscription: internetStatusStream?.listen(
-        (event) {
-          /// Update the internet status when the stream emits a new value
-          _internetEnabled = event;
-        },
-      ),
+    return _upload(
+      path: path,
+      model: model,
+      body: FileRawHttpBody(filePath),
+      method: method,
+      contentType: contentType,
+      headers: headers,
+      queryParameters: queryParameters,
+      timeout: timeout,
+      cancellationToken: cancellationToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+      authPolicy: authPolicy,
+      allowRetryOn401: allowRetryOn401,
+      useDataKey: useDataKey,
     );
-
-    /// Initialize the logger
-    _logger = loggerEnabled && devMode ? logger : const VoidLogger();
-
-    /// Add log interceptor when enabled and dev mode is true.
-    if (logInterceptorEnabled && devMode) {
-      interceptors.add(LogInterceptor());
-    }
-
-    if (parameters.interceptor != null) {
-      interceptors.add(parameters.interceptor!);
-    }
-
-    /// Initialize the converter
-    _converter = const Converter();
-
-    /// Set up the http client adapter
-    httpClientAdapter = clientAdapter ?? createPlatformAdapter().getAdapter();
-
-    /// If dev mode is enabled, use devBaseUrl
-    parameters.devMode
-        ? parameters.baseOptions.baseUrl = devBaseUrl ?? baseUrl
-        : parameters.baseOptions.baseUrl = baseUrl;
-
-    /// Set up the network manager
-    options = parameters.baseOptions;
-
-    final errorInterceptor = ErrorHandlingInterceptor(
-      refreshTokenPath: parameters.refreshTokenPath,
-      logger: _logger,
-      retryRequest: _retryRequest,
-      onRefreshFailed: parameters.onRefreshFailed,
-      requestQueue: RequestQueue(logger: _logger),
-      tokenManager: TokenManager(
-        requestNewTokens: _requestNewTokens,
-        onTokensUpdated: _onTokensUpdated,
-        logger: _logger,
-      ),
-      errorParams: _errorParams,
-      accessTokenHeaderKey: parameters.accessTokenHeaderKey,
-    ).getErrorInterceptor();
-
-    interceptors.add(errorInterceptor);
   }
 
   @override
-  Map<String, dynamic> getAllHeaders() {
-    return baseOptions.headers;
-  }
+  Map<String, String> getAllHeaders() => parameters.headers;
 
   @override
   void addHeader(MapEntry<String, String> mapEntry) {
-    baseOptions.headers.addAll({mapEntry.key: mapEntry.value});
+    _credentialsChanged();
+    RequestManagerMixin._putHeader(
+      parameters.headers,
+      mapEntry.key,
+      mapEntry.value,
+    );
   }
 
   @override
   void clearAllHeaders() {
-    baseOptions.headers.clear();
+    _credentialsChanged();
+    parameters.headers.clear();
   }
 
   @override
   void removeHeader(String key) {
-    baseOptions.headers.remove(key);
+    _credentialsChanged();
+    RequestManagerMixin._removeHeader(parameters.headers, key);
   }
 
   @override
   void dispose() {
-    httpClientAdapter.close(force: true);
+    if (_ownsTransport) {
+      transport.close(force: true);
+    }
     parameters.internetStatusSubscription?.cancel();
   }
 
   @override
   void setAccessToken(String? token) {
+    if (token == null) return;
+    _credentialsChanged();
     _setAccessToken(token);
   }
 
   @override
   void setRefreshToken(String? token) {
+    if (token == null) return;
+    _credentialsChanged();
     _setRefreshToken(token);
   }
 
   @override
   void removeRefreshToken() {
+    _credentialsChanged();
     _removeRefreshToken();
   }
 
   @override
   void removeAccessToken() {
+    _credentialsChanged();
     _removeAccessToken();
   }
 
-  /// Method to be called when the tokens are updated.
-  /// Calls the onTokenRefreshed callback if provided.
-  /// The callback function is optional and can be set w
-  /// hen initializing the network manager.
-  void _onTokensUpdated(AuthTokenModel authToken) {
-    // Call the callback if provided
-    parameters.onTokenRefreshed?.call(authToken);
-
-    _setAccessToken(authToken.accessToken);
-
-    // Sets the refresh token if it is not null
-    if (authToken.refreshToken != null) {
-      _setRefreshToken(authToken.refreshToken);
-    }
+  /// Builds the internal call for a JSON request method.
+  _Call _call({
+    required String path,
+    required RequestMethod method,
+    required MapType? body,
+    required Map<String, String>? headers,
+    required Map<String, dynamic>? queryParameters,
+    required NetKitTimeout? timeout,
+    required NetKitCancellationToken? cancellationToken,
+    required NetKitProgressCallback? onReceiveProgress,
+    required NetKitProgressCallback? onSendProgress,
+    required AuthPolicy authPolicy,
+    required bool allowRetryOn401,
+    required String? idempotencyKey,
+  }) {
+    final (encoded, contentType) = _encodeBody(
+      body,
+      RequestManagerMixin._headerValue(headers, 'content-type'),
+    );
+    return _Call(
+      path: path,
+      method: method.name.toUpperCase(),
+      body: encoded,
+      contentType: contentType,
+      headers: headers,
+      queryParameters: queryParameters,
+      timeout: timeout,
+      cancellationToken: cancellationToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+      authPolicy: authPolicy,
+      allowRetryOn401: allowRetryOn401,
+      idempotencyKey: idempotencyKey,
+    );
   }
 
   /// Splits a meta response into payload data and metadata without mutating
@@ -796,79 +730,5 @@ class NetKitManager extends INetKitManager
     final copy = Map<String, dynamic>.from(container);
     final data = copy.remove(parameters.metadataDataKey);
     return (data: data, metadata: copy);
-  }
-
-  /// Method to send a request to the server to refresh the access token.
-  Future<AuthTokenModel> _requestNewTokens() async {
-    if (parameters.refreshTokenPath == null) {
-      throw ApiException(
-        message: 'Refresh token path is not set.',
-        statusCode: HttpStatuses.internalServerError.code,
-      );
-    }
-
-    /// Removes the access token from the headers,
-    /// if specified in the parameters
-    if (parameters.removeAccessTokenBeforeRefresh) {
-      _removeAccessToken();
-    }
-
-    final options = NetKitRequestOptions(
-      method: RequestMethod.post.name.toUpperCase(),
-      path: parameters.refreshTokenPath!,
-      headers: parameters.baseOptions.headers,
-      contentType: parameters.baseOptions.contentType,
-      data: {parameters.refreshTokenBodyKey: _refreshToken},
-    );
-
-    parameters.onBeforeRefreshRequest?.call(options);
-
-    await Future<void>.delayed(Duration.zero);
-
-    if (!_internetEnabled) {
-      throw ApiException(
-        message: _errorParams.noInternetError,
-        statusCode: HttpStatuses.serviceUnavailable.code,
-      );
-    }
-
-    final refreshContentType = parameters.refreshTokenContentType ==
-            RefreshTokenContentType.formUrlEncoded
-        ? Headers.formUrlEncodedContentType
-        : options.contentType;
-
-    final refreshResponse = await request<dynamic>(
-      options.path,
-      options: Options(
-        method: options.method,
-        headers: options.headers,
-        responseType: ResponseType.json,
-        contentType: refreshContentType,
-        extra: {RequestExtraKeys.isRefreshRequest: true},
-      ),
-      data: options.data,
-    );
-
-    return _requireValidRefreshTokens(refreshResponse);
-  }
-
-  AuthTokenModel _requireValidRefreshTokens(Response<dynamic> response) {
-    if (_isRequestFailed(response.statusCode)) {
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        stackTrace: StackTrace.current,
-      );
-    }
-
-    final tokens = extractTokens(response: response);
-    if (tokens.accessToken == null || tokens.accessToken!.isEmpty) {
-      throw ApiException(
-        message: _errorParams.invalidTokenResponseError,
-        statusCode: response.statusCode ?? HttpStatuses.expectationFailed.code,
-      );
-    }
-
-    return tokens;
   }
 }

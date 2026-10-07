@@ -1,6 +1,7 @@
-import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:net_kit/net_kit.dart';
 import 'package:test/test.dart';
+
+import '../../../mocks/fake_transport.dart';
 
 class _IdModel extends INetKitModel {
   const _IdModel({this.id = 0});
@@ -19,28 +20,24 @@ class _IdModel extends INetKitModel {
 void main() {
   group('useDataKey false', () {
     late NetKitManager manager;
-    late DioAdapter adapter;
+    late FakeTransport transport;
 
     setUp(() {
+      transport = FakeTransport();
       manager = NetKitManager(
-        baseUrl: 'https://example.com',
+        baseUrl: 'https://api.example.com',
+        transport: transport,
         dataKey: 'data',
       );
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
     });
 
     tearDown(() {
       manager.dispose();
-      adapter.close();
     });
 
     test('requestModel uses response body directly when useDataKey is false',
         () async {
-      adapter.onGet(
-        '/model',
-        (server) => server.reply(200, {'id': 42}),
-      );
+      transport.onGet('/model', json: {'id': 42});
 
       final result = await manager.requestModel<_IdModel>(
         path: '/model',
@@ -53,15 +50,12 @@ void main() {
     });
 
     test('requestList uses top-level list when useDataKey is false', () async {
-      adapter.onGet(
+      transport.onGet(
         '/list',
-        (server) => server.reply(
-          200,
-          [
-            {'id': 1},
-            {'id': 2},
-          ],
-        ),
+        json: [
+          {'id': 1},
+          {'id': 2},
+        ],
       );
 
       final result = await manager.requestList<_IdModel>(
@@ -76,10 +70,7 @@ void main() {
     });
 
     test('requestList accepts HTTP 200 with empty array body', () async {
-      adapter.onGet(
-        '/empty-list',
-        (server) => server.reply(200, <Map<String, dynamic>>[]),
-      );
+      transport.onGet('/empty-list', json: <Map<String, dynamic>>[]);
 
       final result = await manager.requestList<_IdModel>(
         path: '/empty-list',

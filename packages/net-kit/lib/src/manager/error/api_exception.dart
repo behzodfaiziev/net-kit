@@ -3,19 +3,26 @@ import 'dart:convert';
 import '../../enum/http_status_codes.dart';
 import '../../utility/typedef/request_type_def.dart';
 import '../params/net_kit_error_params.dart';
+import 'api_failure_type.dart';
 
-/// The error model class
-/// It contains the status code and message of the error
-/// It is used to parse the error response from the server
-/// and display the error message to the user
+/// The error thrown by every `NetKitManager` request.
+///
+/// [type] says what kind of failure happened; [statusCode] and [message]
+/// carry the HTTP status and the parsed server message for
+/// [ApiFailureType.response] errors, or a synthetic status and a configurable
+/// message (see `NetKitErrorParams`) for the other types. Transport-library
+/// exceptions never escape `NetKitManager`; the original error, when any, is
+/// available in [error].
 class ApiException implements Exception {
-  /// The constructor for the ErrorModel class
+  /// The constructor for the ApiException class
   const ApiException({
     required this.statusCode,
     required this.message,
+    this.type = ApiFailureType.response,
     this.messages,
     this.debugMessage,
     this.error,
+    this.fromRefresh = false,
   });
 
   /// The factory method to parse the error response
@@ -29,6 +36,7 @@ class ApiException implements Exception {
     required dynamic json,
     required NetKitErrorParams params,
     int? statusCode,
+    ApiFailureType type = ApiFailureType.response,
   }) {
     try {
       String? singleMessage;
@@ -37,7 +45,8 @@ class ApiException implements Exception {
       if (json == null) {
         throw ApiException(
           message: params.jsonNullError,
-          statusCode: HttpStatuses.expectationFailed.code,
+          statusCode: statusCode ?? HttpStatuses.expectationFailed.code,
+          type: type,
         );
       }
 
@@ -45,6 +54,7 @@ class ApiException implements Exception {
         throw ApiException(
           statusCode: statusCode ?? HttpStatuses.badRequest.code,
           message: params.jsonUnsupportedObjectError,
+          type: type,
         );
       }
 
@@ -54,6 +64,7 @@ class ApiException implements Exception {
         throw ApiException(
           statusCode: statusCode ?? HttpStatuses.badRequest.code,
           message: json.isNotEmpty ? json : params.jsonIsEmptyError,
+          type: type,
         );
       }
 
@@ -89,6 +100,7 @@ class ApiException implements Exception {
               ? singleMessage
               : params.couldNotParseError,
           messages: multipleMessages,
+          type: type,
         );
       }
 
@@ -98,26 +110,36 @@ class ApiException implements Exception {
         throw ApiException(
           statusCode: HttpStatuses.serviceUnavailable.code,
           message: params.socketExceptionError,
+          type: ApiFailureType.transport,
         );
       }
 
       /// If the message is not a string or a map, throw an exception
       throw ApiException(
         message: params.couldNotParseError,
-        statusCode: HttpStatuses.expectationFailed.code,
+        statusCode: statusCode ?? HttpStatuses.expectationFailed.code,
+        type: type,
       );
     } on ApiException catch (e) {
       return e;
     } on Exception {
       return ApiException(
-        statusCode: HttpStatuses.badRequest.code,
+        statusCode: statusCode ?? HttpStatuses.badRequest.code,
         message: params.couldNotParseError,
+        type: type,
       );
     }
   }
 
-  /// The status code of the error
-  /// It is used to determine the type of error
+  /// Failure classification.
+  final ApiFailureType type;
+
+  /// The status code of the error.
+  ///
+  /// The HTTP status for [ApiFailureType.response]; a synthetic status for
+  /// other types (`408` for timeouts, `503` for transport failures and
+  /// offline, `401` for missing or unrefreshable credentials, `400` for
+  /// rejected request configuration) and `null` for cancellation.
   final int? statusCode;
 
   /// The error message, which can be used to show the error to the user
@@ -133,4 +155,28 @@ class ApiException implements Exception {
 
   /// The error object, used for debugging
   final Object? error;
+
+  /// Whether this failure happened while refreshing the access token on
+  /// behalf of the request, rather than in the request itself.
+  ///
+  /// A refresh failure keeps its own classification in [type]: an offline
+  /// device is `transport`, a slow refresh endpoint is `timeout`, a `503`
+  /// from the refresh endpoint is `response` with `statusCode` 503. None of
+  /// these end the session; only [ApiFailureType.sessionInvalidated] does.
+  final bool fromRefresh;
+
+  /// Returns a copy marked as a refresh failure.
+  ApiException asRefreshFailure() => ApiException(
+        statusCode: statusCode,
+        message: message,
+        type: type,
+        messages: messages,
+        debugMessage: debugMessage,
+        error: error,
+        fromRefresh: true,
+      );
+
+  @override
+  String toString() => 'ApiException($type, $statusCode'
+      '${fromRefresh ? ', refresh' : ''}): $message';
 }

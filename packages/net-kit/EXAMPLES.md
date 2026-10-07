@@ -5,6 +5,7 @@ This file contains detailed examples and real-world use cases for NetKitManager.
 ## Table of Contents
 
 - [Service Layer Pattern](#service-layer-pattern)
+- [Auth Policy](#auth-policy)
 - [Pagination with Metadata](#pagination)
 - [Error Handling Strategies](#error-handling)
 - [File Upload Examples](#file-uploads)
@@ -41,27 +42,27 @@ abstract class AppNetworkManager {
     required T parseModel,
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   });
 
   Future<List<T>> requestList<T extends AppNetworkModel>(String path, {
     required T parseModel,
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   });
 
   Future<PaginatedList<R>> requestPaginatedList<R extends AppNetworkModel>(String path, {
     required R parseModel,
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   });
 
   Future<void> requestVoid(String path, {
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   });
 
   Future<T> uploadFormData<T extends AppNetworkModel>(String path, {
@@ -106,7 +107,8 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
       internetStatusStream: _internetStatusStream.map(
             (event) => event != ConnectivityResultEnum.none,
       ),
-      baseOptions: BaseOptions(headers: {'Content-Type': 'application/json'}),
+      headers: {'Accept-Language': 'en'},
+      timeout: const NetKitTimeout(connect: Duration(seconds: 10)),
       refreshTokenPath: APIConst.refreshToken,
       dataKey: 'data',
       onTokenRefreshed: (token) {
@@ -124,7 +126,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
     required T parseModel,
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   }) async {
     try {
       final result = await _manager.requestModel<T>(
@@ -132,7 +134,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
         model: parseModel,
         method: method.toRequestType,
         body: body,
-        containsAccessToken: containsAccessToken,
+        authPolicy: authPolicy,
       );
       return result;
     } on ApiException catch (e) {
@@ -147,7 +149,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
     required T parseModel,
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   }) async {
     try {
       final result = await _manager.requestList<T>(
@@ -155,7 +157,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
         model: parseModel,
         method: method.toRequestType,
         body: body,
-        containsAccessToken: containsAccessToken,
+        authPolicy: authPolicy,
       );
       return result;
     } on ApiException catch (e) {
@@ -170,7 +172,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
     required R parseModel,
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   }) async {
     try {
       final result = await _manager.requestListMeta<R, PaginationMetadataModel>(
@@ -179,7 +181,7 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
         metadataModel: const PaginationMetadataModel(),
         method: method.toRequestType,
         body: body,
-        containsAccessToken: containsAccessToken,
+        authPolicy: authPolicy,
       );
 
       final metadata = result.metadata;
@@ -200,14 +202,14 @@ final class AppNetworkManagerImpl implements AppNetworkManager {
   Future<void> requestVoid(String path, {
     required AppRequestType method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   }) async {
     try {
       await _manager.requestVoid(
         path: path,
         method: method.toRequestType,
         body: body,
-        containsAccessToken: containsAccessToken,
+        authPolicy: authPolicy,
       );
     } on ApiException catch (e) {
       throw ServerException.fromApiException(e);
@@ -604,6 +606,42 @@ final class AuthRepoImpl implements AuthRepo {
 5. **Type Safety**: Custom types ensure compile-time safety
 6. **Easy Maintenance**: Changes to NetKit only affect the service layer
 
+## Auth Policy
+
+<details>
+<summary>🔑 <strong>Public, default, and mandatory authentication</strong></summary>
+
+```dart
+// Login: never send a stale token, never refresh on 401.
+final session = await netKitManager.requestModel<SessionModel>(
+  path: '/auth/login',
+  method: RequestMethod.post,
+  model: const SessionModel(),
+  body: {'email': email, 'password': password},
+  authPolicy: AuthPolicy.none,
+);
+netKitManager
+  ..setAccessToken(session.accessToken)
+  ..setRefreshToken(session.refreshToken);
+
+// Default: token when present, single-flight refresh + retry on 401.
+final me = await netKitManager.requestModel<UserModel>(
+  path: '/me',
+  method: RequestMethod.get,
+  model: const UserModel(),
+);
+
+// Mandatory: fail fast (ApiFailureType.auth) instead of sending without a token.
+final orders = await netKitManager.requestList<OrderModel>(
+  path: '/orders',
+  method: RequestMethod.get,
+  model: const OrderModel(),
+  authPolicy: AuthPolicy.required,
+);
+```
+
+</details>
+
 ## Pagination
 
 The `requestListMeta` method is perfect for implementing pagination. Here's a complete example:
@@ -696,7 +734,7 @@ class AppNetworkManagerImpl {
     required R parseModel,
     required RequestMethod method,
     MapType? body,
-    bool? containsAccessToken,
+    AuthPolicy authPolicy = AuthPolicy.inherit,
   }) async {
     try {
       final result = await _manager.requestListMeta<R, PaginationMetadataModel>(
@@ -705,7 +743,7 @@ class AppNetworkManagerImpl {
         metadataModel: const PaginationMetadataModel(),
         method: method,
         body: body,
-        containsAccessToken: containsAccessToken,
+        authPolicy: authPolicy,
       );
 
       // Extract pagination metadata from the response
@@ -736,21 +774,22 @@ class AppNetworkManagerImpl {
 <details>
 <summary>📦 <strong>Wrapper Pattern for Package Independence</strong></summary>
 
-Use wrapper classes to keep your code independent from the underlying HTTP package:
+Use wrapper classes to keep your code independent from the networking package. net_kit's own
+multipart types already carry no HTTP-library dependency, so the wrappers are thin:
 
 ```dart
-// AppMultipartFile wraps MultipartFile for independence
+// AppMultipartFile wraps NetKitMultipartFile for independence
 class AppMultipartFile {
   AppMultipartFile(this.file);
 
-  final MultipartFile file;
+  final NetKitMultipartFile file;
 }
 
-// AppFormData wraps FormData for independence  
+// AppFormData wraps NetKitFormData for independence
 class AppFormData {
   AppFormData(this.form);
 
-  final FormData form;
+  final NetKitFormData form;
 }
 
 // AppMedia represents file data in a package-agnostic way
@@ -818,7 +857,7 @@ Future<void> uploadUserProfile({
     await netKitManager.uploadFormData<void>(
       path: '/user/profile/upload',
       method: RequestMethod.post,
-      formData: formData.form, // Access the underlying FormData
+      formData: formData.form, // Access the underlying NetKitFormData
     );
 
     print('Profile uploaded successfully');
@@ -837,7 +876,7 @@ Future<void> uploadUserProfile({
 // Example: Upload a single image with progress tracking
 Future<UploadResponseModel> uploadImage(AppMedia imageMedia, {
   String? description,
-  ProgressCallback? onProgress,
+  NetKitProgressCallback? onProgress,
 }) async {
   try {
     // Create multipart file using the service layer
@@ -849,8 +888,8 @@ Future<UploadResponseModel> uploadImage(AppMedia imageMedia, {
       path: '/upload/image',
       method: RequestMethod.post,
       model: const UploadResponseModel(),
-      multipartFile: appMultipartFile.file,
-      // Access the underlying MultipartFile
+      multipartFile: appMultipartFile.file, // NetKitMultipartFile
+      fieldName: 'image',
       onSendProgress: onProgress, // Track upload progress
     );
 
@@ -909,7 +948,7 @@ Future<FormSubmissionResponse> submitApplication({
       path: '/applications/submit',
       method: RequestMethod.post,
       model: const FormSubmissionResponse(),
-      formData: appFormData.form, // Access the underlying FormData
+      formData: appFormData.form, // Access the underlying NetKitFormData
     );
 
     return result;
@@ -930,7 +969,7 @@ Use `uploadRawData` when the API expects the file bytes as the request body (e.g
 // Example: Upload raw bytes (web-safe)
 Future<UploadResponseModel> uploadRawBytes(
   List<int> fileBytes, {
-  ProgressCallback? onProgress,
+  NetKitProgressCallback? onProgress,
 }) async {
   try {
     final result = await netKitManager.uploadRawData<UploadResponseModel>(
@@ -947,7 +986,10 @@ Future<UploadResponseModel> uploadRawBytes(
   }
 }
 
-// Example: Upload from file path (IO platforms only)
+// Example: Upload from file path (IO platforms only).
+// uploadFile streams the file from disk (File.openRead) and reopens it if the
+// request is retried after a token refresh, so memory stays bounded for any
+// file size. For external signed URLs see "Streaming upload" below.
 Future<UploadResponseModel> uploadFromPath(String filePath) async {
   try {
     return await netKitManager.uploadFile<UploadResponseModel>(
@@ -960,6 +1002,99 @@ Future<UploadResponseModel> uploadFromPath(String filePath) async {
     throw UploadException('Failed to upload file: ${e.message}');
   }
 }
+```
+
+</details>
+
+<details>
+<summary>📁 <strong>Streaming upload to a signed URL (large files)</strong></summary>
+
+Typical flow: an authenticated API call returns a signed storage URL, then the file is streamed
+from disk straight to that URL. The raw client sends no `Authorization` header, never refreshes
+tokens, never retries, never follows redirects, and never buffers the file. The manager's own
+transport can be used as the raw client because it holds no credentials.
+
+```dart
+final RawHttpClient rawClient = netKitManager.transport;
+
+Future<void> uploadToSignedUrl(String filePath) async {
+  // 1. Authenticated API call (JWT attached by NetKitManager).
+  final signed = await netKitManager.requestModel<SignedUploadModel>(
+    path: '/uploads/sign',
+    method: RequestMethod.post,
+    model: const SignedUploadModel(),
+    body: {'fileName': 'report.pdf'},
+  );
+
+  // 2. Stream the file to storage. Memory stays bounded for any file size.
+  final token = NetKitCancellationToken();
+  final response = await rawClient.send(
+    RawHttpRequest(
+      uri: Uri.parse(signed.url),
+      method: RawHttpMethod.put,
+      headers: signed.headers, // exactly the signed headers, nothing else
+      body: FileRawHttpBody(filePath), // streamed from disk
+      cancellationToken: token,
+      onSendProgress: (sent, total) => progress.value = sent / total,
+    ),
+  );
+
+  // 3. Protocol handling belongs to you: statuses are returned, not thrown.
+  if (!response.isSuccessful) {
+    throw UploadException('Storage answered ${response.statusCode}');
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>📥 <strong>Streaming download (large responses)</strong></summary>
+
+`sendStreamed` returns the status and headers as soon as they arrive and the body as a
+back-pressured stream, so a large download is written to disk without being held in memory.
+
+```dart
+Future<void> downloadTo(String url, String targetPath) async {
+  final RawHttpClient client = netKitManager.transport;
+  final response = await client.sendStreamed(
+    RawHttpRequest(uri: Uri.parse(url), method: RawHttpMethod.get),
+  );
+  if (!response.isSuccessful) {
+    throw DownloadException('Storage answered ${response.statusCode}');
+  }
+  await response.body.pipe(File(targetPath).openWrite());
+}
+```
+
+</details>
+
+<details>
+<summary>🔁 <strong>Replayable streamed body</strong></summary>
+
+When the payload comes from something other than a file (a database blob, an encrypted stream),
+describe it with a factory so the manager can reopen it for the retry after a token refresh.
+
+```dart
+await netKitManager.uploadFormData<VoidModel>(
+  path: '/backups',
+  model: VoidModel(),
+  method: RequestMethod.put,
+  formData: NetKitFormData(
+    fields: const [MapEntry('name', 'nightly')],
+    files: [
+      MapEntry(
+        'archive',
+        NetKitMultipartFile.fromStream(
+          () => backupRepository.openRead(), // fresh stream per attempt
+          backupSizeInBytes,
+          filename: 'nightly.tar',
+          contentType: 'application/x-tar',
+        ),
+      ),
+    ],
+  ),
+);
 ```
 
 </details>

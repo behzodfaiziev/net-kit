@@ -1,16 +1,7 @@
-import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:net_kit/net_kit.dart';
 import 'package:test/test.dart';
 
-class _CaptureInterceptor extends Interceptor {
-  final captured = <RequestOptions>[];
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    captured.add(options);
-    handler.next(options);
-  }
-}
+import '../../../mocks/fake_transport.dart';
 
 class _TestModel extends INetKitModel {
   const _TestModel();
@@ -22,223 +13,135 @@ class _TestModel extends INetKitModel {
   Map<String, dynamic>? toJson() => {};
 }
 
+/// `AuthPolicy.none` strips the access token from the outgoing request only;
+/// the stored headers are never mutated, even under concurrent requests.
 void main() {
-  group('containsAccessToken header handling', () {
-    late NetKitManager manager;
-    late DioAdapter adapter;
-    late _CaptureInterceptor captureInterceptor;
+  late FakeTransport transport;
+  late NetKitManager manager;
 
-    setUp(() {
-      captureInterceptor = _CaptureInterceptor();
-      manager = NetKitManager(
-        baseUrl: 'https://example.com',
-        interceptor: captureInterceptor,
-      )..setAccessToken('secret-token');
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
-    });
+  NetKitManager build({String accessTokenHeaderKey = 'Authorization'}) {
+    final built = NetKitManager(
+      baseUrl: 'https://api.example.com',
+      transport: transport,
+      accessTokenHeaderKey: accessTokenHeaderKey,
+    )..setAccessToken('test-token');
+    addTearDown(built.dispose);
+    return built;
+  }
 
-    tearDown(() {
-      manager.dispose();
-      adapter.close();
-    });
-
-    test(
-      'does not mutate baseOptions.headers for tokenless requests',
-      () async {
-        adapter
-          ..onGet(
-            '/public',
-            (server) => server.reply(200, <String, dynamic>{}),
-          )
-          ..onGet(
-            '/private',
-            (server) => server.reply(200, <String, dynamic>{}),
-          );
-
-        await Future.wait([
-          manager.requestModel(
-            path: '/public',
-            method: RequestMethod.get,
-            model: const _TestModel(),
-            containsAccessToken: false,
-            useDataKey: false,
-          ),
-          manager.requestModel(
-            path: '/private',
-            method: RequestMethod.get,
-            model: const _TestModel(),
-            useDataKey: false,
-          ),
-        ]);
-
-        expect(
-          manager.getAllHeaders()['Authorization'],
-          'Bearer secret-token',
-        );
-
-        final publicRequest = captureInterceptor.captured.firstWhere(
-          (options) => options.path == '/public',
-        );
-        final privateRequest = captureInterceptor.captured.firstWhere(
-          (options) => options.path == '/private',
-        );
-
-        expect(publicRequest.headers['Authorization'], isNull);
-        expect(privateRequest.headers['Authorization'], 'Bearer secret-token');
-      },
+  Future<void> get(
+    String path, {
+    AuthPolicy authPolicy = AuthPolicy.inherit,
+    Map<String, String>? headers,
+  }) {
+    return manager.requestModel(
+      path: path,
+      method: RequestMethod.get,
+      model: const _TestModel(),
+      authPolicy: authPolicy,
+      headers: headers,
+      useDataKey: false,
     );
+  }
 
-    test('includes token when containsAccessToken is null', () async {
-      adapter.onGet(
-        '/default-auth',
-        (server) => server.reply(200, <String, dynamic>{}),
-      );
-      await manager.requestModel(
-        path: '/default-auth',
-        method: RequestMethod.get,
-        model: const _TestModel(),
-        useDataKey: false,
-      );
-
-      final request = captureInterceptor.captured.last;
-      expect(request.headers['Authorization'], 'Bearer secret-token');
-    });
-
-    test('includes token when containsAccessToken is true', () async {
-      adapter.onGet(
-        '/explicit-auth',
-        (server) => server.reply(200, <String, dynamic>{}),
-      );
-      await manager.requestModel(
-        path: '/explicit-auth',
-        method: RequestMethod.get,
-        model: const _TestModel(),
-        containsAccessToken: true,
-        useDataKey: false,
-      );
-
-      final request = captureInterceptor.captured.last;
-      expect(request.headers['Authorization'], 'Bearer secret-token');
-    });
-
-    test('omits custom access token header key when disabled', () async {
-      manager.dispose();
-      captureInterceptor = _CaptureInterceptor();
-      manager = NetKitManager(
-        baseUrl: 'https://example.com',
-        accessTokenHeaderKey: 'X-Auth-Token',
-        interceptor: captureInterceptor,
-      )..setAccessToken('secret-token');
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
-
-      adapter.onGet(
-        '/custom',
-        (server) => server.reply(200, <String, dynamic>{}),
-      );
-
-      await manager.requestModel(
-        path: '/custom',
-        method: RequestMethod.get,
-        model: const _TestModel(),
-        containsAccessToken: false,
-        useDataKey: false,
-      );
-
-      final request = captureInterceptor.captured.last;
-      expect(request.headers['X-Auth-Token'], isNull);
-      expect(request.headers['Authorization'], isNull);
-    });
-
-    test('preserves caller headers while omitting auth token', () async {
-      adapter.onGet(
-        '/custom-header',
-        (server) => server.reply(200, <String, dynamic>{}),
-      );
-
-      await manager.requestModel(
-        path: '/custom-header',
-        method: RequestMethod.get,
-        model: const _TestModel(),
-        containsAccessToken: false,
-        useDataKey: false,
-        options: Options(headers: {'X-Custom': '1'}),
-      );
-
-      final request = captureInterceptor.captured.last;
-      expect(request.headers['X-Custom'], '1');
-      expect(request.headers['Authorization'], isNull);
-    });
-
-    test('omits auth token when caller passes Map<String, String> headers',
-        () async {
-      adapter.onGet(
-        '/typed-headers',
-        (server) => server.reply(200, <String, dynamic>{}),
-      );
-
-      await manager.requestModel(
-        path: '/typed-headers',
-        method: RequestMethod.get,
-        model: const _TestModel(),
-        containsAccessToken: false,
-        useDataKey: false,
-        options: Options(headers: <String, String>{'X-Custom': '1'}),
-      );
-
-      final request = captureInterceptor.captured.last;
-      expect(request.headers['X-Custom'], '1');
-      expect(request.headers['Authorization'], isNull);
-    });
-
-    test(
-      'omits auth when typed headers already contain Authorization',
-      () async {
-        adapter.onGet(
-          '/typed-auth-header',
-          (server) => server.reply(200, <String, dynamic>{}),
-        );
-
-        await manager.requestModel(
-          path: '/typed-auth-header',
-          method: RequestMethod.get,
-          model: const _TestModel(),
-          containsAccessToken: false,
-          useDataKey: false,
-          options: Options(
-            headers: <String, String>{
-              'X-Custom': '1',
-              'Authorization': 'Bearer caller-token',
-            },
-          ),
-        );
-
-        final request = captureInterceptor.captured.last;
-        expect(request.headers['X-Custom'], '1');
-        expect(request.headers['Authorization'], isNull);
-      },
-    );
-
-    test('keeps baseOptions token across sequential tokenless requests',
-        () async {
-      for (var i = 0; i < 3; i++) {
-        adapter.onGet(
-          '/public-$i',
-          (server) => server.reply(200, <String, dynamic>{}),
-        );
-        await manager.requestModel(
-          path: '/public-$i',
-          method: RequestMethod.get,
-          model: const _TestModel(),
-          containsAccessToken: false,
-          useDataKey: false,
-        );
-        expect(
-          manager.getAllHeaders()['Authorization'],
-          'Bearer secret-token',
-        );
+  String? header(RawHttpRequest request, String name) {
+    final lower = name.toLowerCase();
+    for (final entry in request.headers.entries) {
+      if (entry.key.toLowerCase() == lower) {
+        return entry.value;
       }
+    }
+    return null;
+  }
+
+  setUp(() {
+    transport = FakeTransport()
+      ..fallback = (_) => FakeTransport.jsonResponse(200, <String, dynamic>{});
+    manager = build();
+  });
+
+  group('AuthPolicy header handling', () {
+    test('concurrent none/inherit requests do not mutate stored headers',
+        () async {
+      await Future.wait([
+        get('/public', authPolicy: AuthPolicy.none),
+        get('/private'),
+      ]);
+
+      expect(manager.getAllHeaders()['Authorization'], 'Bearer test-token');
+
+      final public =
+          transport.requests.firstWhere((r) => r.uri.path == '/public');
+      final private =
+          transport.requests.firstWhere((r) => r.uri.path == '/private');
+      expect(header(public, 'Authorization'), isNull);
+      expect(header(private, 'Authorization'), 'Bearer test-token');
+    });
+
+    test('inherit (default) sends the token', () async {
+      await get('/default-auth');
+
+      expect(
+        header(transport.lastRequest!, 'Authorization'),
+        'Bearer test-token',
+      );
+    });
+
+    test('none strips a custom access token header key', () async {
+      manager = build(accessTokenHeaderKey: 'X-Auth-Token');
+
+      await get('/custom', authPolicy: AuthPolicy.none);
+
+      final sent = transport.lastRequest!;
+      expect(header(sent, 'X-Auth-Token'), isNull);
+      expect(header(sent, 'Authorization'), isNull);
+      expect(manager.getAllHeaders()['X-Auth-Token'], 'Bearer test-token');
+    });
+
+    test('none preserves caller headers', () async {
+      await get(
+        '/custom-header',
+        authPolicy: AuthPolicy.none,
+        headers: {'X-Custom': '1'},
+      );
+
+      final sent = transport.lastRequest!;
+      expect(header(sent, 'X-Custom'), '1');
+      expect(header(sent, 'Authorization'), isNull);
+    });
+
+    test('none strips an access token header passed by the caller', () async {
+      await get(
+        '/caller-auth-header',
+        authPolicy: AuthPolicy.none,
+        headers: {'X-Custom': '1', 'authorization': 'Bearer caller-token'},
+      );
+
+      final sent = transport.lastRequest!;
+      expect(header(sent, 'X-Custom'), '1');
+      expect(header(sent, 'Authorization'), isNull);
+    });
+
+    test('stored token survives sequential none requests', () async {
+      for (var i = 0; i < 3; i++) {
+        await get('/public-$i', authPolicy: AuthPolicy.none);
+        expect(manager.getAllHeaders()['Authorization'], 'Bearer test-token');
+        expect(header(transport.lastRequest!, 'Authorization'), isNull);
+      }
+    });
+
+    test('per-request headers override stored ones case-insensitively',
+        () async {
+      manager.addHeader(const MapEntry('X-Trace', 'stored'));
+
+      await get('/trace', headers: {'x-trace': 'per-request'});
+
+      final sent = transport.lastRequest!;
+      final traceKeys =
+          sent.headers.keys.where((k) => k.toLowerCase() == 'x-trace');
+      expect(traceKeys, hasLength(1));
+      expect(header(sent, 'X-Trace'), 'per-request');
+      expect(manager.getAllHeaders()['X-Trace'], 'stored');
     });
   });
 }

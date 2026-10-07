@@ -1,7 +1,10 @@
-import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'dart:convert';
+
 import 'package:net_kit/net_kit.dart';
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:test/test.dart';
+
+import '../../../mocks/fake_transport.dart';
 
 class _UploadModel extends INetKitModel {
   const _UploadModel({this.id});
@@ -20,15 +23,15 @@ class _UploadModel extends INetKitModel {
 void main() {
   group('UploadManagerMixin', () {
     late NetKitManager manager;
-    late DioAdapter adapter;
+    late FakeTransport transport;
 
     setUp(() {
+      transport = FakeTransport();
       manager = NetKitManager(
-        baseUrl: 'https://example.com',
+        baseUrl: 'https://api.example.com',
+        transport: transport,
         dataKey: 'data',
       );
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
     });
 
     tearDown(() {
@@ -36,60 +39,143 @@ void main() {
     });
 
     test('uploadFormData throws ApiException on non-2xx response', () async {
-      adapter.onPost(
+      transport.onPost(
         '/upload',
-        (server) => server.reply(
-          HttpStatuses.badRequest.code,
-          {'message': 'Validation failed'},
-        ),
+        status: HttpStatuses.badRequest.code,
+        json: {'message': 'Validation failed'},
       );
 
       await expectLater(
         manager.uploadFormData(
           path: '/upload',
           model: const _UploadModel(),
-          formData: FormData.fromMap({'field': 'value'}),
+          formData: NetKitFormData.fromMap({'field': 'value'}),
           method: RequestMethod.post,
         ),
-        throwsA(isA<ApiException>()),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 400)
+              .having((e) => e.message, 'message', 'Validation failed'),
+        ),
+      );
+    });
+
+    test('uploadFormData sends NetKitFormData with fields in order', () async {
+      transport.onPost(
+        '/upload',
+        json: {
+          'data': {'id': 1},
+        },
+      );
+
+      await manager.uploadFormData(
+        path: '/upload',
+        model: const _UploadModel(),
+        formData: NetKitFormData.fromMap({
+          'tag': ['a', 'b'],
+          'name': 'x',
+          'tag2': 'c',
+        }),
+        method: RequestMethod.post,
+      );
+
+      final body = transport.lastRequest!.body;
+      expect(body, isA<NetKitFormData>());
+      final form = body! as NetKitFormData;
+      expect(
+        form.fields.map((e) => '${e.key}=${e.value}'),
+        ['tag=a', 'tag=b', 'name=x', 'tag2=c'],
+      );
+      expect(form.files, isEmpty);
+      // The transport owns the multipart boundary, so the manager sets none.
+      expect(
+        transport.lastRequest!.headers.keys.map((k) => k.toLowerCase()),
+        isNot(contains('content-type')),
       );
     });
 
     test('uploadMultipartData throws ApiException on non-2xx response',
         () async {
-      adapter.onPost(
+      transport.onPost(
         '/upload',
-        (server) => server.reply(
-          HttpStatuses.internalServerError.code,
-          {'message': 'Server error'},
-        ),
+        status: HttpStatuses.internalServerError.code,
+        json: {'message': 'Server error'},
       );
 
       await expectLater(
         manager.uploadMultipartData(
           path: '/upload',
           model: const _UploadModel(),
-          multipartFile: MultipartFile.fromString(
+          multipartFile: NetKitMultipartFile.fromString(
             'content',
             filename: 'file.txt',
           ),
           method: RequestMethod.post,
         ),
-        throwsA(isA<ApiException>()),
+        throwsA(
+          isA<ApiException>().having((e) => e.statusCode, 'statusCode', 500),
+        ),
       );
     });
 
-    test('uploadRawData returns parsed model on success', () async {
-      adapter.onPost(
-        '/upload/raw',
-        (server) => server.reply(
-          HttpStatuses.ok.code,
-          {
-            'data': {'id': 42},
-          },
+    test('uploadMultipartData sends the part under the default field name',
+        () async {
+      transport.onPost(
+        '/upload',
+        json: {
+          'data': {'id': 7},
+        },
+      );
+
+      final result = await manager.uploadMultipartData(
+        path: '/upload',
+        model: const _UploadModel(),
+        multipartFile: NetKitMultipartFile.fromString(
+          'content',
+          filename: 'file.txt',
         ),
-        data: Matchers.any,
-        headers: {'Content-Type': 'application/octet-stream'},
+        method: RequestMethod.post,
+      );
+
+      expect(result.id, 7);
+      final body = transport.lastRequest!.body;
+      expect(body, isA<NetKitFormData>());
+      final form = body! as NetKitFormData;
+      expect(form.fields, isEmpty);
+      expect(form.files, hasLength(1));
+      expect(form.files.single.key, 'file');
+      expect(form.files.single.value.filename, 'file.txt');
+      expect(form.files.single.value.length, utf8.encode('content').length);
+      expect(
+        utf8.decode(transport.lastBody!),
+        contains('file:file.txt:content'),
+      );
+    });
+
+    test('uploadMultipartData honours a custom fieldName', () async {
+      transport.onPost('/upload', json: {'data': <String, dynamic>{}});
+
+      await manager.uploadMultipartData(
+        path: '/upload',
+        model: const _UploadModel(),
+        multipartFile: NetKitMultipartFile.fromBytes(
+          [1, 2, 3],
+          filename: 'blob.bin',
+        ),
+        method: RequestMethod.post,
+        fieldName: 'attachment',
+      );
+
+      final form = transport.lastRequest!.body! as NetKitFormData;
+      expect(form.files.single.key, 'attachment');
+    });
+
+    test('uploadRawData returns parsed model on success', () async {
+      transport.onPost(
+        '/upload/raw',
+        json: {
+          'data': {'id': 42},
+        },
       );
 
       final result = await manager.uploadRawData(
@@ -102,15 +188,50 @@ void main() {
       expect(result.id, 42);
     });
 
-    test('uploadRawData throws ApiException on non-2xx response', () async {
-      adapter.onPost(
+    test('uploadRawData sends exactly the given bytes with Content-Type',
+        () async {
+      transport.onPost(
         '/upload/raw',
-        (server) => server.reply(
-          HttpStatuses.badRequest.code,
-          {'message': 'Invalid payload'},
-        ),
-        data: Matchers.any,
-        headers: {'Content-Type': 'application/octet-stream'},
+        json: {
+          'data': {'id': 1},
+        },
+      );
+
+      await manager.uploadRawData(
+        path: '/upload/raw',
+        model: const _UploadModel(),
+        data: [1, 2, 3, 4],
+        method: RequestMethod.post,
+      );
+
+      final request = transport.lastRequest!;
+      expect(request.method, RawHttpMethod.post);
+      expect(request.uri.toString(), 'https://api.example.com/upload/raw');
+      expect(request.body, isA<BytesRawHttpBody>());
+      expect(transport.lastBody, [1, 2, 3, 4]);
+      expect(request.headers['Content-Type'], 'application/octet-stream');
+    });
+
+    test('uploadRawData uses the given contentType', () async {
+      transport.onPut('/upload/raw', json: {'data': <String, dynamic>{}});
+
+      await manager.uploadRawData(
+        path: '/upload/raw',
+        model: const _UploadModel(),
+        data: utf8.encode('hello'),
+        method: RequestMethod.put,
+        contentType: 'text/plain',
+      );
+
+      expect(transport.lastRequest!.headers['Content-Type'], 'text/plain');
+      expect(utf8.decode(transport.lastBody!), 'hello');
+    });
+
+    test('uploadRawData throws ApiException on non-2xx response', () async {
+      transport.onPost(
+        '/upload/raw',
+        status: HttpStatuses.badRequest.code,
+        json: {'message': 'Invalid payload'},
       );
 
       await expectLater(
@@ -120,7 +241,11 @@ void main() {
           data: [1, 2, 3, 4],
           method: RequestMethod.post,
         ),
-        throwsA(isA<ApiException>()),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 400)
+              .having((e) => e.message, 'message', 'Invalid payload'),
+        ),
       );
     });
   });

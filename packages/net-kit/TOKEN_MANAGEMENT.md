@@ -33,22 +33,90 @@ NetKitManager provides a robust and RFC-compliant refresh token mechanism to ens
 
 ### How Token Refresh Works
 
-1. When a request fails with a 401 Unauthorized, NetKit will automatically:
-2. Pause the failing request and any subsequent requests.
-3. Attempt to refresh the access token via the configured refreshTokenPath.
-4. Retry the failed requests using the new token upon successful refresh (GET/PUT/DELETE by default; POST/PATCH only with `allowRetryOn401: true`, RFC 9110).
+1. When a request with `AuthPolicy.inherit` or `AuthPolicy.required` fails with a 401 Unauthorized
+   and a `refreshTokenPath` is configured, NetKit will automatically:
+2. Start one refresh request (or join the one already in flight).
+3. Update the stored access token (and refresh token) from the refresh response.
+4. Retry the failed request once with the new token (GET/PUT/DELETE by default; POST/PATCH only
+   with `allowRetryOn401: true`, RFC 9110). Streamed bodies (`uploadFile`, file parts created
+   with `NetKitMultipartFile.fromPath` / `fromStream`) are reopened and sent again in full.
 
-Concurrent 401s share a single refresh via an internal Completer (single-flight).
+Concurrent 401s share a single refresh (single-flight). Without a `refreshTokenPath` the 401 is
+returned to the caller unchanged.
 
-### Per-request opt-out and opt-in
+### When the session ends (and when it does not)
+
+There are two different 401s, and only one of them ends the session:
+
+| Event | Meaning | What NetKit does |
+|-------|---------|------------------|
+| An ordinary API request returns 401 | The access token may be stale | Starts (or joins) one refresh and retries once. The session is **not** ended. |
+| The **refresh endpoint** returns 401 | The refresh credential was rejected | Clears the stored access and refresh tokens, calls `onSessionInvalidated` **once**, and fails every waiting request with `ApiFailureType.sessionInvalidated` |
+| The refresh fails any other way | Temporary or server-side problem | Keeps both tokens, fails the waiting requests with the real cause, and refreshes again on the next 401 |
+
+"Any other way" covers: device offline, DNS failure, TLS failure, timeouts, cancellation, `429`,
+`5xx`, any other `4xx` (including `400` and `403`), a malformed response, and a `2xx` without an
+access token. None of these clear tokens or call `onSessionInvalidated`. The failure reaches the
+caller with its own `ApiFailureType` (`transport`, `timeout`, `cancelled`, `response`,
+`decoding`, ...) and `ApiException.fromRefresh == true`.
+
+Sign the user out in `onSessionInvalidated`, and nowhere else:
 
 ```dart
-// Public endpoint: do not treat 401 as "refresh me"
+final netKitManager = NetKitManager(
+  baseUrl: 'https://api.example.com',
+  refreshTokenPath: '/auth/refresh',
+  onSessionInvalidated: (exception) async {
+    // Only reached when the refresh endpoint answered 401.
+    await secureStorage.deleteAll();
+    router.goToSignIn();
+  },
+);
+```
+
+Details:
+
+- The decision is taken from the HTTP status the transport reported for the refresh response, not
+  from an exception type, message, or interceptor-modified response.
+- Concurrent requests waiting on the same refresh all receive the same `sessionInvalidated`
+  failure; the callback runs once.
+- After a session is invalidated, further 401s are returned to the caller without another
+  refresh attempt until the application stores new credentials (`setAccessToken`,
+  `setRefreshToken`, `addHeader`, ...).
+- If the application stores new credentials while a refresh is in flight, that refresh's result is
+  discarded: new tokens do not overwrite the newer ones, and a 401 for the old refresh token does
+  not end the new session.
+- The callback is not awaited. Errors it throws are logged and ignored, so it cannot block or
+  corrupt pending requests.
+- Cancelling a request that is waiting for a refresh stops that request immediately; the shared
+  refresh continues for the other requests, and the cancelled request is not retried.
+
+### Refresh request origin
+
+The refresh request always targets the API origin (`baseUrl`, or `devBaseUrl` in dev mode), even
+when `allowCrossOriginRequests` is true and even if `onBeforeRefreshRequest` or an interceptor
+points it elsewhere: such a request fails with `invalidRequest` before anything is sent. Redirects
+of the refresh request are followed only within the API origin. On the web, where the browser
+follows redirects itself, a refresh response that came from a redirect is rejected
+(`unverifiedRedirectError`) instead of being trusted.
+
+### Per-request auth policy
+
+```dart
+// Public endpoint: no access token, and a 401 is not "refresh me"
 await netKitManager.requestModel(
   path: '/public/profile',
   method: RequestMethod.get,
   model: const ProfileModel(),
-  skipTokenRefresh: true,
+  authPolicy: AuthPolicy.none,
+);
+
+// Mandatory authentication: fail fast when no token is stored
+await netKitManager.requestModel(
+  path: '/account',
+  method: RequestMethod.get,
+  model: const AccountModel(),
+  authPolicy: AuthPolicy.required,
 );
 
 // Idempotent POST: allow one replay after refresh
@@ -61,7 +129,15 @@ await netKitManager.requestVoid(
 );
 ```
 
-`containsAccessToken: false` omits the Bearer header; `skipTokenRefresh: true` disables automatic refresh on 401.
+| `AuthPolicy` | Access token | On 401 |
+|--------------|--------------|--------|
+| `inherit` (default) | Sent when stored | Refresh once and retry |
+| `none` | Never sent (a caller-supplied `Authorization` header is stripped too) | Returned as `ApiException(statusCode: 401)` |
+| `required` | Mandatory; `ApiException(type: auth, 401)` before sending when missing | Refresh once and retry |
+
+For requests to other hosts (signed storage URLs, third-party APIs) use the transport directly
+(`netKitManager.transport`, a `RawHttpClient`), which never sends the access token and never
+refreshes. `NetKitManager` itself blocks other origins by default (`allowCrossOriginRequests`).
 
 Net-Kit is **not** an HTTP cache layer (RFC 9111).
 
@@ -75,7 +151,8 @@ To use the refresh token feature, you need to initialize the NetKitManager with 
 | `onTokenRefreshed`               | ✅        | Callback triggered after tokens are successfully refreshed.                |
 | `refreshTokenBodyKey`            | ➖        | Key for the refresh token in the refresh body (default: "refreshToken").   |
 | `accessTokenBodyKey`             | ➖        | Key for the access token in the refresh body (default: "accessToken").     |
-| `removeAccessTokenBeforeRefresh` | ➖        | Whether to strip access token header during token refresh (default: true). |
+| `removeAccessTokenBeforeRefresh` | ➖        | Send the refresh request without the access token header (default: true). The stored token is kept. |
+| `onSessionInvalidated`           | ➖        | Called once when the refresh endpoint answers 401. The only sign-out signal. |
 | `refreshTokenContentType`        | ➖        | `json` (default) or `formUrlEncoded` refresh body.                        |
 | `accessTokenPrefix`              | ➖        | Prefix added to accessToken in headers (default: "Bearer").                |
 | `onBeforeRefreshRequest`         | ➖        | Allows modifying headers/body before refresh is sent.                      |
@@ -97,7 +174,8 @@ final netKitManager = NetKitManager(
     );
   },
 
-  /// Optional: remove the Authorization header before making refresh request
+  /// Optional: send the refresh request without the Authorization header.
+  /// The stored access token itself is never removed by a refresh.
   removeAccessTokenBeforeRefresh: true,
 
   /// Optional: override the default prefix "Bearer"
@@ -110,15 +188,10 @@ final netKitManager = NetKitManager(
     options.body['client_secret'] = 'your_secret';
   },
 
-  onRefreshFailed: (error) async {
-    // Handle refresh failure - redirect to login
+  /// Only called when the refresh endpoint answers 401.
+  onSessionInvalidated: (exception) async {
     await tokenManager.clearTokens();
     // Navigate to login screen
-  },
-
-  onBeforeRefreshRequest: (options) {
-    // Add custom headers or modify request body
-    options.headers['X-Client-Version'] = '1.0.0';
   },
 );
 ```
@@ -188,11 +261,9 @@ final netKitManager = NetKitManager(
     _currentUser.updateTokens(authToken);
   },
 
-  onRefreshFailed: (error) async {
-    // Log the error
-    logger.error('Token refresh failed: ${error.message}');
-
-    // Clear all stored tokens
+  // The refresh credential was rejected (refresh endpoint answered 401).
+  // Offline, timeouts, and server errors never reach this callback.
+  onSessionInvalidated: (exception) async {
     await secureStorage.deleteAll();
   },
 

@@ -17,6 +17,18 @@ class NetKitErrorParams {
     this.nonIdempotentRetryBlockedError =
         '401 after refresh; non-idempotent request not retried',
     this.emptyResponseBodyError = 'Response body is empty',
+    this.crossOriginRequestBlockedError =
+        'Request to a different origin than baseUrl was blocked',
+    this.missingAccessTokenError = 'Access token is required but none is set',
+    this.timeoutError = 'The request timed out',
+    this.requestCancelledError = 'The request was cancelled',
+    this.transportError = 'The request could not be completed',
+    this.tooManyRedirectsError = 'Too many redirects',
+    this.nonReplayableBodyError =
+        'Request body cannot be sent again; use a replayable body',
+    this.sessionInvalidatedError = 'The session has expired',
+    this.unverifiedRedirectError =
+        'The refresh response came from a redirect that could not be verified',
   });
 
   /// The key to use for error messages
@@ -51,10 +63,8 @@ class NetKitErrorParams {
   /// The default value is ['Unsupported object']
   final String jsonUnsupportedObjectError;
 
-  /// The error message for the socket exception error
-  /// The default value is ['Socket exception error']
-  /// This error occurs when there is a network issue
-  /// or when the server is unreachable
+  /// The error message for connection failures (DNS, socket, TLS).
+  /// The default value is ['Socket exception occurred']
   final String socketExceptionError;
 
   /// The error message when a refresh response is missing a valid access token.
@@ -65,4 +75,38 @@ class NetKitErrorParams {
 
   /// The error message when a model/list response has no body.
   final String emptyResponseBodyError;
+
+  /// The error message when a request (or a redirect) targets an absolute URL
+  /// on a different origin than `baseUrl` while `allowCrossOriginRequests`
+  /// is false, or when `AuthPolicy.required` targets another origin.
+  final String crossOriginRequestBlockedError;
+
+  /// The error message when `AuthPolicy.required` is used without a stored
+  /// access token.
+  final String missingAccessTokenError;
+
+  /// The error message for connect, send, or receive timeouts.
+  final String timeoutError;
+
+  /// The error message when the request's cancellation token is cancelled.
+  final String requestCancelledError;
+
+  /// The error message for unclassified transport failures.
+  final String transportError;
+
+  /// The error message when a redirect chain exceeds the limit.
+  final String tooManyRedirectsError;
+
+  /// The error message when a single-shot streamed body would have to be
+  /// sent a second time (after a token refresh or on a `307`/`308` redirect).
+  final String nonReplayableBodyError;
+
+  /// The error message when the refresh endpoint answers `401` and its body
+  /// carries no message.
+  final String sessionInvalidatedError;
+
+  /// The error message when the HTTP client followed a redirect for the
+  /// refresh request on its own (browsers do this unconditionally), so the
+  /// responding origin cannot be verified.
+  final String unverifiedRedirectError;
 }

@@ -1,17 +1,145 @@
-# 5.5.0-dev
+# 6.0.0-dev.1
+
+Pre-release of the 6.0 major version. The public API no longer exposes Dio; see
+`MIGRATION.md` ("Migrating from 5.x to 6.0") for the full breaking-change ledger.
+
+### Breaking Changes
+
+- `package:net_kit/net_kit.dart` no longer exports `package:dio`. Every type in the main
+  entrypoint is owned by net_kit. The Dio adapter and a Dio re-export live in the new
+  `package:net_kit/net_kit_dio.dart`
+- `NetKitManager` composes a `NetKitTransport` instead of being a Dio instance. Constructor
+  changes: `httpClientAdapter` → `transport`, `baseOptions` → `headers` + `timeout`
+  (`NetKitTimeout`), `interceptor` (Dio) → `interceptors` (`List<NetKitInterceptor>`);
+  the deprecated `testMode` is removed; `INetKitManager.baseOptions` is removed and
+  `INetKitManager.transport` is added
+- Request methods take `headers`, `timeout`, `cancellationToken` (`NetKitCancellationToken`),
+  `NetKitProgressCallback`s, and `authPolicy` instead of `options`, `cancelToken`,
+  `ProgressCallback`, `containsAccessToken`, and `skipTokenRefresh`
+- `AuthPolicy { inherit, none, required }` replaces the two auth booleans. `none` never attaches
+  the access token and never refreshes; `required` fails before sending when no token is stored
+- `allowCrossOriginRequests` now defaults to `false`. When enabled, requests and redirects to
+  another origin are sent without the stored headers and access token
+- `uploadFile` streams the file from disk (`File.openRead()`); it no longer reads the whole file
+  into memory. Uploads take `NetKitFormData` / `NetKitMultipartFile` instead of Dio `FormData` /
+  `MultipartFile`; `uploadMultipartData` gained `fieldName`; the `contentType` parameter of
+  `uploadFormData` / `uploadMultipartData` is gone (the transport sets the multipart boundary)
+- `ApiException` gained `type` (`ApiFailureType`: response, transport, timeout, cancelled, auth,
+  decoding, invalidRequest, sessionInvalidated, unknown). `RequestExtraKeys` is removed;
+  `RefreshTokenContentType` moved to its own file
+- `onRefreshFailed` is removed. `onSessionInvalidated` is called once, and the stored tokens are
+  cleared, only when the **refresh endpoint** answers HTTP `401`. Every other refresh failure
+  (offline, DNS, TLS, timeout, cancellation, `429`, `5xx`, other `4xx`, malformed or token-less
+  responses) keeps the tokens, reaches the caller with its own `ApiFailureType` and
+  `ApiException.fromRefresh == true`, and is retried on the next `401`
+- `removeAccessTokenBeforeRefresh` no longer deletes the stored access token; it only omits the
+  header from the refresh request
+- A `401` without a configured `refreshTokenPath` is now returned to the caller instead of
+  failing with "Refresh token path is not set"
+- Raw transport: `RawHttpClient` is an alias of `NetKitTransport`, `DioRawHttpClient` an alias of
+  `DioNetKitTransport` (import `net_kit_dio.dart`). `RawHttpRequest` takes `timeout:
+  NetKitTimeout` instead of three durations. `RawHttpResponse.body` → `bodyBytes`;
+  `header(name)` returns the first value instead of comma-joining. `RawHttpFailureType` gained
+  `tls` (certificate failures, previously `connection`) and `invalidResponse` (previously
+  `unknown`)
+- Redirects are no longer followed by the HTTP client. `NetKitManager` follows up to five
+  redirects itself under the origin policy; the raw transport returns `3xx` unless
+  `RawHttpRequest.followRedirects` is true
 
 ### Features
 
-- Added isolated, transport-independent `RawHttpClient` for generic raw HTTP
-  (absolute URLs, streaming bodies, caller-owned headers, and status/header
-  inspection without API, auth, or model semantics)
-- `DioRawHttpClient` is the built-in Dio implementation (`DioRawHttpClient()`);
-  application code should depend on `RawHttpClient` so the adapter can change
-  later without caller changes
-- HTTP statuses such as 308, 404, 410, and 500 are returned as
-  `RawHttpResponse`; transport failures throw `RawHttpException`
-- `RawHttpCancellationToken` cancels in-flight raw requests without exposing
-  Dio's `CancelToken`
+- `NetKitTransport`: the net_kit-owned transport contract (`send`, `sendStreamed`, `close`).
+  `DioNetKitTransport` is the default implementation; any implementation can be injected
+- `NetKitInterceptor`: application hooks (`onRequest`, `onResponse`, `onError`) over the final
+  transport request, response, and `ApiException`
+- Streamed responses: `NetKitTransport.sendStreamed` returns `RawHttpStreamedResponse` with the
+  status and headers first and a back-pressured body stream; cancellation ends the stream
+- Replayable request bodies: `ReplayableRawHttpBody` (fresh stream per attempt) and
+  `FileRawHttpBody` (streams from disk). `NetKitManager` reopens them for the retry after a token
+  refresh and for `307`/`308` redirects, so large uploads never buffer
+- `NetKitFormData` / `NetKitMultipartFile` describe multipart bodies without Dio; file parts are
+  stream factories, so multipart uploads stream and replay
+- `NetKitTimeout` (connect, send, receive) for the manager, per request, and on raw requests
+- Redirect policy: same-origin redirects keep headers; `303` and `301`/`302` after `POST` become
+  `GET`; cross-origin redirects are blocked by default and never forward credentials
+- `RawHttpResponse.contentLength`, `isSuccessful`, `bodyText`; `RawHttpRequest.copyWith`,
+  `onReceiveProgress`, `followRedirects`; `RawHttpBody.isReplayable`
+- `NetKitManager(logResponseBodies: ...)`: response bodies are kept out of the injected logger
+  and the development log interceptor unless opted in. `RedactingLogInterceptor` is a
+  `NetKitInterceptor` with `logBodies` and `bodySanitizer`
+- New `NetKitErrorParams` messages: `missingAccessTokenError`, `timeoutError`,
+  `requestCancelledError`, `transportError`, `tooManyRedirectsError`, `nonReplayableBodyError`,
+  `sessionInvalidatedError`, `unverifiedRedirectError`
+- `RawHttpResponse.redirected` / `RawHttpStreamedResponse.redirected` report redirects the HTTP
+  client followed on its own (browsers always do)
+- `NetKitManager(sensitiveQueryParameters: ...)` and
+  `RedactingLogInterceptor(sensitiveQueryParameters: ...)`
+
+### Security
+
+- Refresh requests are pinned to the API origin: `allowCrossOriginRequests`,
+  `onBeforeRefreshRequest`, interceptors, and redirects cannot send the refresh credential to
+  another origin. On the web, a refresh response that came from a browser-followed redirect is
+  rejected
+- Origin rules are re-applied after interceptors run, so an interceptor cannot carry stored
+  credentials to another origin
+- Logged URLs redact credential-like query parameters (signed URL signatures, OAuth codes, API
+  keys, tokens) and user-info
+- A refresh result that arrives after the application stored new credentials is discarded instead
+  of overwriting them, and a refresh `401` for superseded credentials does not end the new session
+- Cancelling a request that waits for a refresh releases it immediately without cancelling the
+  shared refresh
+
+### Improvements
+
+- Timeouts, cancellation, connection, and TLS failures are reported as typed `ApiException`s
+  instead of a generic parse error
+- `uploadMultipartData` sends a real multipart body (the file under `fieldName`) instead of the
+  string form of the file object
+
+# 5.5.0
+
+### Features
+
+- Added `RawHttpClient`, an isolated, transport-independent client for raw HTTP to absolute URLs
+  (for example signed object-storage uploads). It sends only caller-owned headers, never attaches
+  the `NetKitManager` access token, never refreshes tokens, never retries, and returns every HTTP
+  status (including 401 and 5xx) as a `RawHttpResponse`; only transport failures throw
+  `RawHttpException`
+- `DioRawHttpClient` is the built-in implementation; application code should depend on
+  `RawHttpClient` so the transport can change without caller changes
+- `StreamRawHttpBody` streams request bodies (for example `File.openRead()`) without buffering them,
+  with `Content-Length`, upload progress (`onSendProgress`), and timeouts
+- `RawHttpCancellationToken` cancels raw requests without exposing Dio's `CancelToken`. One token may
+  be shared by several in-flight requests; cancellation is idempotent, a cancelled token fails new
+  requests before sending, and completed requests release their binding
+- `RawHttpMethod` covers `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`
+- `RawHttpResponse.headerValues(name)` returns repeated header values unjoined (for example
+  `Set-Cookie`); response header collections are unmodifiable
+- Optional cross-origin protection: `NetKitManager(allowCrossOriginRequests: false)` rejects requests
+  whose absolute URL has a different origin than `baseUrl` before anything is sent, so the access
+  token cannot reach an unrelated host. Adds `NetKitErrorParams.crossOriginRequestBlockedError`.
+  The default (`true`) keeps 5.4.x behavior
+- `NetKitManager(sensitiveHeaders: [...])` adds header names to redact from development HTTP logs
+
+### Improvements
+
+- Compatible with the whole `dio: ^5.8.0` range including Dio 5.10+ (`DioExceptionType.transformTimeout`
+  maps to `RawHttpFailureType.timeout`); new Dio failure types no longer break compilation
+- Development HTTP logging (`logInterceptorEnabled`) now uses a redacting interceptor instead of Dio's
+  `LogInterceptor`: values of `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie`, common
+  API-key/token headers, and `sensitiveHeaders` print as `[REDACTED]`, and request/response bodies
+  are not printed
+- In dev mode, a logger warning is emitted when the access token is about to be sent to a
+  cross-origin absolute URL
+- Documented that `uploadFile` reads the whole file into memory (so the request can be replayed after
+  a token refresh); large or external uploads should use `RawHttpClient` with `StreamRawHttpBody`
+- Resolved `parameter_assignments` analyzer findings
+
+### Bug Fixes
+
+- `uploadRawData` sent a `List<int>` that was not a `Uint8List` as text instead of raw bytes; the
+  payload is now always sent as binary
 
 # 5.4.1
 

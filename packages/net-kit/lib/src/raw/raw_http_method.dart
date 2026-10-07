@@ -1,7 +1,7 @@
 /// HTTP methods supported by the raw HTTP transport.
 ///
 /// Independent of the API client's request methods so the raw layer can
-/// include `HEAD` without changing `NetKitManager`.
+/// include `HEAD` and `OPTIONS` without changing `NetKitManager`.
 enum RawHttpMethod {
   /// GET
   get,
@@ -20,6 +20,9 @@ enum RawHttpMethod {
 
   /// HEAD
   head,
+
+  /// OPTIONS
+  options,
 }
 
 /// Helpers for mapping [RawHttpMethod] to an HTTP verb.

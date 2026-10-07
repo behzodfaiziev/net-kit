@@ -10,10 +10,11 @@ void main() {
       expect(RawHttpMethod.patch.httpName, 'PATCH');
       expect(RawHttpMethod.delete.httpName, 'DELETE');
       expect(RawHttpMethod.head.httpName, 'HEAD');
+      expect(RawHttpMethod.options.httpName, 'OPTIONS');
     });
 
-    test('includes all six methods', () {
-      expect(RawHttpMethod.values, hasLength(6));
+    test('includes the seven standard methods', () {
+      expect(RawHttpMethod.values, hasLength(7));
     });
   });
 }

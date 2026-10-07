@@ -1,6 +1,7 @@
-import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:net_kit/net_kit.dart';
 import 'package:test/test.dart';
+
+import '../../../mocks/fake_transport.dart';
 
 class _ItemModel extends INetKitModel {
   const _ItemModel({this.name = ''});
@@ -37,20 +38,24 @@ class _MetaModel extends INetKitModel {
 void main() {
   group('Meta response parsing', () {
     late NetKitManager manager;
-    late DioAdapter adapter;
+    late FakeTransport transport;
+
+    NetKitManager build({String? dataKey, String metadataDataKey = 'data'}) {
+      return NetKitManager(
+        baseUrl: 'https://api.example.com',
+        transport: transport,
+        dataKey: dataKey,
+        metadataDataKey: metadataDataKey,
+      );
+    }
 
     setUp(() {
-      manager = NetKitManager(
-        baseUrl: 'https://example.com',
-        dataKey: 'result',
-      );
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      transport = FakeTransport();
+      manager = build(dataKey: 'result');
     });
 
     tearDown(() {
       manager.dispose();
-      adapter.close();
     });
 
     test('does not mutate the original response map', () async {
@@ -59,10 +64,7 @@ void main() {
         'page': 1,
       };
 
-      adapter.onGet(
-        '/meta',
-        (server) => server.reply(200, Map<String, dynamic>.from(responseBody)),
-      );
+      transport.onGet('/meta', json: Map<String, dynamic>.from(responseBody));
 
       await manager.requestModelMeta<_ItemModel, _MetaModel>(
         path: '/meta',
@@ -78,17 +80,14 @@ void main() {
 
     test('useDataKey true unwraps outer dataKey before splitting meta',
         () async {
-      adapter.onGet(
+      transport.onGet(
         '/meta',
-        (server) => server.reply(
-          200,
-          {
-            'result': {
-              'data': {'name': 'nested'},
-              'page': 2,
-            },
+        json: {
+          'result': {
+            'data': {'name': 'nested'},
+            'page': 2,
           },
-        ),
+        },
       );
 
       final result = await manager.requestModelMeta<_ItemModel, _MetaModel>(
@@ -105,26 +104,17 @@ void main() {
     test('useDataKey false reads from top-level map without outer unwrap',
         () async {
       manager.dispose();
-      manager = NetKitManager(
-        baseUrl: 'https://example.com',
-        dataKey: 'result',
-        metadataDataKey: 'payload',
-      );
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      manager = build(dataKey: 'result', metadataDataKey: 'payload');
 
-      adapter.onGet(
+      transport.onGet(
         '/meta',
-        (server) => server.reply(
-          200,
-          {
-            'payload': [
-              {'name': 'a'},
-              {'name': 'b'},
-            ],
-            'page': 3,
-          },
-        ),
+        json: {
+          'payload': [
+            {'name': 'a'},
+            {'name': 'b'},
+          ],
+          'page': 3,
+        },
       );
 
       final result = await manager.requestListMeta<_ItemModel, _MetaModel>(
@@ -142,27 +132,18 @@ void main() {
 
     test('supports dataKey different from metadataDataKey', () async {
       manager.dispose();
-      manager = NetKitManager(
-        baseUrl: 'https://example.com',
-        dataKey: 'wrapper',
-        metadataDataKey: 'items',
-      );
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      manager = build(dataKey: 'wrapper', metadataDataKey: 'items');
 
-      adapter.onGet(
+      transport.onGet(
         '/meta',
-        (server) => server.reply(
-          200,
-          {
-            'wrapper': {
-              'items': [
-                {'name': 'x'},
-              ],
-              'total': 5,
-            },
+        json: {
+          'wrapper': {
+            'items': [
+              {'name': 'x'},
+            ],
+            'total': 5,
           },
-        ),
+        },
       );
 
       final result = await manager.requestListMeta<_ItemModel, _MetaModel>(
@@ -179,16 +160,10 @@ void main() {
     test('handles missing metadataDataKey with metadata-only response',
         () async {
       manager.dispose();
-      manager = NetKitManager(baseUrl: 'https://example.com');
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      manager = build();
 
       final responseBody = <String, dynamic>{'page': 1};
-
-      adapter.onGet(
-        '/meta',
-        (server) => server.reply(200, Map<String, dynamic>.from(responseBody)),
-      );
+      transport.onGet('/meta', json: Map<String, dynamic>.from(responseBody));
 
       await expectLater(
         manager.requestModelMeta<_ItemModel, _MetaModel>(
@@ -207,18 +182,13 @@ void main() {
     test('returns empty metadata when response contains only payload key',
         () async {
       manager.dispose();
-      manager = NetKitManager(baseUrl: 'https://example.com');
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      manager = build();
 
-      adapter.onGet(
+      transport.onGet(
         '/meta',
-        (server) => server.reply(
-          200,
-          {
-            'data': {'name': 'solo'},
-          },
-        ),
+        json: {
+          'data': {'name': 'solo'},
+        },
       );
 
       final result = await manager.requestModelMeta<_ItemModel, _MetaModel>(
@@ -237,19 +207,14 @@ void main() {
     test('useDataKey true with null dataKey splits top-level response',
         () async {
       manager.dispose();
-      manager = NetKitManager(baseUrl: 'https://example.com');
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      manager = build();
 
-      adapter.onGet(
+      transport.onGet(
         '/meta',
-        (server) => server.reply(
-          200,
-          {
-            'data': {'name': 'top-level'},
-            'page': 4,
-          },
-        ),
+        json: {
+          'data': {'name': 'top-level'},
+          'page': 4,
+        },
       );
 
       final result = await manager.requestModelMeta<_ItemModel, _MetaModel>(
@@ -271,10 +236,7 @@ void main() {
       };
       final responseBody = <String, dynamic>{'result': nestedResult};
 
-      adapter.onGet(
-        '/meta',
-        (server) => server.reply(200, Map<String, dynamic>.from(responseBody)),
-      );
+      transport.onGet('/meta', json: Map<String, dynamic>.from(responseBody));
 
       final result = await manager.requestModelMeta<_ItemModel, _MetaModel>(
         path: '/meta',
@@ -292,19 +254,14 @@ void main() {
 
     test('throws when metadataDataKey payload is not a map', () async {
       manager.dispose();
-      manager = NetKitManager(baseUrl: 'https://example.com');
-      adapter = DioAdapter(dio: manager);
-      manager.httpClientAdapter = adapter;
+      manager = build();
 
-      adapter.onGet(
+      transport.onGet(
         '/meta',
-        (server) => server.reply(
-          200,
-          {
-            'data': 'not-a-map',
-            'page': 1,
-          },
-        ),
+        json: {
+          'data': 'not-a-map',
+          'page': 1,
+        },
       );
 
       await expectLater(

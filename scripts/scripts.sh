@@ -7,7 +7,7 @@ cd flutter_integration_test && flutter run -d web-server
 cd flutter_integration_test && flutter test integration_test
 
 # Test the package
-cd packages/net-kit && dart format --set-exit-if-changed . && dart analyze --fatal-infos --fatal-warnings && dart test && cd .. && cd ..
+cd packages/net-kit && dart format --set-exit-if-changed . && dart analyze --fatal-infos --fatal-warnings && dart test --exclude-tags live && cd .. && cd ..
 
 # Publish the package
-cd packages/net-kit && dart format --set-exit-if-changed . && dart analyze --fatal-infos --fatal-warnings && dart test &&  dart pub publish  && cd .. && cd ..
+cd packages/net-kit && dart format --set-exit-if-changed . && dart analyze --fatal-infos --fatal-warnings && dart test --exclude-tags live &&  dart pub publish  && cd .. && cd ..

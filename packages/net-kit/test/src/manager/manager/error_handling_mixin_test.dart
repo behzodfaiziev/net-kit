@@ -4,6 +4,8 @@ import 'package:net_kit/net_kit.dart';
 import 'package:net_kit/src/enum/http_status_codes.dart';
 import 'package:test/test.dart';
 
+import '../../../mocks/fake_transport.dart';
+
 class _TestModel extends INetKitModel {
   const _TestModel();
 
@@ -17,12 +19,15 @@ class _TestModel extends INetKitModel {
 void main() {
   group('Error handling through requestModel', () {
     late StreamController<bool> internetStatusController;
+    late FakeTransport transport;
     late NetKitManager manager;
 
     setUp(() {
       internetStatusController = StreamController<bool>.broadcast();
+      transport = FakeTransport();
       manager = NetKitManager(
-        baseUrl: 'https://example.com',
+        baseUrl: 'https://api.example.com',
+        transport: transport,
         internetStatusStream: internetStatusController.stream,
       );
     });
@@ -44,9 +49,11 @@ void main() {
         );
         fail('Expected ApiException');
       } on ApiException catch (e) {
+        expect(e.type, ApiFailureType.transport);
         expect(e.message, 'No internet connection');
         expect(e.statusCode, HttpStatuses.serviceUnavailable.code);
       }
+      expect(transport.requests, isEmpty);
     });
   });
 }

@@ -1,32 +1,54 @@
 part of '../net_kit_manager.dart';
 
-///This class is responsible for handling errors
-///in network requests. It provides methods to handle different
-///types of errors and to generate appropriate error responses.
+/// Maps transport and decoding failures to [ApiException].
 mixin ErrorHandlingMixin on RequestManagerMixin {
-  /// Returns an [ApiException] object from a DioException
-  ApiException _parseToApiException(DioException exception) {
-    if (exception.error is ApiException) {
-      return exception.error! as ApiException;
+  @override
+  ApiException _fromRawException(RawHttpException exception) {
+    switch (exception.type) {
+      case RawHttpFailureType.timeout:
+        return ApiException(
+          type: ApiFailureType.timeout,
+          statusCode: 408,
+          message: _errorParams.timeoutError,
+          error: exception,
+        );
+      case RawHttpFailureType.cancellation:
+        return ApiException(
+          type: ApiFailureType.cancelled,
+          statusCode: null,
+          message: _errorParams.requestCancelledError,
+          error: exception,
+        );
+      case RawHttpFailureType.connection:
+      case RawHttpFailureType.tls:
+        return ApiException(
+          type: ApiFailureType.transport,
+          statusCode: HttpStatuses.serviceUnavailable.code,
+          message: _errorParams.socketExceptionError,
+          debugMessage: exception.message,
+          error: exception,
+        );
+      case RawHttpFailureType.invalidResponse:
+      case RawHttpFailureType.unknown:
+        return ApiException(
+          type: ApiFailureType.transport,
+          statusCode: HttpStatuses.serviceUnavailable.code,
+          message: _errorParams.transportError,
+          debugMessage: exception.message,
+          error: exception,
+        );
     }
-
-    return ApiException.fromJson(
-      json: exception.response?.data ?? exception.error,
-      statusCode: exception.response?.statusCode,
-      params: _errorParams,
-    );
   }
 
-  DioException _notMapTypeError(Response<dynamic> response) {
-    return DioException(
-      requestOptions: response.requestOptions,
-      response: Response<dynamic>(
-        requestOptions: response.requestOptions,
-        data: {
-          _errorParams.messageKey: _errorParams.notMapTypeError,
-          _errorParams.statusCodeKey: HttpStatuses.expectationFailed.code,
-        },
-      ),
-    );
-  }
+  ApiException _emptyResponseBodyError(_Outcome outcome) => ApiException(
+        type: ApiFailureType.decoding,
+        statusCode: outcome.statusCode,
+        message: _errorParams.emptyResponseBodyError,
+      );
+
+  ApiException _notMapTypeError() => ApiException(
+        type: ApiFailureType.decoding,
+        statusCode: HttpStatuses.expectationFailed.code,
+        message: _errorParams.notMapTypeError,
+      );
 }

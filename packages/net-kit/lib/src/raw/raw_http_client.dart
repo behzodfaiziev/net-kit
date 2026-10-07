@@ -1,14 +1,10 @@
-import 'raw_http_request.dart';
-import 'raw_http_response.dart';
+import 'net_kit_transport.dart';
 
-/// Isolated raw HTTP transport.
+/// Isolated raw HTTP client: a [NetKitTransport] used directly.
 ///
-/// Sends absolute URLs with caller-owned headers and returns status codes
-/// and headers without API, auth, or model semantics.
-abstract interface class RawHttpClient {
-  /// Sends [request] and returns the HTTP response.
-  ///
-  /// Transport failures throw a raw transport exception. HTTP statuses,
-  /// including non-2xx codes, are returned as [RawHttpResponse].
-  Future<RawHttpResponse> send(RawHttpRequest request);
-}
+/// Sends absolute URLs with caller-owned headers and returns status codes,
+/// headers, and bodies without API, auth, or model semantics. The same
+/// implementation that backs `NetKitManager` serves as the raw client, so
+/// there is one transport layer and one set of body, response, and error
+/// types.
+typedef RawHttpClient = NetKitTransport;

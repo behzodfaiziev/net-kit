@@ -2,7 +2,7 @@ name: net_kit
 
 description: "Netkit is a library that provides a set of tools to work with network requests."
 
-version: 5.5.0-dev
+version: 6.0.0-dev.1
 
 homepage: https://github.com/behzodfaiziev/net-kit/tree/main/packages/net-kit
 issue_tracker: https://github.com/behzodfaiziev/net-kit/issues
@@ -25,7 +25,6 @@ dependencies:
   meta: ^1.16.0
 
 dev_dependencies:
-  http_mock_adapter: ^0.6.1
   mocktail: ^1.0.4
   shelf: ^1.4.2
   test: ^1.25.15
