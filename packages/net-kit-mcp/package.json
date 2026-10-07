@@ -1,0 +1,76 @@
+{
+  "name": "flutter-net-kit-mcp",
+  "version": "0.1.0-dev.1",
+  "description": "Read-only MCP server for the net_kit Dart/Flutter networking package: version-specific API knowledge and net_kit-specific project review.",
+  "keywords": [
+    "net-kit",
+    "flutter",
+    "dart",
+    "mcp",
+    "model-context-protocol",
+    "networking"
+  ],
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "homepage": "https://github.com/behzodfaiziev/net-kit#readme",
+  "bugs": {
+    "url": "https://github.com/behzodfaiziev/net-kit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/behzodfaiziev/net-kit.git",
+    "directory": "packages/net-kit-mcp"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "dist/src/index.js",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "bin": {
+    "net-kit-mcp": "dist/src/bin/stdio.js"
+  },
+  "files": [
+    "dist/src/",
+    "!dist/src/bin/generate-knowledge.js",
+    "!dist/src/knowledge/generate.js",
+    "!dist/src/knowledge/dartApi.js",
+    "!dist/src/knowledge/markdown.js",
+    "generated/",
+    "README.md",
+    "SECURITY.md",
+    "docs/architecture.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "generate": "npm run build && node dist/src/bin/generate-knowledge.js",
+    "check:knowledge": "npm run build && node dist/src/bin/generate-knowledge.js --check",
+    "test": "npm run build && node --test --test-reporter=spec \"dist/test/**/*.test.js\"",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "start": "node dist/src/bin/stdio.js",
+    "dev": "npm run build && node dist/src/bin/stdio.js",
+    "prepack": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@types/node": "^22.20.5",
+    "eslint": "^10.12.0",
+    "prettier": "^3.9.9",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}

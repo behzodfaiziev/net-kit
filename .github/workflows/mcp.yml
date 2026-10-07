@@ -1,0 +1,72 @@
+name: MCP server
+
+# Gates the @net-kit/mcp package. Also runs when the net_kit public API or
+# documentation changes, so stale bundled knowledge is detected.
+# Publishing to npm is a deliberate manual step; this workflow never publishes.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "packages/net-kit-mcp/**"
+      - "packages/net-kit/lib/**"
+      - "packages/net-kit/*.md"
+      - "packages/net-kit/pubspec.yaml"
+      - ".github/workflows/mcp.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "packages/net-kit-mcp/**"
+      - "packages/net-kit/lib/**"
+      - "packages/net-kit/*.md"
+      - "packages/net-kit/pubspec.yaml"
+      - ".github/workflows/mcp.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  mcp:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    defaults:
+      run:
+        working-directory: packages/net-kit-mcp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: packages/net-kit-mcp/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundled knowledge is current
+        run: npm run check:knowledge
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+      - name: Package contents
+        run: npm pack --dry-run

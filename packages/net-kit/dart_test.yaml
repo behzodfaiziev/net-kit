@@ -1,0 +1,6 @@
+tags:
+  live:
+    description: >-
+      Tests that call public third-party HTTP APIs. They depend on those
+      services being reachable. Run `dart test --exclude-tags live` for a
+      deterministic suite, or `dart test --tags live` to run only these.
