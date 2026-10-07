@@ -2,7 +2,7 @@ name: net_kit
 
 description: "Secure, flexible networking for Dart and Flutter: typed requests, per-request auth, safe token refresh, replayable streaming uploads, signed URLs, and raw HTTP."
 
-version: 6.0.0-dev.1
+version: 6.0.0-dev.2
 
 homepage: https://github.com/behzodfaiziev/net-kit/tree/main/packages/net-kit
 issue_tracker: https://github.com/behzodfaiziev/net-kit/issues
