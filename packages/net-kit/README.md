@@ -7,9 +7,14 @@ coordinated token refresh with predictable session invalidation, streaming and r
 signed and external URLs, cancellation and progress, and raw HTTP when you need the protocol
 itself.
 
+
+
 [![pub package](https://img.shields.io/pub/v/net_kit.svg)](https://pub.dev/packages/net_kit)
 [![Build and Test](https://github.com/behzodfaiziev/net-kit/actions/workflows/test.yml/badge.svg)](https://github.com/behzodfaiziev/net-kit/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+
+<img width="1672" height="941" alt="111" src="https://github.com/user-attachments/assets/da7b00ae-2cd9-4bf8-9b5d-9c246f5101cc" />
 
 ## Contents
 
