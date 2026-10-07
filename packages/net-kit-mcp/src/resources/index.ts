@@ -28,7 +28,7 @@ import { PATTERNS } from '../patterns/catalog.js';
 const STREAMING_TOPIC = [
   'readme.large-file-uploads',
   'readme.streaming-responses',
-  'readme.methods-cancellation-and-progress',
+  'readme.cancellation-and-progress',
 ];
 
 function text(uri: string, mimeType: string, body: string) {

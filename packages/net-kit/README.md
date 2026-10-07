@@ -1,609 +1,488 @@
-![h)](https://github.com/user-attachments/assets/d8115ef2-4783-4d2d-88de-df57df40112f)
+# Netkit
 
-![Version](https://img.shields.io/pub/v/net_kit)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Contributions welcome](https://img.shields.io/badge/contributions-welcome-orange)
-![GitHub Sponsors](https://img.shields.io/badge/sponsors-welcome-yellow)
+Secure, flexible networking for Dart and Flutter.
 
-## **Contents**
+Netkit (`net_kit` on pub.dev) gives you typed API requests, explicit per-request authentication,
+coordinated token refresh with predictable session invalidation, streaming and replayable uploads,
+signed and external URLs, cancellation and progress, and raw HTTP when you need the protocol
+itself.
 
-<details>
+[![pub package](https://img.shields.io/pub/v/net_kit.svg)](https://pub.dev/packages/net_kit)
+[![Build and Test](https://github.com/behzodfaiziev/net-kit/actions/workflows/test.yml/badge.svg)](https://github.com/behzodfaiziev/net-kit/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<summary>🔽 Click to expand</summary>
+## Contents
 
-<!-- TOC -->
-  * [**Contents**](#contents)
-  * [**Features**](#features)
-  * [**Getting started**](#getting-started)
-    * [**Initialize**](#initialize)
-    * [**Extend the model**](#extend-the-model)
-    * [**Custom Void Models in Uploading**](#custom-void-models-in-uploading)
-  * [**Sending requests**](#sending-requests)
-    * [**Available Request Methods**](#available-request-methods)
-    * [**Request Examples**](#request-examples)
-    * [**Why DataKey is Used**](#why-datakey-is-used)
-    * [**DataKey Configuration**](#datakey-configuration)
-    * [**Session invalidation**](#session-invalidation)
-    * [**Advanced Examples**](#advanced-examples)
-    * [**Setting Tokens**](#setting-tokens)
-    * [**User Logout**](#user-logout)
-  * [**Token Management**](#token-management)
-    * [**Quick Token Setup**](#quick-token-setup)
-    * [**Comprehensive Token Management**](#comprehensive-token-management)
-    * [**Auth policy per request**](#auth-policy-per-request)
-  * [**Logger Integration**](#logger-integration)
-  * [**Architecture**](#architecture)
-  * [**Raw HTTP transport**](#raw-http-transport)
-    * [**Security model**](#security-model)
-    * [**Methods, cancellation, and progress**](#methods-cancellation-and-progress)
-    * [**Large file uploads**](#large-file-uploads)
-    * [**Streaming responses**](#streaming-responses)
-    * [**Origin and redirect policy**](#origin-and-redirect-policy)
-    * [**Interceptors**](#interceptors)
-* [Migration Guidance](#migration-guidance)
-  * [**Feature Status**](#feature-status)
-  * [**Contributing**](#contributing)
-  * [**License**](#license)
-<!-- TOC -->
+- [Why Netkit?](#why-netkit)
+- [Install](#install) and [Quick start](#quick-start)
+- [Which API should I use?](#which-api-should-i-use)
+- [Requests](#requests)
+- [Authentication](#authentication)
+  - [AuthPolicy](#authpolicy)
+  - [Refresh and session invalidation](#refresh-and-session-invalidation)
+- [Uploads and streaming](#uploads-and-streaming)
+  - [Large file uploads](#large-file-uploads)
+  - [Streaming responses](#streaming-responses)
+  - [Cancellation and progress](#cancellation-and-progress)
+- [Raw HTTP and signed URLs](#raw-http-and-signed-urls)
+- [Security](#security) and [Logging](#logging)
+- [Architecture](#architecture)
+- [Netkit MCP](#netkit-mcp)
+- [Migrating from 5.x](#migrating-from-5x)
+- [Documentation](#documentation)
 
-</details>  
+## Why Netkit?
 
-## **Features**
+- **Typed requests.** Responses are parsed into your models and lists, with optional envelope
+  unwrapping and pagination metadata.
+- **Explicit authentication.** Each request declares its `AuthPolicy` (`inherit`, `none`, or
+  `required`) instead of relying on URL patterns or interceptor state.
+- **Safe token refresh.** Concurrent `401` responses share a single refresh, then retry.
+- **Predictable sessions.** A session ends only when the refresh endpoint itself answers HTTP
+  `401`. Offline devices, timeouts, and server errors never sign the user out.
+- **Streaming, replayable uploads.** Large files stream from disk and are reopened when a request
+  is retried after a refresh, so they are never held in memory.
+- **Signed and external URLs.** GCS/S3 signed uploads go through `RawHttpClient`, which carries no
+  application credentials; stored tokens never leave your API origin by default.
+- **Cancellation and progress** on every request, with one token shared across many.
 
-- 🧩 Transport-neutral public API: no HTTP-library types leak out of `package:net_kit/net_kit.dart`
-- 🔄 Single-flight token refresh (one refresh for concurrent 401s) with replayable retries
-- 🔑 `AuthPolicy` per request: `inherit`, `none` (public endpoints), `required`
-- 🔒 RFC 9110-safe POST retry policy (`allowRetryOn401` opt-in)
-- 🛡 API origin enforcement: credentials never leave `baseUrl`'s origin, not even on redirects
-- ⚙️ `onBeforeRefreshRequest` to mutate refresh payload
-- 🛠 Parsing responses into models or lists using `INetKitModel`
-- 🧪 Configurable base URLs for development and production
-- 🌐 Internationalization support for error messages
-- 📦 Streaming multipart and file uploads that survive a token refresh
-- 📋 Extensible logger integration with secret redaction
-- 📡 `NetKitTransport` / `RawHttpClient` for absolute URLs, streamed bodies, and streamed responses
+## Install
 
-<!-- ## **Sponsors**
+```bash
+dart pub add net_kit:^6.0.0-dev.1
+```
 
-A big thanks to our awesome sponsors for keeping this project going!️ Want to help out? Consider
-becoming a [sponsor](https://github.com/sponsors/behzodfaiziev/)!
+In a Flutter app, use `flutter pub add net_kit:^6.0.0-dev.1`. This README describes the 6.0
+pre-release; upgrading from 5.x is covered in [Migrating from 5.x](#migrating-from-5x).
 
-<table style="background-color: white; border: 1px solid black">
-    <tbody>
-        <tr>
-            <td style="border: 1px solid black">
-                <a href="https://westudio.dev"><img src="https://github.com/user-attachments/assets/a7ce889d-340f-4c84-8cb1-6a94c31bacc5" width="225" alt="WESTUDIO"/></a>
-            </td>
-            <td style="border: 1px solid black">
-                <a href="https://vremica.com"><img src="https://github.com/user-attachments/assets/25942faf-45dc-44cf-8422-2d2eb2711ac0" width="225" alt="VREMICA"/></a>
-            </td>
-            <td style="border: 1px solid black">
-                <a href="https://jurnalle.com"><img src="https://github.com/user-attachments/assets/2de36aa9-2c4e-4669-b3db-b6565846e4c8" width="225" alt="JURNALLE"/></a>
-            </td>
-</table> -->
+## Quick start
 
-## **Getting started**
-
-### **Initialize**
-
-Initialize the NetKitManager with the parameters:
+Define a model by extending `INetKitModel`:
 
 ```dart
 import 'package:net_kit/net_kit.dart';
 
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
-  devBaseUrl: 'https://dev.<URL>.com',
-  // ... other parameters
-);
-```
+class Todo extends INetKitModel {
+  const Todo({this.id, this.title, this.completed = false});
 
-### **Extend the model**
-
-Requests such as: `requestModel` and`requestList` require the model to
-extend `INetKitModel` in order to be used with the NetKitManager. By extending, `INetKitModel`
-`fromJson` and `toJson` methods will be needed to be implemented, so the model can be serialized and
-deserialized.
-
-```dart
-class TodoModel extends INetKitModel {}
-```
-
-### **Custom Void Models in Uploading**
-
-**⚠️ Custom Void Models:**
-If you want to handle endpoints that return no data (i.e., void/empty responses) using your own
-model, your model must implement VoidModel from this package.
-
-Example:
-
-```dart
-class AppVoidModel implements INetKitModel, VoidModel {
-  @override
-  Map<String, dynamic> toJson() => {};
+  final int? id;
+  final String? title;
+  final bool completed;
 
   @override
-  AppVoidModel fromJson(Map<String, dynamic> json) => AppVoidModel();
+  Todo fromJson(Map<String, dynamic> json) => Todo(
+        id: json['id'] as int?,
+        title: json['title'] as String?,
+        completed: json['completed'] as bool? ?? false,
+      );
+
+  @override
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'title': title, 'completed': completed};
 }
 ```
 
-Without implementing VoidModel, void requests will not be recognized correctly and may throw
-exceptions.
+Create one manager for your API and send typed requests:
 
-## **Sending requests**
+```dart
+final manager = NetKitManager(baseUrl: 'https://api.example.com');
 
-NetKitManager provides several methods for making HTTP requests. Each method is designed for specific use cases and response types.
+Future<void> main() async {
+  try {
+    final todo = await manager.requestModel<Todo>(
+      path: '/todos/1',
+      method: RequestMethod.get,
+      model: const Todo(),
+    );
+    print(todo.title);
+  } on ApiException catch (e) {
+    // e.type is an ApiFailureType: response, transport, timeout, cancelled,
+    // auth, sessionInvalidated, decoding, invalidRequest, or unknown.
+    print('${e.type} ${e.statusCode}: ${e.message}');
+  }
+}
+```
 
-### **Available Request Methods**
+Every `NetKitManager` request throws `ApiException` on failure; no transport-library exception
+escapes it.
 
-| Method | Description | Use Case |
-|--------|-------------|----------|
-| `requestModel` | Request a single model | Get a single resource |
-| `requestList` | Request a list of models | Get multiple resources |
-| `requestVoid` | Send a request without expecting data | Delete, update operations |
-| `requestModelMeta` | Request a model with metadata | Get a resource with additional info |
-| `requestListMeta` | Request a list with metadata | Get paginated data with metadata |
-| `uploadMultipartData` | Upload a single file part (`NetKitMultipartFile`) | File uploads |
-| `uploadFormData` | Upload `NetKitFormData` (fields + file parts) | Form submissions with files |
-| `uploadRawData` | Upload raw bytes as request body | Binary/raw file uploads (web-safe) |
-| `uploadFile` | Stream a file from disk as the raw request body | Large binary uploads from a path (IO only); see [Large file uploads](#large-file-uploads) |
+## Which API should I use?
 
-### **Request Examples**
+| Need | Use |
+| --- | --- |
+| Your application's API | `NetKitManager` |
+| A model, a list, or no response body | `requestModel`, `requestList`, `requestVoid` |
+| Paginated data with metadata | `requestListMeta` |
+| A public endpoint (login, registration) | `NetKitManager` with `AuthPolicy.none` |
+| An endpoint that must be authenticated | `NetKitManager` with `AuthPolicy.required` |
+| Multipart or form uploads | `uploadMultipartData`, `uploadFormData` |
+| A large file to your API | `uploadFile` (streamed from disk) |
+| Signed GCS/S3 or any external URL | `RawHttpClient` with `FileRawHttpBody` |
+| A large download | `RawHttpClient.sendStreamed` |
+| A custom Dio adapter (proxy, certificate pinning) | `DioNetKitTransport` from `net_kit_dio.dart` |
 
-- **📋 [Request a Single Model →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request a List of Models →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Send a Void Request →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request Model with Metadata →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#service-layer-pattern)**
-- **📋 [Request List with Metadata (Pagination) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#pagination)**
-- **📋 [Upload Multipart Data (Single File) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
-- **📋 [Upload Form Data →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
-- **📋 [Upload Raw Data (Direct Binary) →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md#file-uploads)**
+## Requests
 
-### **Why DataKey is Used**
+| Method | Returns |
+| --- | --- |
+| `requestModel<R>` | `R` parsed from a JSON object |
+| `requestList<R>` | `List<R>` parsed from a JSON array |
+| `requestVoid` | nothing; any 2xx (including `204`) succeeds |
+| `requestModelMeta<R, M>` | `ApiMetaResponse<R, M>`: the model plus metadata |
+| `requestListMeta<R, M>` | `ApiMetaResponse<List<R>, M>`: for pagination |
+| `uploadMultipartData<R>` | `R`; one `NetKitMultipartFile` as `multipart/form-data` |
+| `uploadFormData<R>` | `R`; `NetKitFormData` with fields and files |
+| `uploadRawData<R>` | `R`; raw bytes as the body (works on web) |
+| `uploadFile<R>` | `R`; a file streamed from disk as the body (not on web) |
 
-Many APIs return responses in a wrapped format where the actual data is nested under a specific key. For example:
+All methods accept `headers`, `queryParameters`, `timeout` (`NetKitTimeout`),
+`cancellationToken`, progress callbacks, and `authPolicy`. A `body` map is sent as JSON unless a
+`Content-Type` header says otherwise. Upload endpoints that return no body can use `VoidModel` as
+`R`; a custom empty model must `implements VoidModel` to be recognized.
+
+See [EXAMPLES.md](EXAMPLES.md) for service and repository layers, pagination, uploads, and
+error handling.
+
+### Response envelopes
+
+If your API wraps payloads, set `dataKey` once and Netkit unwraps every response:
 
 ```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com"
-  },
-  "message": "User retrieved successfully"
-}
+{ "success": true, "data": { "id": 1, "title": "Write docs" } }
 ```
 
-Without DataKey configuration, you would need to manually extract the data from the `data` field in every response. NetKit's DataKey feature automatically handles this extraction, making your code cleaner and more maintainable.
+```dart
+final manager = NetKitManager(baseUrl: 'https://api.example.com', dataKey: 'data');
+```
 
-### **DataKey Configuration**
+For an endpoint that returns an unwrapped payload, pass `useDataKey: false` on that request.
+Meta requests split the envelope: the payload under `metadataDataKey` (default `'data'`) becomes
+the model and the remaining fields become the metadata model.
 
-The `useDataKey` parameter (default: `true`) allows you to control whether to use the configured `dataKey` wrapper for individual requests. This is useful when you have different API endpoints that return data in different formats.
+## Authentication
 
-- When `useDataKey: true` (default): Uses the configured `dataKey` to extract data from the response
-- When `useDataKey: false`: Uses `response.data` directly, ignoring the `dataKey` configuration
-- **Note:** This parameter has no effect if `dataKey` is not set in the NetKitManager configuration
+### AuthPolicy
 
-Available on all request methods: `requestModel`, `requestModelMeta`, `requestList`, `requestListMeta`, `uploadMultipartData`, `uploadFormData`, `uploadRawData`, and `uploadFile`.
+| `AuthPolicy` | Access token | No token stored | On `401` |
+| --- | --- | --- | --- |
+| `inherit` (default) | Sent when stored | Request is sent without it | One shared refresh, then retry |
+| `none` | Never sent | Request is sent | Returned to the caller; no refresh |
+| `required` | Always sent | Fails before sending (`ApiFailureType.auth`) | One shared refresh, then retry |
 
-### **Auth policy per request**
-
-Every request method takes `authPolicy`:
-
-| `AuthPolicy` | Access token | On `401` |
-|--------------|--------------|----------|
-| `inherit` (default) | Sent when one is stored | Refresh once, retry (GET/PUT/DELETE; POST/PATCH with `allowRetryOn401`) |
-| `none` | Never sent | Returned to the caller, no refresh |
-| `required` | Mandatory; fails before sending when missing | Refresh once, retry |
+After a refresh, `GET`, `PUT`, and `DELETE` are retried automatically. `POST` and `PATCH` are
+retried only with `allowRetryOn401: true`; pair it with `idempotencyKey` when the server supports
+it.
 
 ```dart
-await netKitManager.requestModel<SessionModel>(
+final session = await manager.requestModel<Session>(
   path: '/auth/login',
   method: RequestMethod.post,
-  model: const SessionModel(),
-  body: credentials,
+  model: const Session(),
+  body: {'email': email, 'password': password},
   authPolicy: AuthPolicy.none,
 );
+manager
+  ..setAccessToken(session.accessToken)
+  ..setRefreshToken(session.refreshToken);
 ```
 
-Per-request `headers` override the stored headers, `timeout` (`NetKitTimeout`) overrides the
-manager-wide timeouts, and `cancellationToken` (`NetKitCancellationToken`) cancels the request;
-one token may be shared by several requests.
+Netkit holds the tokens in memory and attaches, refreshes, and clears them. It does not persist
+them. Store tokens with your application's secure-storage solution, restore them into
+`NetKitManager` when the app starts, and save refreshed tokens from `onTokenRefreshed`. Call
+`removeAccessToken()` and `removeRefreshToken()` when the user signs out.
 
-### **Session invalidation**
+### Refresh and session invalidation
 
-Only one event ends a session: **the refresh endpoint answering HTTP 401.** NetKit then clears the
-stored tokens, calls `onSessionInvalidated` once, and fails the waiting requests with
-`ApiFailureType.sessionInvalidated`. Sign the user out there.
+Set `refreshTokenPath` to enable refresh. Netkit posts the refresh token to that path, stores
+the new tokens, and retries the waiting requests.
 
-| Event | Session |
-|-------|---------|
-| An ordinary request returns 401 | Kept; one shared refresh and one retry |
-| Refresh endpoint returns 401 | **Ended**: tokens cleared, `onSessionInvalidated` called once |
-| Refresh fails offline, on DNS/TLS, by timeout, with `400`/`403`/`429`/`5xx`, or with a malformed or token-less response | Kept; the caller gets the real cause (`fromRefresh == true`) and the next 401 refreshes again |
+> **Only one event ends a session: the refresh endpoint answering HTTP `401`.**
+
+| Event | Result |
+| --- | --- |
+| An ordinary request returns `401` | Session kept; one shared refresh, then retry |
+| The refresh endpoint returns `401` | Session ended: tokens cleared, `onSessionInvalidated` called once |
+| Refresh fails offline, on DNS or TLS, by timeout or cancellation, with `429`, `5xx`, or another `4xx`, or returns a malformed or token-less response | Session kept; the caller gets the real cause with `fromRefresh == true`, and the next `401` refreshes again |
 
 ```dart
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
+final manager = NetKitManager(
+  baseUrl: 'https://api.example.com',
   refreshTokenPath: '/auth/refresh',
+  onTokenRefreshed: (tokens) => tokenStore.save(tokens),
   onSessionInvalidated: (exception) => authController.signOut(),
 );
 ```
 
-A network failure is never a sign-out signal. See
-[TOKEN_MANAGEMENT.md](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/TOKEN_MANAGEMENT.md#when-the-session-ends-and-when-it-does-not)
-for the complete rules.
+Sign the user out in `onSessionInvalidated`, not when a request fails. A network failure is
+never a sign-out signal. [TOKEN_MANAGEMENT.md](TOKEN_MANAGEMENT.md) covers the refresh request
+format, its configuration, and the complete rules.
 
-### **Advanced Examples**
+## Uploads and streaming
 
-For more detailed examples including pagination, error handling, and real-world use cases, see [EXAMPLES.md](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/EXAMPLES.md).
+### Request bodies
 
+| Body | Replayable | Memory |
+| --- | --- | --- |
+| `BytesRawHttpBody`, `StringRawHttpBody` | Yes | Buffered |
+| `FileRawHttpBody(path)` | Yes, reopened per attempt | Streamed from disk |
+| `ReplayableRawHttpBody(open: ..., contentLength: n)` | Yes, `open()` per attempt | Streamed |
+| `NetKitFormData` with `NetKitMultipartFile` parts | Yes | Streamed parts |
+| `StreamRawHttpBody(stream: ..., contentLength: n)` | No, single-shot | Streamed once |
 
-### **Setting Tokens**
+A replayable body can be sent again after a token refresh or a `307`/`308` redirect. A
+single-shot body cannot; such a request fails with `invalidRequest` instead of sending a partial
+payload.
 
-The **NetKitManager** allows you to set and manage access and refresh tokens, which are essential
-for
-authenticated API requests. Below are the methods provided to set, update, and remove tokens.
+### Large file uploads
 
-**Setting Access and Refresh Tokens**
-
-To set the access and refresh tokens, use the `setAccessToken` and `setRefreshToken` methods. The
-`accessToken` token will be added to the headers of every request made by the NetKitManager.
-Note: these should be set on every app launch or when the user logs in.
+`uploadFile` streams the file and sends its `Content-Length`; nothing is read into memory as a
+whole. After a refresh the file is reopened and sent again in full. Multipart parts created with
+`NetKitMultipartFile.fromPath` behave the same way.
 
 ```dart
-/// Your method to set the tokens
-void setTokens(String accessToken, String refreshToken) {
-  netKitManager.setAccessToken(accessToken);
-  netKitManager.setRefreshToken(refreshToken);
+await manager.uploadFile<VoidModel>(
+  path: '/videos/42/content',
+  model: VoidModel(),
+  filePath: filePath,
+  method: RequestMethod.put,
+  contentType: 'video/mp4',
+  onSendProgress: (sent, total) => print('$sent / $total'),
+);
+```
+
+### Streaming responses
+
+`send` buffers the response body, which suits API payloads. For large downloads,
+`sendStreamed` returns the status and headers first and the body as a back-pressured stream:
+
+```dart
+final RawHttpClient client = manager.transport;
+
+final response = await client.sendStreamed(
+  RawHttpRequest(uri: Uri.parse(downloadUrl), method: RawHttpMethod.get),
+);
+if (response.isSuccessful) {
+  await response.body.pipe(File(targetPath).openWrite());
+} else {
+  await response.body.drain<void>();
 }
 ```
 
-### **User Logout**
+Consume or cancel the body so the connection is released.
 
-When a user logs out, you should remove the access and refresh tokens using the `removeAccessToken`
-and `removeRefreshToken` methods.
+### Cancellation and progress
 
-**Example:**
+A `NetKitCancellationToken` cancels every request it is passed to, on both the manager and the
+raw client. `cancel()` is idempotent, and a token cancelled in advance stops a request before it
+is sent. `onSendProgress` and `onReceiveProgress` report `(count, total)`.
 
 ```dart
-/// Method to log out the user
-void logoutUser() {
-  netKitManager.removeAccessToken();
-  netKitManager.removeRefreshToken();
+final token = NetKitCancellationToken();
+final future = manager.requestList<Todo>(
+  path: '/todos',
+  method: RequestMethod.get,
+  model: const Todo(),
+  cancellationToken: token,
+);
+token.cancel(); // future fails with ApiFailureType.cancelled
+```
+
+## Raw HTTP and signed URLs
+
+`NetKitManager` provides application API semantics: base URL, models, envelopes, auth, refresh.
+`RawHttpClient` provides protocol-level HTTP on absolute URLs. It is the same `NetKitTransport`
+the manager sends through, used directly, so there is one transport, one set of body types, and
+one cancellation model.
+
+`RawHttpClient` does **not**:
+
+- attach the manager's headers or access token;
+- refresh tokens or retry;
+- follow redirects (unless `RawHttpRequest(followRedirects: true)`);
+- treat any status as an error. `3xx`, `401`, `404`, and `5xx` are returned as responses.
+
+It throws `RawHttpException` only for transport failures (`timeout`, `connection`, `tls`,
+`cancellation`, `invalidResponse`, `unknown`). URLs are sent byte for byte, so signed query
+strings stay intact.
+
+```dart
+final RawHttpClient client = manager.transport;
+
+final response = await client.send(
+  RawHttpRequest(
+    uri: Uri.parse(signedUploadUrl),
+    method: RawHttpMethod.put,
+    headers: {'Content-Type': 'application/octet-stream'},
+    body: FileRawHttpBody(filePath),
+  ),
+);
+if (!response.isSuccessful) {
+  // Interpret the status for your storage protocol, e.g. 308 for resumable uploads.
 }
 ```
 
-## **Token Management**
+## Security
 
-NetKitManager provides comprehensive token management including automatic refresh, secure storage, and RFC-compliant authentication flows.
+- **The API origin is a credential boundary.** An absolute `path` on another origin fails with
+  `invalidRequest` before anything is sent. With `allowCrossOriginRequests: true` it is sent, but
+  without the stored headers and access token.
+- **`AuthPolicy.required` never leaves the API origin.**
+- **Redirects are checked hop by hop.** The manager follows up to five redirects itself; a
+  redirect to another origin is blocked by default and, when allowed, followed without stored or
+  sensitive headers.
+- **The refresh request is pinned to the API origin**, regardless of `allowCrossOriginRequests`,
+  `onBeforeRefreshRequest`, interceptors, or redirects.
+- **The raw client has no auth state**, so a signed URL can never receive your access token.
+- **Development logs redact credentials** (see [Logging](#logging)).
 
-### **Quick Token Setup**
+**Web builds.** Browsers follow redirects inside `XMLHttpRequest`, so the redirect checks cannot
+run hop by hop on the web. Browsers implementing the current Fetch standard drop `Authorization`
+on cross-origin redirects, and a refresh response that arrived through a redirect is rejected.
+Custom credential headers and `307`/`308` bodies can still be forwarded by the browser to a
+cross-origin target that accepts the CORS preflight, so avoid open redirects on authenticated
+endpoints.
+
+## Logging
 
 ```dart
-final netKitManager = NetKitManager(
+final manager = NetKitManager(
   baseUrl: 'https://api.example.com',
-  refreshTokenPath: '/auth/refresh-token',
-  onTokenRefreshed: (authToken) async {
-    await secureStorage.saveTokens(
-      accessToken: authToken.accessToken,
-      refreshToken: authToken.refreshToken,
-    );
-  },
-);
-```
-
-### **Comprehensive Token Management**
-
-For detailed token management documentation including:
-- **RFC Compliance** (OAuth 2.0, Bearer Token, HTTP Authentication)
-- **Token Refresh Configuration** with advanced options
-- **Secure Token Storage** best practices
-- **Error Handling** for token operations
-- **Security Considerations** and best practices
-
-📋 **[View Complete Token Management Guide →](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/TOKEN_MANAGEMENT.md)**
-
-## **Logger Integration**
-
-The `NetKitManager` uses a logger internally, for example, during the refresh token stages. To add
-custom logging, you need to create a class that implements the `INetKitLogger` interface. Below is
-an example of how to create a `NetworkLogger` class:
-
-You can find the full example
-of
-`NetworkLogger` [here](https://github.com/behzodfaiziev/net-kit/blob/main/flutter_integration_test/lib/core/network/logger/network_logger.dart).
-
-```dart
-
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
-  devMode: true,
-  loggerEnabled: true,
-  logger: NetworkLogger(),
-  // ... other parameters
-);
-```
-
-**Note:** `loggerEnabled` and `logInterceptorEnabled` only take effect when `devMode` is `true`.
-Set `devMode` to `kDebugMode` (or similar) in development and keep it `false` in production.
-
-**Sensitive headers are redacted from HTTP logs.** When `logInterceptorEnabled` is `true`, Net-Kit
-registers `RedactingLogInterceptor`. It prints the request URL, method, status code, and headers,
-but the values of `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`,
-`Api-Key`, `X-Auth-Token`, `X-Refresh-Token`, `X-CSRF-Token`, `X-XSRF-Token`, and your
-`accessTokenHeaderKey` are replaced with `[REDACTED]`. Bodies are **not** printed unless you opt in
-with `logResponseBodies: true`. Add your own header names with `sensitiveHeaders`:
-
-```dart
-final netKitManager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
-  devMode: kDebugMode,
+  devMode: kDebugMode, // package:flutter/foundation.dart
   logInterceptorEnabled: true,
   sensitiveHeaders: const ['X-Tenant-Secret'],
 );
 ```
 
-What redaction does and does not cover:
+- Logging options take effect only when `devMode` is `true`. `devMode` also switches to
+  `devBaseUrl` when one is set, so keep it `false` in production.
+- The log interceptor prints method, URL, status, and headers. Values of `Authorization`,
+  `Cookie`, `Set-Cookie`, common API-key and token headers, your `accessTokenHeaderKey`, and
+  `sensitiveHeaders` are replaced with `[REDACTED]`. Credential-like query parameters (`token`,
+  `api_key`, `signature`, `X-Amz-Signature`, ...) are redacted too; add names with
+  `sensitiveQueryParameters`.
+- Bodies are not logged unless `logResponseBodies: true`.
+- Redaction works by name. A secret in a header or parameter it does not recognize is printed
+  as-is, so register custom names.
+- For internal events such as refresh stages, pass your own `INetKitLogger` with
+  `loggerEnabled: true`.
 
-- Header values in the sensitive set are redacted; other headers are printed as-is.
-- URLs are logged with the values of credential-like query parameters replaced by `[REDACTED]`:
-  `token`, `access_token`, `refresh_token`, `id_token`, `api_key`, `apikey`, `key`, `signature`,
-  `sig`, `X-Goog-Signature`, `X-Goog-Credential`, `X-Amz-Signature`, `X-Amz-Credential`,
-  `X-Amz-Security-Token`, `code`, `secret`, `client_secret`, `password`, and your
-  `accessTokenBodyKey` / `refreshTokenBodyKey`. Add names with `sensitiveQueryParameters`.
-  User-info (`user:password@`) is redacted too. Other parameters are logged as-is, so prefer
-  headers for secrets that are not on this list.
-- Request and response bodies are not logged by default. `logResponseBodies: true` prints them
-  (through the development log interceptor and as parsed data in the injected `logger`'s debug
-  messages). To log bodies with masking, register your own
-  `RedactingLogInterceptor(logBodies: true, bodySanitizer: mask)` in `interceptors`.
-- `loggerEnabled` and `logInterceptorEnabled` are ignored unless `devMode` is true.
-
-## **Architecture**
+## Architecture
 
 ```
 Application
-  ├─ NetKitManager            API client: base URL, models, dataKey, AuthPolicy,
-  │    └─ NetKitTransport     token refresh, origin + redirect policy, interceptors
-  └─ RawHttpClient            = NetKitTransport used directly: absolute URLs,
-       └─ NetKitTransport     streamed bodies and responses, no auth assumptions
-
-Transport adapters: DioNetKitTransport (default; `package:net_kit/net_kit_dio.dart`)
+    │
+    ├── NetKitManager ─────── base URL, models, envelopes, AuthPolicy,
+    │       │                 refresh, origin and redirect policy, interceptors
+    │       ▼
+    │   NetKitTransport ◄──── RawHttpClient (the same contract, used directly
+    │       │                 for absolute URLs; no auth, no retries)
+    │       ▼
+    └── DioNetKitTransport    default adapter
 ```
 
-`package:net_kit/net_kit.dart` exports only net_kit-owned types. `NetKitManager` *has* a
-transport; it is not an HTTP client itself. The default transport is Dio, but it is an adapter:
-pass any `NetKitTransport` to the constructor, and import `package:net_kit/net_kit_dio.dart` only
-when you need the Dio adapter or Dio types explicitly (for example to inject an `HttpClientAdapter`
-for a proxy or certificate pinning).
+Netkit's public API is transport-neutral. `NetKitManager` *has* a transport rather than being an
+HTTP client, and `package:net_kit/net_kit.dart` exports only Netkit-owned types, so application
+code never depends on Dio. Dio is the default adapter, not the architecture.
+
+| Import | Contains |
+| --- | --- |
+| `package:net_kit/net_kit.dart` | Everything above, as Netkit-owned types only |
+| `package:net_kit/net_kit_dio.dart` | `DioNetKitTransport` and a re-export of `package:dio` |
+
+### Using the Dio adapter
+
+Most applications do not import `net_kit_dio.dart`. Import it to configure the Dio adapter, for
+example a custom `HttpClientAdapter` for a proxy or certificate pinning, or to create a raw
+client without a manager:
 
 ```dart
 import 'package:net_kit/net_kit.dart';
 import 'package:net_kit/net_kit_dio.dart';
 
 final manager = NetKitManager(
-  baseUrl: 'https://api.<URL>.com',
-  transport: DioNetKitTransport(httpClientAdapter: myAdapter), // optional
-  timeout: const NetKitTimeout(connect: Duration(seconds: 10)),
-  headers: {'Accept-Language': 'en'},
+  baseUrl: 'https://api.example.com',
+  transport: DioNetKitTransport(httpClientAdapter: myAdapter),
 );
 ```
 
-## **Raw HTTP transport**
+Any `NetKitTransport` implementation can be passed as `transport`. A transport you inject is not
+closed by `manager.dispose()`.
 
-`NetKitManager` is the API/model-oriented HTTP client: JSON envelopes, `INetKitModel`,
-`dataKey`, authentication, and token refresh.
+### Interceptors
 
-`RawHttpClient` is the same `NetKitTransport` contract used directly. It does not attach
-authorization, does not refresh tokens, does not retry, does not follow redirects, and does not
-treat non-2xx statuses as errors. Use it for header-driven protocols on absolute URLs (for example
-a resumable upload session on a signed storage URL) and interpret statuses such as 308, 404, or 410
-in your own protocol layer.
-
-The transport owned by a manager carries none of the manager's state, so it doubles as the raw
-client; or construct one explicitly from the Dio entrypoint.
-
-```dart
-final RawHttpClient client = manager.transport;
-// or: import 'package:net_kit/net_kit_dio.dart'; final RawHttpClient client = DioNetKitTransport();
-
-final file = File(filePath);
-final response = await client.send(
-  RawHttpRequest(
-    uri: Uri.parse(uploadUrl),
-    method: RawHttpMethod.put,
-    headers: {'Content-Type': 'application/octet-stream'},
-    body: FileRawHttpBody(file.path),
-  ),
-);
-
-print(response.statusCode);
-```
-
-### **Security model**
-
-The transport is deliberately dumb so that it is safe to point at any host:
-
-- It sends exactly the headers you pass plus `Content-Length` for streamed and byte bodies. No
-  `Authorization`, no implied `Content-Type`.
-- Every HTTP status, including `3xx`, `401`, `403`, `404`, `409`, `429`, `500`, and `503`, is
-  returned as a `RawHttpResponse`. It never refreshes tokens and never retries.
-- Only transport failures throw `RawHttpException`, classified as `timeout`, `connection` (DNS,
-  socket), `tls` (certificate), `cancellation`, `invalidResponse`, or `unknown`.
-- The URL is sent byte for byte, so percent-encoded signed query strings are preserved.
-- Redirects are not followed unless `RawHttpRequest(followRedirects: true)`; the underlying HTTP
-  client may forward all headers when it follows redirects, so keep the default for signed URLs.
-
-### **Methods, cancellation, and progress**
-
-`RawHttpMethod` covers `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
-
-`NetKitCancellationToken` (the same type `NetKitManager` uses; `RawHttpCancellationToken` is an
-alias) can be shared by several in-flight requests. `cancel()` is idempotent, cancels every bound
-request, and a cancelled token passed to a new request cancels it before anything is sent.
-Requests release their binding when they finish, so nothing leaks through a long-lived token.
-Progress callbacks (`NetKitProgressCallback`) report `(count, total)` for uploads and downloads.
-
-```dart
-final token = NetKitCancellationToken();
-
-final upload = client.send(
-  RawHttpRequest(
-    uri: Uri.parse(uploadUrl),
-    method: RawHttpMethod.put,
-    headers: {'Content-Type': 'application/octet-stream'},
-    body: FileRawHttpBody(filePath),
-    cancellationToken: token,
-    timeout: const NetKitTimeout(send: Duration(minutes: 5)),
-    onSendProgress: (sent, total) => print('$sent / $total'),
-  ),
-);
-
-// Later, e.g. from a cancel button:
-token.cancel();
-```
-
-`response.header(name)` returns the first value; `response.headerValues(name)` returns every
-value (for example `Set-Cookie`). `contentLength` and `isSuccessful` are available on both
-buffered and streamed responses.
-
-### **Large file uploads**
-
-Request bodies are either replayable or single-shot:
-
-| Body | Replayable | Memory |
-|------|------------|--------|
-| `BytesRawHttpBody`, `StringRawHttpBody` | yes | in memory |
-| `FileRawHttpBody(path)` | yes, reopened per attempt | streamed from disk |
-| `ReplayableRawHttpBody(open: () => stream, contentLength: n)` | yes, `open()` per attempt | streamed |
-| `NetKitFormData` with `NetKitMultipartFile` parts | yes | streamed parts |
-| `StreamRawHttpBody(stream: s, contentLength: n)` | no | streamed once |
-
-`NetKitManager.uploadFile` streams the file with `File.openRead()` and sends `Content-Length`
-from `File.length()`. If the request is retried after a token refresh, the file is reopened and
-sent again in full. `uploadFormData` / `uploadMultipartData` behave the same for every file part
-created with `NetKitMultipartFile.fromPath` or `fromStream`. Nothing is read into memory as a
-whole, whatever the file size.
-
-### **Streaming responses**
-
-`send` buffers the whole response body (`bodyBytes`), which is right for API payloads. For large
-downloads use `sendStreamed`: the status and headers arrive first and the body is a
-back-pressured `Stream<List<int>>` that honours the cancellation token.
-
-```dart
-final response = await client.sendStreamed(
-  RawHttpRequest(uri: Uri.parse(downloadUrl), method: RawHttpMethod.get),
-);
-if (response.isSuccessful) {
-  await response.body.pipe(File(target).openWrite());
-}
-```
-
-Consume the body to completion or cancel it so the connection is released.
-
-### **Origin and redirect policy**
-
-`NetKitManager` treats the origin of `baseUrl` (or `devBaseUrl` in dev mode) as a trust boundary:
-
-- A `path` that is an absolute URL on another origin fails with
-  `ApiException(type: invalidRequest)` carrying `crossOriginRequestBlockedError` before anything
-  is sent. Opt in with `allowCrossOriginRequests: true`; such requests are then sent **without**
-  the stored headers and access token (per-request headers are kept).
-- The manager follows up to five redirects itself. Same-origin redirects keep headers; `303` and
-  `301`/`302` after a `POST` become body-less `GET`; `307`/`308` keep the method and a replayable
-  body. A redirect to another origin is blocked by default and, when allowed, is followed without
-  stored or sensitive headers.
-- `AuthPolicy.required` cannot target another origin.
-- The refresh request never leaves the API origin, regardless of `allowCrossOriginRequests`,
-  `onBeforeRefreshRequest`, interceptors, or redirects.
-- If an interceptor rewrites a request to another origin, the same rules apply: blocked by
-  default, and sent without stored or sensitive headers when allowed.
-
-Signed storage URLs belong on the transport (`RawHttpClient`), which has no credentials to leak.
-
-**Web builds.** Browsers follow redirects inside `XMLHttpRequest` and do not let the application
-see or stop them, so the redirect rules above cannot be applied hop by hop on the web. What still
-holds there: browsers that implement the current Fetch standard drop `Authorization` when a
-redirect crosses origins; a refresh
-response that came from a redirect is rejected rather than trusted; and requests that the manager
-blocks by origin are blocked before the browser is involved. What does not hold: custom headers
-(for example `X-Api-Key`) and a `307`/`308` request body can be forwarded by the browser to a
-cross-origin redirect target if that target accepts the CORS preflight. Only your API server can
-issue such a redirect, so avoid open redirects on authenticated and refresh endpoints.
-
-### **Interceptors**
-
-`NetKitInterceptor` is the application hook. It sees the final `RawHttpRequest` (absolute URL,
-merged headers after the auth policy) before each transport attempt, the raw response, and the
-`ApiException` a request is about to throw.
+`NetKitInterceptor` sees the final `RawHttpRequest` before each attempt, the raw response, and
+any `ApiException` before it is thrown. Auth, refresh, and origin checks run in the manager;
+interceptors observe or adjust their result, and the origin rules still apply to any URL an
+interceptor rewrites.
 
 ```dart
 class TraceInterceptor extends NetKitInterceptor {
   const TraceInterceptor();
 
   @override
-  RawHttpRequest onRequest(RawHttpRequest request) {
-    return request.copyWith(headers: {...request.headers, 'X-Trace': newTraceId()});
-  }
-
-  @override
-  ApiException onError(RawHttpRequest? request, ApiException error) {
-    metrics.count(error.type);
-    return error;
-  }
+  RawHttpRequest onRequest(RawHttpRequest request) =>
+      request.copyWith(headers: {...request.headers, 'X-Trace': newTraceId()});
 }
-
-final manager = NetKitManager(baseUrl: url, interceptors: const [TraceInterceptor()]);
 ```
 
-Auth injection, token refresh, origin checks, and error mapping are done by `NetKitManager`;
-interceptors observe or adjust their result.
+## Netkit MCP
 
-# Migration Guidance
+[`flutter-net-kit-mcp`](https://www.npmjs.com/package/flutter-net-kit-mcp) is an optional,
+read-only [Model Context Protocol](https://modelcontextprotocol.io) server for working with
+Netkit in MCP-compatible editors and assistants. It can:
 
-➡️ For detailed upgrade steps and breaking changes, see the full [Migration Guide](https://github.com/behzodfaiziev/net-kit/blob/main/packages/net-kit/MIGRATION.md).
+- answer questions from the Netkit API and documentation for a specific version;
+- recommend request, auth, upload, and streaming patterns;
+- review an authorized Dart/Flutter workspace for Netkit-specific auth, refresh, upload,
+  streaming, and 5.x → 6.0 migration issues;
+- suggest changes without modifying any file.
 
-## **Feature Status**
+Knowledge-only mode, with no project access:
 
-| *Feature*                                                   | *Status* |
-|:------------------------------------------------------------|:--------:|
-| Internationalization support for error messages             |    ✅     |
-| No internet connection handling                             |    ✅     |
-| Basic examples and documentation                            |    ✅     |
-| Comprehensive examples and use cases                        |    ✅     |
-| MultiPartFile upload support                                |    ✅     |
-| FormData upload support                                     |    ✅     |
-| Refresh Token implementation (RFC 6749/6750 compliant)     |    ✅     |
-| Customizable logging with log levels                        |    ✅     |
-| Automatic token-refresh for 401 (single-flight)              |    ✅     |
-| POST/PATCH blocked from auto-retry unless opted in           |    ✅     |
-| `AuthPolicy` / `allowRetryOn401` / `idempotencyKey`          |    ✅     |
-| Comprehensive test coverage                                 |    ✅     |
-| Authentication and token management                         |    ✅     |
-| DataKey configuration with per-request override            |    ✅     |
-| Pagination support with metadata                            |    ✅     |
-| Service layer pattern examples                              |    ✅     |
-| Repository pattern examples                                 |    ✅     |
-| Error handling strategies                                   |    ✅     |
-| File upload with wrapper patterns                           |    ✅     |
-| Token management documentation                              |    ✅     |
-| Transport abstraction (`NetKitTransport`, Dio adapter)       |    ✅     |
-| Isolated raw HTTP transport (`RawHttpClient`)               |    ✅     |
-| Streamed request bodies and streamed responses              |    ✅     |
-| Replayable file uploads across token refresh                |    ✅     |
-| API-origin enforcement and safe redirects                   |    ✅     |
+```bash
+npx -y flutter-net-kit-mcp@next --no-workspace
+```
 
-## **Contributing**
+It works with any standards-compliant MCP client. For example, in Claude Code:
 
-Contributions are welcome! Please open an [issue](https://github.com/behzodfaiziev/net-kit/issues)
-or submit a [pull request](https://github.com/behzodfaiziev/net-kit/pulls).
+```bash
+claude mcp add net-kit -- npx -y flutter-net-kit-mcp@next
+```
 
-Run the deterministic test suite with `dart test --exclude-tags live`. Tests tagged `live` call
-public third-party APIs and can be run separately with `dart test --tags live`.
+The server is a separate Node.js developer tool. Netkit does not depend on it, does not call
+any AI service, and never sends your source code anywhere.
 
-## **License**
+## Migrating from 5.x
 
-This project is licensed under the MIT License.
+6.0 is a major release. The main changes:
+
+- `package:net_kit/net_kit.dart` no longer exposes Dio types; Dio lives in `net_kit_dio.dart`.
+- `AuthPolicy` replaces `containsAccessToken` and `skipTokenRefresh`.
+- `NetKitManager` composes a `NetKitTransport`; `RawHttpClient` is that contract used directly.
+- `NetKitCancellationToken`, `NetKitProgressCallback`, and `NetKitTimeout` replace Dio's
+  equivalents; uploads take `NetKitFormData` and `NetKitMultipartFile`.
+- Uploads stream from disk and replay after a refresh.
+- `onSessionInvalidated` replaces `onRefreshFailed`, with the session rules above.
+- Cross-origin requests are blocked by default.
+
+[MIGRATION.md](MIGRATION.md) has the full breaking-change ledger and before/after examples.
+
+## Documentation
+
+| Guide | Covers |
+| --- | --- |
+| [EXAMPLES.md](EXAMPLES.md) | Service and repository layers, pagination, uploads, error handling |
+| [TOKEN_MANAGEMENT.md](TOKEN_MANAGEMENT.md) | Authentication, refresh configuration, session rules |
+| [MIGRATION.md](MIGRATION.md) | Upgrading from 5.x to 6.0 and earlier versions |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+| [API reference](https://pub.dev/documentation/net_kit/latest/) | Generated Dart API documentation |
+
+## Contributing
+
+Issues and pull requests are welcome on
+[GitHub](https://github.com/behzodfaiziev/net-kit/issues). Run the deterministic test suite with
+`dart test --exclude-tags live`; tests tagged `live` call public third-party APIs.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
